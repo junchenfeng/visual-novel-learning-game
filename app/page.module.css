@@ -1,0 +1,247 @@
+.catalog {
+  min-height: 100dvh;
+  padding: 32px 20px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.hero h1 {
+  font-size: clamp(28px, 5vw, 42px);
+  margin-bottom: 8px;
+}
+
+.hero p,
+.empty {
+  max-width: 40rem;
+  line-height: 1.7;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 220px));
+  gap: 28px;
+}
+
+.poetCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 16px 24px;
+  border: 2px solid #2c2416;
+  background: #f4ead5;
+  box-shadow: 6px 8px 0 rgba(44, 36, 22, 0.12);
+  text-align: center;
+}
+
+.poetCardReady {
+  background: #fff6de;
+  box-shadow: 8px 10px 0 rgba(111, 48, 48, 0.28);
+}
+
+.poetCardLocked {
+  opacity: 0.48;
+  filter: grayscale(0.7);
+  box-shadow: none;
+}
+
+.poetStatus {
+  font-size: 13px;
+  letter-spacing: 0.12em;
+}
+
+.shelfHint {
+  margin-top: 8px;
+  font-size: 14px;
+  opacity: 0.78;
+}
+
+.avatar {
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #2c2416;
+  background: #fffaf0;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.poetName {
+  font-size: 22px;
+}
+
+.shelfPage {
+  gap: 32px;
+}
+
+.shelfNav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.back {
+  border: 1px solid #2c2416;
+  background: #f7efdc;
+  padding: 8px 14px;
+}
+
+.shelf {
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+  min-height: 280px;
+  padding: 28px 24px 0;
+  border-bottom: 14px solid #6f3030;
+  background:
+    linear-gradient(#d9c7a1, #d9c7a1) padding-box,
+    repeating-linear-gradient(
+      90deg,
+      #cbb58a,
+      #cbb58a 18px,
+      #c3ad82 18px,
+      #c3ad82 20px
+    );
+}
+
+.book {
+  width: 72px;
+  min-height: 210px;
+  padding: 18px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  letter-spacing: 0.18em;
+  border: 2px solid #2c2416;
+  background: #6f3030;
+  color: #f7efdc;
+  font-size: 18px;
+  box-shadow: 4px 0 0 rgba(44, 36, 22, 0.2);
+}
+
+.book:nth-child(even) {
+  background: #2c4a3a;
+  min-height: 230px;
+}
+
+.bookReady {
+  outline: 3px solid #c45c26;
+  outline-offset: 2px;
+}
+
+.bookLocked {
+  background: #b7b1a4 !important;
+  color: #6f6a60;
+  border-color: #8d877c;
+  box-shadow: none;
+  min-height: 196px;
+  cursor: not-allowed;
+}
+
+.bookWrap {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.packSwitcher {
+  position: relative;
+}
+
+.packSwitcherBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #c7b299;
+  background: #fff8e7;
+  color: #5a4a32;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.packSwitcherBtn:hover {
+  background: #f0e4cc;
+}
+
+.packSwitcherLabel {
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.packMenuBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.packMenu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 140px;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid #d9c7a8;
+  background: #fffaed;
+  box-shadow: 0 8px 24px rgba(60, 40, 10, 0.15);
+  list-style: none;
+  z-index: 50;
+}
+
+.packMenuItem {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  color: #4a3c28;
+  cursor: pointer;
+  text-align: left;
+}
+
+.packMenuItem:hover {
+  background: #f0e4cc;
+}
+
+.packMenuItemActive {
+  background: #ead9b8;
+  color: #2c2416;
+  font-weight: 600;
+}
+
+.packMenuItemVersion {
+  font-size: 11px;
+  color: #8a7b62;
+  flex-shrink: 0;
+}
+
+@media (max-width: 700px) {
+  .shelf {
+    overflow-x: auto;
+  }
+
+  .book {
+    flex: 0 0 auto;
+  }
+}

@@ -1,0 +1,165 @@
+.screen {
+  height: 100%;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 28px 22px max(36px, env(safe-area-inset-bottom));
+  color: #f8edda;
+  background: #1f2830;
+}
+
+.intro {
+  background:
+    linear-gradient(180deg, rgba(10, 17, 23, 0.08), rgba(10, 17, 23, 0.9)),
+    radial-gradient(circle at 72% 18%, #9da6a0 0 8%, transparent 20%),
+    linear-gradient(155deg, #344652, #172129 58%, #0e151a);
+}
+
+.transition {
+  color: #2c2416;
+  background:
+    linear-gradient(180deg, rgba(251, 246, 232, 0.15), rgba(238, 221, 185, 0.94)),
+    #d8c398;
+}
+
+.sky {
+  position: absolute;
+  inset: 0;
+}
+
+.moon {
+  position: absolute;
+  top: 12%;
+  right: 14%;
+  width: 112px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #f5e6bc;
+  box-shadow: 0 0 52px rgba(245, 230, 188, 0.38);
+  opacity: 0;
+  transform: scale(0.72);
+  animation: gate-moon-in 1.2s ease-out forwards;
+}
+
+.transition .moon {
+  background: rgba(111, 48, 48, 0.12);
+  box-shadow: none;
+}
+
+.cloud {
+  position: absolute;
+  top: 32%;
+  left: -12%;
+  width: 76%;
+  height: 74px;
+  border: 1px solid rgba(248, 237, 218, 0.18);
+  border-width: 1px 0;
+  border-radius: 50%;
+  transform: rotate(-8deg);
+  animation: gate-cloud-drift 7s ease-in-out infinite;
+}
+
+.transition .cloud {
+  border-color: rgba(44, 36, 22, 0.12);
+}
+
+.card {
+  position: relative;
+  z-index: 1;
+  padding: 24px 20px 20px;
+  border: 1px solid rgba(248, 237, 218, 0.42);
+  background: rgba(12, 19, 24, 0.72);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+  opacity: 0;
+  transform: translateY(24px);
+  animation: gate-card-in 0.55s ease-out 0.25s forwards;
+}
+
+.transition .card {
+  border-color: rgba(44, 36, 22, 0.26);
+  background: rgba(255, 250, 240, 0.76);
+  box-shadow: 0 18px 48px rgba(76, 54, 23, 0.12);
+}
+
+.eyebrow {
+  margin-bottom: 10px;
+  font-size: var(--type-kicker, 12px);
+  letter-spacing: 0.24em;
+  opacity: 0.72;
+}
+
+.narrative {
+  font-size: var(--type-title, clamp(20px, 6cqw, 25px));
+  line-height: 1.8;
+}
+
+.continue {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 22px;
+  padding: 10px 14px;
+  border: 1px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.continue:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.transition .continue:hover {
+  background: rgba(44, 36, 22, 0.06);
+}
+
+.hint {
+  position: relative;
+  z-index: 1;
+  margin-top: 14px;
+  text-align: center;
+  font-size: var(--type-caption, 12px);
+  letter-spacing: 0.08em;
+  opacity: 0.62;
+}
+
+@keyframes gate-moon-in {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes gate-card-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gate-cloud-drift {
+  0%,
+  100% {
+    transform: rotate(-8deg) translateX(0);
+  }
+  50% {
+    transform: rotate(-8deg) translateX(18px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .moon,
+  .cloud,
+  .card {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

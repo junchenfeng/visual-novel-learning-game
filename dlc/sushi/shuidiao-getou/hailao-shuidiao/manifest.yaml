@@ -1,0 +1,33 @@
+schemaVersion: 1
+id: hailao-shuidiao
+version: "1.0.0"
+title: 水调歌头
+author: 海狸老师
+poet: 苏轼
+poetId: sushi
+workTitle: 水调歌头·明月几时有
+summary: 穿越到北宋熙宁九年的中秋夜，走进苏轼思念弟弟苏辙的心情，读懂这首千古名词。
+startStoryNodeId: ch1_open
+classroom:
+  teacher: teacher
+  classmate: classmate
+  student: student
+files:
+  story: content/story.yaml
+  poem: content/poem.yaml
+  quiz: content/quiz.yaml
+characters:
+  - id: sushi
+    name: 苏轼
+  - id: suzhe
+    name: 苏辙
+  - id: anshi
+    name: 王安石
+  - id: moon
+    name: 中秋月
+  - id: teacher
+    name: 老师
+  - id: classmate
+    name: 何解
+  - id: student
+    name: 你
