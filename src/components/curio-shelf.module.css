@@ -456,7 +456,22 @@
 
 /* 可用书效果 */
 .bookReady {
-  /* 已通过 book-color 体现，不需要额外描边 */
+  box-shadow:
+    0 0 0 1px rgba(184, 134, 11, 0.55),
+    0 0 12px rgba(184, 134, 11, 0.22),
+    2px 3px 6px rgba(44, 36, 22, 0.2);
+}
+
+.readyCaption {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: #a63232;
+  border: 1px solid #a63232;
+  padding: 1px 7px;
+  background: rgba(255, 250, 230, 0.92);
+  writing-mode: horizontal-tb;
+  line-height: 1.4;
 }
 
 /* 锁定书 */
@@ -510,6 +525,27 @@
   width: 100%;
   height: 100%;
   justify-content: center;
+}
+
+.bookHit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.bookHit:hover .book {
+  transform: translateY(-4px);
+}
+
+.bookHit:hover .inkGlow {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
 }
 
 .packSwitcher {

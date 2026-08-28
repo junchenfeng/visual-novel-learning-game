@@ -1,9 +1,14 @@
-import { assign, setup } from "xstate";
+import { and, assign, setup } from "xstate";
 import type { TeacherFeedback } from "../server/ai/AIProvider";
-import { isChoiceQuestion, isOpenQuestion, optionLabel } from "../dlc/quizHelpers";
+import {
+  isChoiceQuestion,
+  isOpenQuestion,
+  optionFeedback,
+  optionLabel,
+} from "../dlc/quizHelpers";
 import type { CompiledDlc, StoryNode } from "../dlc/schema";
 
-export type PendingPhase = "story" | "poem" | "lessonTransition" | "summary";
+export type PendingPhase = "story" | "poem" | "easterEgg" | "lessonTransition" | "summary";
 
 export type AnswerRecord = {
   questionId: string;
@@ -34,6 +39,8 @@ export type GameContext = {
 export type GameEvent =
   | { type: "BEGIN_STORY" }
   | { type: "CONTINUE" }
+  | { type: "ENTER_EASTER_EGG" }
+  | { type: "EASTER_EGG_DONE" }
   | { type: "CHOOSE"; choiceId: string }
   | { type: "REPLAY_CHOICE" }
   | { type: "TRANSITION_DONE" }
@@ -70,21 +77,22 @@ function choiceFeedback(
     throw new Error("当前题目不是选择题");
   }
   const selected = optionLabel(question, optionId);
+  const spoken = optionFeedback(question, optionId);
   const correct = optionLabel(question, question.correctOptionId);
-  const classmate = optionLabel(question, question.classmateOptionId);
   const assessment: TeacherFeedback["assessment"] =
     optionId === question.correctOptionId ? "correct" : "incorrect";
+  const classmateAnalysis = question.hint
+    ? question.hint.isCorrect
+      ? `何解的 HINT 方向是对的。`
+      : `何解的 HINT 说岔了。`
+    : "这道题何解没有提前发言。";
   return {
     answer: selected,
     feedback: {
       assessment,
-      classmateAnalysis:
-        question.classmateOptionId === question.correctOptionId
-          ? `何解选对了：${classmate}`
-          : `何解选了「${classmate}」，这不是最准确的答案。`,
-      studentFeedback:
-        assessment === "correct" ? "你选对了。" : `你选了「${selected}」。正确答案是「${correct}」。`,
-      explanation: question.explanation,
+      classmateAnalysis,
+      studentFeedback: spoken,
+      explanation: spoken,
       evidence: `正确答案是「${correct}」。`,
       encouragement: assessment === "correct" ? "很好，继续下一题。" : "记住这个知识点，继续往下。",
     },
@@ -102,6 +110,11 @@ export const gameMachine = setup({
       const type = getCurrentNode(context).type;
       return type === "narration" || type === "fact";
     },
+    isStoryEnd: ({ context }) => {
+      const node = getCurrentNode(context);
+      return (node.type === "narration" || node.type === "fact") && !node.nextNodeId;
+    },
+    hasEasterEgg: ({ context }) => Boolean(context.dlc.manifest.easterEgg),
     isChoice: ({ context }) => getCurrentNode(context).type === "choice",
     isGameOver: ({ context }) => getCurrentNode(context).type === "gameOver",
     isOpenQuestion: ({ context }) => isOpenQuestion(currentQuestion(context)),
@@ -110,8 +123,19 @@ export const gameMachine = setup({
       context.lineIndex < context.dlc.poem.lines.length - 1,
     hasMoreQuestions: ({ context }) =>
       context.questionIndex < context.dlc.quiz.questions.length - 1,
+    canAdvanceQuestion: ({ context }) => {
+      const question = currentQuestion(context);
+      if (isChoiceQuestion(question)) {
+        return context.teacherFeedback?.assessment === "correct";
+      }
+      return true;
+    },
+    choiceAnswerIncorrect: ({ context }) =>
+      isChoiceQuestion(currentQuestion(context)) &&
+      context.teacherFeedback?.assessment === "incorrect",
     pendingIsStory: ({ context }) => context.pendingPhase === "story",
     pendingIsPoem: ({ context }) => context.pendingPhase === "poem",
+    pendingIsEasterEgg: ({ context }) => context.pendingPhase === "easterEgg",
     pendingIsLessonTransition: ({ context }) =>
       context.pendingPhase === "lessonTransition",
   },
@@ -124,6 +148,14 @@ export const gameMachine = setup({
         pendingNodeId: nextId ?? null,
         pendingPhase: (nextId ? "story" : "poem") as PendingPhase,
       };
+    }),
+    queueEasterEgg: assign({
+      pendingNodeId: null,
+      pendingPhase: "easterEgg" as PendingPhase,
+    }),
+    queueEasterEggToPoem: assign({
+      pendingNodeId: null,
+      pendingPhase: "poem" as PendingPhase,
     }),
     queueChoice: assign(({ context, event }) => {
       if (event.type !== "CHOOSE") {
@@ -185,7 +217,7 @@ export const gameMachine = setup({
         teacherFeedback: graded.feedback,
         teacherError: null,
         answers: [
-          ...context.answers,
+          ...context.answers.filter((item) => item.questionId !== question.id),
           {
             questionId: question.id,
             answer: graded.answer,
@@ -218,6 +250,11 @@ export const gameMachine = setup({
     saveTeacherError: assign(({ event }) => ({
       teacherError: event.type === "TEACHER_ERROR" ? event.message : "讲解失败",
     })),
+    clearQuizAttempt: assign({
+      studentAnswer: "",
+      teacherFeedback: null,
+      teacherError: null,
+    }),
     advanceQuestion: assign(({ context }) => ({
       questionIndex: context.questionIndex + 1,
       studentAnswer: "",
@@ -269,6 +306,11 @@ export const gameMachine = setup({
           target: "pageTransition",
           actions: "queueNextStoryNode",
         },
+        ENTER_EASTER_EGG: {
+          guard: and(["isStoryEnd", "hasEasterEgg"]),
+          target: "pageTransition",
+          actions: "queueEasterEgg",
+        },
         CHOOSE: {
           guard: "isChoice",
           target: "pageTransition",
@@ -285,6 +327,11 @@ export const gameMachine = setup({
       on: {
         TRANSITION_DONE: [
           { guard: "pendingIsStory", target: "story", actions: "applyPendingNode" },
+          {
+            guard: "pendingIsEasterEgg",
+            target: "easterEgg",
+            actions: "clearPending",
+          },
           { guard: "pendingIsPoem", target: "poem", actions: "clearPending" },
           {
             guard: "pendingIsLessonTransition",
@@ -293,6 +340,14 @@ export const gameMachine = setup({
           },
           { target: "summary", actions: "clearPending" },
         ],
+      },
+    },
+    easterEgg: {
+      on: {
+        EASTER_EGG_DONE: {
+          target: "pageTransition",
+          actions: "queueEasterEggToPoem",
+        },
       },
     },
     lessonTransition: {
@@ -333,9 +388,19 @@ export const gameMachine = setup({
         },
         success: {
           on: {
+            RETRY: {
+              guard: "choiceAnswerIncorrect",
+              target: "idle",
+              actions: "clearQuizAttempt",
+            },
             NEXT_QUESTION: [
-              { guard: "hasMoreQuestions", target: "idle", actions: "advanceQuestion" },
               {
+                guard: and(["canAdvanceQuestion", "hasMoreQuestions"]),
+                target: "idle",
+                actions: "advanceQuestion",
+              },
+              {
+                guard: "canAdvanceQuestion",
                 target: "#poemGame.pageTransition",
                 actions: "queueQuizToSummary",
               },

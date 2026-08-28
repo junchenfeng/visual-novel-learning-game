@@ -33,6 +33,12 @@
   padding: 16px 20px 0;
 }
 
+.progressWrap {
+  position: relative;
+  z-index: 1;
+  padding: 8px 20px 0;
+}
+
 .kicker {
   letter-spacing: 0.22em;
   font-size: var(--type-kicker, 13px);
@@ -155,11 +161,10 @@
     rgba(16, 20, 28, 0.94);
   position: relative;
   max-height: 62%;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .dialogue::before {
@@ -176,6 +181,22 @@
   top: -8px;
   border: 6px solid transparent;
   border-bottom-color: rgba(16, 20, 28, 0.94);
+}
+
+.dialogueBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dialogueBody::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .dialogue[data-speaker="teacher"]::before,
@@ -362,14 +383,16 @@
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 6px;
+  margin-top: 4px;
+  flex-shrink: 0;
 }
 
 .choices {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 8px;
+  margin-top: 4px;
+  flex-shrink: 0;
 }
 
 .choice {
@@ -465,6 +488,10 @@
 @container game (max-width: 800px) {
   .header {
     padding: max(10px, env(safe-area-inset-top)) 14px 0;
+  }
+
+  .progressWrap {
+    padding: 6px 14px 0;
   }
 
   .header h1 {

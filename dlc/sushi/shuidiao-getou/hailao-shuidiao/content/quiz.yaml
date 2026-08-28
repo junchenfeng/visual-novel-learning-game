@@ -1,40 +1,66 @@
 schemaVersion: 1
 gradingPrompt: |
-  本课围绕苏轼《水调歌头》的写作时间和主题。
-  填空优先看学生是否理解离合难全，以及最后仍有祝福。
+  本课围绕苏轼《水调歌头》的写作背景、重点字词和主题。
+  填空若出现，优先看学生是否理解离合难全，以及最后仍有祝福。
   不要因为剧情选择不同而改变评价。用适合 10 到 12 岁的话解释，不要嘲讽。
 summaryPrompt: |
   请根据本课作答，写一段给 10 到 12 岁学生的总评。
-  先肯定他认真读词、走进苏轼的故事；再点出还不清楚的地方；最后用“但愿人长久，千里共婵娟”收束鼓励。
+  先肯定他认真读词、走进苏轼的故事；再点出还不清楚的地方（分开的原因、婵娟、难全与祝福）；最后用“但愿人长久，千里共婵娟”收束鼓励。
 questions:
-  - id: q_year_place
+  - id: q_separate
     type: choice
-    prompt: 苏轼写这首《水调歌头》时，大约是在哪一年、哪个地方？
+    prompt: 苏轼和苏辙从小几乎形影不离。后来他们分开、好几年见不了面，主要是因为什么？
+    feedbackSpeaker: teacher
     options:
-      - id: hangzhou_yuanfeng
-        label: 元丰二年在杭州
-      - id: mizhou_xining
-        label: 熙宁九年在密州
-      - id: huangzhou_yuanfeng
-        label: 元丰三年在黄州
-    correctOptionId: mizhou_xining
-    classmateOptionId: hangzhou_yuanfeng
-    explanation: 苏轼写《水调歌头》是在熙宁九年（1076）中秋，当时他在密州做官。元丰二年在杭州、元丰三年在黄州，都是常见的记混。
+      - id: wutai_huangzhou
+        label: 苏轼因为「乌台诗案」被贬到黄州，所以见不到苏辙。
+        feedback: 黄州那一贬是后话。写这首词的时候，苏轼还在密州，乌台诗案还没发生。分开的起因更早：变法争论之后，他离开京城到外地做官，和弟弟越走越远。
+      - id: reform_exile
+        label: 苏轼不同意王安石变法来得太急，离开京城到地方做官；苏辙也在别处任职，兄弟越离越远。
+        feedback: 对。不是他们不亲，是政见把人推到了不同的地方。苏轼担心新法改得太快、地方上会伤到百姓，和王安石合不来，后来离开京城；苏辙也不在他身边。到密州中秋，已经七年没见面。这份想念，才写进《水调歌头》。
+      - id: brothers_quarrel
+        label: 兄弟俩吵架了，谁也不想见谁。
+        feedback: 他们没有绝交。苏轼外放、苏辙在别处做官，路途远、书信慢，想见一面很难。词里写「兼怀子由」，是想念，不是赌气。
+    correctOptionId: reform_exile
     contextRefs:
+      - ch2_open
+      - ch2_fact_reform
       - ch3_open
-      - ch3_b
+  - id: q_chanjuan
+    type: choice
+    prompt: 词的最后一句「但愿人长久，千里共婵娟。」这里的「婵娟」指的是什么？
+    feedbackSpeaker: classmate
+    options:
+      - id: beauty
+        label: 美丽的女子。这个词本来也可以形容美好的容貌。
+        feedback: 哈哈，中计！平时说婵娟，是可以说美丽的女子。可苏轼写的是「千里共婵娟」，共的是天上那一轮，不是共一个美人。这儿的婵娟，就是月亮。
+      - id: chang_e
+        label: 月宫里的嫦娥。
+        feedback: 嘿，差一点点就绕进月宫了。嫦娥住在月亮里，可这句不是在叫嫦娥的名字。婵娟在这儿就是月亮本身：人长久，共的是这一轮月。
+      - id: moon
+        label: 月亮。苏轼希望两人即使相隔千里，也能共同望着同一轮月。
+        feedback: 切，这回让你答对了。我正想说「婵娟不就是漂亮姑娘吗」。在这首词里，婵娟就是月亮——隔得再远，也能共看这一轮。
+    correctOptionId: moon
+    contextRefs:
+      - line_08
   - id: q_theme
-    type: open
-    prompt: “人有悲欢离合，月有阴晴圆缺，此事古难全。但愿人长久，千里共婵娟。”这两句想告诉读者什么？
-    classmateAnswer: 意思是月亮有时圆有时缺，所以人也不必团聚，分开就分开吧。
-    classmateIsCorrect: false
-    referenceAnswer: 人生离合和月亮圆缺都难以完美；即使相隔千里，也希望彼此长久安康，共同望着同一轮明月。
-    misconceptions:
-      - 把“古难全”理解成“分开也没关系，不必祝福”
-      - 忽略“但愿人长久”里的祝福和希望
-    scoringPoints:
-      - 理解“难全”是说难以事事圆满
-      - 理解最后仍有祝福：长久、共明月
+    type: choice
+    prompt: 「人有悲欢离合，月有阴晴圆缺，此事古难全。但愿人长久，千里共婵娟。」苏轼最想告诉读者的是哪一层？
+    feedbackSpeaker: teacher
+    hint:
+      text: 这还不简单？月亮有时圆有时缺，人嘛——分开就分开呗。他自己都说「古难全」了，还祝什么祝。
+      isCorrect: false
+    options:
+      - id: hard_but_bless
+        label: 离合、圆缺都难以事事圆满；即使隔得很远，仍希望彼此长久，共看同一轮月。
+        feedback: 你没被何解带走，很好。前半句承认「难全」：人会分别，月不会永远圆。后半句没有停在放弃——「但愿人长久，千里共婵娟」是祝福：人可以不在一起，心仍可以共一轮月。何解只听到「难全」，把祝福听丢了。
+      - id: just_let_go
+        label: 反正难以圆满，分开就分开，不必再盼团聚。
+        feedback: 这正是何解的说法，听起来潇洒，却把词读短了。「古难全」是说难以事事圆满，不是说「那就别盼了」。下一句立刻转成祝福。苏轼写给苏辙的，不是绝交书，是「但愿人长久」。
+      - id: only_describe_moon
+        label: 他只是在写中秋月亮很美，没有别的意思。
+        feedback: 月亮是引子，不是目的。圆缺用来比喻离合；落点在「难全」之后的那句祝福。没有这层心意，就只是一张中秋风景明信片。
+    correctOptionId: hard_but_bless
     contextRefs:
       - line_07
       - line_08

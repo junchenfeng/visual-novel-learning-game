@@ -14,7 +14,7 @@ const speakerColor: Record<Speaker, string> = {
 };
 
 type ClassroomInterludeProps = {
-  kind: "intro" | "outro";
+  kind: "intro" | "wake" | "outro";
   portraits: ClassroomPortraits;
   workTitle: string;
   onContinue?: () => void;
@@ -23,7 +23,8 @@ type ClassroomInterludeProps = {
 /**
  * 课堂背景过场：复用 classroom.module.css 的课堂视觉（三人立绘 + 卷页气泡 + 板书淡字）。
  * - intro：进入穿越前，课堂上走神
- * - outro：结束穿越后，回到课堂被老师点名（首尾呼应）
+ * - wake：读诗结束，回到课堂，接着进入问答
+ * - outro：本课结束后的课堂收束
  */
 export function ClassroomInterlude({
   kind,
@@ -31,13 +32,15 @@ export function ClassroomInterlude({
   workTitle,
   onContinue,
 }: ClassroomInterludeProps) {
-  const isIntro = kind === "intro";
+  const body =
+    kind === "intro"
+      ? `老师正在讲《${workTitle}》，声音忽然变得很远。你望着窗外走了神，粉笔字一点点模糊下去……`
+      : kind === "wake"
+        ? "你模糊中听到老师喊你的名字，你猛然回过神来..."
+        : null;
 
   return (
-    <div
-      className={styles.shell}
-      data-testid={isIntro ? "classroom-intro" : "classroom-outro"}
-    >
+    <div className={styles.shell} data-testid={`classroom-${kind}`}>
       <div className={styles.backdrop} aria-hidden="true">
         {workTitle}
       </div>
@@ -63,14 +66,10 @@ export function ClassroomInterlude({
           <p className={`${styles.speaker} ${speakerColor.teacher}`}>
             {portraits.teacher.name}
           </p>
-          <p className={styles.kicker}>{isIntro ? "上节课" : "下课铃之前"}</p>
-          <p className={styles.bodyText}>
-            {isIntro
-              ? `老师正在讲《${workTitle}》，声音忽然变得很远。你望着窗外走了神，粉笔字一点点模糊下去……`
-              : `你猛地惊醒。老师正看着你："来，说说看——《${workTitle}》这首诗讲了什么？"你笑了笑——这一课，你刚从诗里回来。`}
-          </p>
+          {kind === "intro" ? <p className={styles.kicker}>上课时</p> : null}
+          {body ? <p className={styles.bodyText}>{body}</p> : null}
           <div className={styles.actions}>
-            {isIntro ? (
+            {kind === "intro" ? (
               <button
                 className={styles.primary}
                 data-testid="begin-story"
@@ -79,13 +78,26 @@ export function ClassroomInterlude({
                   onContinue?.();
                 }}
               >
-                回过神，已入故事
+                进入故事
               </button>
-            ) : (
+            ) : null}
+            {kind === "wake" ? (
+              <button
+                className={styles.primary}
+                data-testid="enter-lesson"
+                onClick={() => {
+                  playSfx("click");
+                  onContinue?.();
+                }}
+              >
+                继续
+              </button>
+            ) : null}
+            {kind === "outro" ? (
               <Link className={styles.primary} href="/" data-testid="back-home">
-                合上书，回目录
+                返回目录
               </Link>
-            )}
+            ) : null}
           </div>
         </section>
       </div>

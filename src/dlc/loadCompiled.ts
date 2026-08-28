@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { compiledDlcSchema, type CompiledDlc } from "./schema";
+import { compiledDlcSchema, DlcValidationError, type CompiledDlc } from "./schema";
 import type { CompileResult } from "./compiler";
 
 function generatedDir() {
@@ -23,5 +23,11 @@ export function loadCompiledDlc(id: string): CompiledDlc | null {
   if (!existsSync(filePath)) {
     return null;
   }
-  return compiledDlcSchema.parse(JSON.parse(readFileSync(filePath, "utf8")));
+  try {
+    return compiledDlcSchema.parse(JSON.parse(readFileSync(filePath, "utf8")));
+  } catch (error) {
+    const detail =
+      error instanceof Error ? error.message : "编译产物与当前 schema 不一致";
+    throw new DlcValidationError([`无法加载 DLC「${id}」：${detail}`]);
+  }
 }

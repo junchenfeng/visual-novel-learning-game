@@ -10,13 +10,14 @@ import { isChoiceQuestion } from "../dlc/quizHelpers";
 import { gameMachine, getCurrentNode } from "../game/gameMachine";
 import { LocalStorageAdapter } from "../storage/LocalStorageAdapter";
 import { createId } from "../ui/uuid";
+import { computeStoryProgress } from "../ui/lessonProgress";
 import { BookFrame, type ChapterTab } from "./BookFrame";
 import { ClassroomInterlude } from "./ClassroomInterlude";
 import { ClassroomFrame, type ClassroomPortraits } from "./ClassroomFrame";
 import { GameOverModal } from "./GameOverModal";
 import { GameViewport } from "./GameViewport";
-import { NarrativeGate } from "./NarrativeGate";
 import { PoemScrollFrame } from "./PoemScrollFrame";
+import { EasterEggHost } from "../easter-egg/EasterEggHost";
 import { StoryPhase } from "./phases/StoryPhase";
 import { SummaryPhase } from "./phases/SummaryPhase";
 
@@ -140,6 +141,7 @@ export function GamePlayer({ dlc }: GamePlayerProps) {
     if (
       phase === "intro" ||
       phase === "story" ||
+      phase === "easterEgg" ||
       phase === "lessonTransition" ||
       phase === "poem" ||
       phase === "quiz" ||
@@ -330,10 +332,19 @@ export function GamePlayer({ dlc }: GamePlayerProps) {
     );
   } else if (snapshot.matches("lessonTransition")) {
     screen = (
-      <NarrativeGate
-        kind="transition"
-        title={dlc.manifest.title}
+      <ClassroomInterlude
+        kind="wake"
+        portraits={classroom}
+        workTitle={dlc.manifest.workTitle}
         onContinue={() => send({ type: "ENTER_LESSON" })}
+      />
+    );
+  } else if (snapshot.matches("easterEgg") && dlc.manifest.easterEgg) {
+    screen = (
+      <EasterEggHost
+        config={dlc.manifest.easterEgg}
+        dlc={dlc}
+        onDone={() => send({ type: "EASTER_EGG_DONE" })}
       />
     );
   } else if (showPoem) {
@@ -353,7 +364,6 @@ export function GamePlayer({ dlc }: GamePlayerProps) {
         context={context}
         status={summaryStatus}
         teacher={classroom.teacher}
-        onFinish={() => send({ type: "FINISH" })}
       />
     );
   } else if (showQuiz) {
@@ -398,13 +408,16 @@ export function GamePlayer({ dlc }: GamePlayerProps) {
         portraitSrc={chapterHasBackground ? undefined : portrait.src}
         portraitName={portrait.name}
         overlay={overlay}
+        progress={computeStoryProgress(dlc, node.id)}
       >
         {snapshot.matches("story") && node.type !== "gameOver" ? (
           <StoryPhase
             key={node.id}
             node={node}
             disabled={isTurning}
+            hasEasterEgg={Boolean(dlc.manifest.easterEgg)}
             onContinue={() => send({ type: "CONTINUE" })}
+            onEasterEgg={() => send({ type: "ENTER_EASTER_EGG" })}
             onReplay={() => {
               lastGameOver.current = "";
               appendEvent("story.replayed", {

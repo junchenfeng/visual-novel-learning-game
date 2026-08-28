@@ -76,11 +76,23 @@ pnpm test        # 运行 Jest 测试
 - DLC 内容需要先通过 `pnpm run compile:dlc` 编译到 `generated/dlc/` 目录
 - `predev` / `prebuild` 钩子已自动触发编译
 - Next.js 16 有破坏性变更，写代码前查阅 `node_modules/next/dist/docs/`
+- 故事结束到读词之间可在 `manifest.yaml` 配可选 `easterEgg`；不配则最后一页只有「开始读词」，不会出现「这是什么？」。字段见 `docs/dlc-spec.md`。
 
 ## 新增 DLC（带练创作）
 
-当聊到「做某个诗人的某首诗」时，先走带练流程，别直接写 YAML：
+当聊到「做某个诗人的某首诗」时，先走带练流程，别直接写 YAML。YAML 字段与图规则见 `docs/dlc-spec.md`。
 
-1. 先读 `docs/teaching/dlc-authoring-for-agents.md`（带练流程 + 三个 Checkpoint）。
-2. 查中间产物 `assets/<poetId>/<work-slug>/` 下的五份工作单——`01_teaching-card` 备课卡、`02_story-beats` 故事线与关卡、`03_poem-notes` 诗词解析、`04_quiz-design` 考题设计、`05_storyboard` 分镜表。据已落内容判断当前进度，接着往下走，不重复劳动。
-3. 对照 `dlc/` 目录现有内容（`src/dlc/roster.ts` 诗人名单、已编译的 DLC 包、`generated/dlc/`），确认诗人与篇目是否已登记、命名与目录规范是否一致。
+**中间产物只写到仓库根目录 `assets/<poetId>/<work-slug>/`（诗人 id / 诗词 slug，如 `assets/sushi/shuidiao-getou/`）。** 根目录 `/assets/` 已在 `.gitignore` 中忽略，用来放带练过程文件，避免污染 git。不要写进 `docs/`、`dlc/` 或其他会被跟踪的目录。DLC 包内的 `dlc/.../assets/` 是正式背景/立绘，会进 git，草稿不要放进去。
+
+带练工作单（按环节逐份落盘，确认后再誊进 YAML）：
+
+| 环节 | 中间产物 | 最终落到 |
+| --- | --- | --- |
+| 信息搜集 | `01_teaching-card.md` 备课卡 | 不直接转 YAML |
+| 剧情设计 | `02_story-beats.md` 故事线与关卡 | `content/story.yaml` |
+| 读诗教学 | `03_poem-notes.md` 诗词解析 | `content/poem.yaml` |
+| 课堂教学 | `04_quiz-design.md` 考题设计 | `content/quiz.yaml` |
+| 课堂教学·试评 | `06_answer-samples.md` 答卷样例 | 试评用，不转 YAML |
+| 生图准备 | `05_storyboard.md` 分镜表 | 生成图进 DLC 包 `assets/` |
+
+开始前：查该目录下已有工作单，据已落内容判断当前进度，接着往下走，不重复劳动。再对照 `dlc/`、`src/dlc/roster.ts`、`generated/dlc/`，确认诗人与篇目是否已登记、命名与目录规范是否一致。

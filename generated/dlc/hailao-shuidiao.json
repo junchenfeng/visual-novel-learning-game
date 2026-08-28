@@ -89,7 +89,7 @@
         "chapterTitle": "苏轼与苏辙",
         "text": "今晚月亮很圆。如果你是苏轼，想念弟弟的时候会做什么？",
         "portrait": "suzhe",
-        "convergesTo": "ch1_join",
+        "convergesTo": "ch2_open",
         "choices": [
           {
             "id": "write_letter",
@@ -111,7 +111,7 @@
         "chapter": 1,
         "chapterTitle": "苏轼与苏辙",
         "text": "你铺开纸，却不知道这封信要走多久。你们不在同一个地方做官，见面比写信难得多。",
-        "nextNodeId": "ch1_join"
+        "nextNodeId": "ch2_open"
       },
       "ch1_b": {
         "id": "ch1_b",
@@ -119,14 +119,6 @@
         "chapter": 1,
         "chapterTitle": "苏轼与苏辙",
         "text": "你想起小时候，弟弟总爱追着你问字、问诗。后来他的文章也很出色，你们互相鼓励，也互相想念。",
-        "nextNodeId": "ch1_join"
-      },
-      "ch1_join": {
-        "id": "ch1_join",
-        "type": "narration",
-        "chapter": 1,
-        "chapterTitle": "苏轼与苏辙",
-        "text": "无论先写信还是先回忆，结果都一样：你非常想念苏辙。这种想念，会写进今晚的词里。",
         "nextNodeId": "ch2_open"
       },
       "ch2_open": {
@@ -134,7 +126,7 @@
         "type": "narration",
         "chapter": 2,
         "chapterTitle": "变法与外放",
-        "text": "京城里正在为一件大事争论。在你决定怎么走之前，先看清这件事到底是什么。",
+        "text": "你俩之所以天各一方，是因为之前京城的一件大事...",
         "nextNodeId": "ch2_fact_reform"
       },
       "ch2_fact_reform": {
@@ -144,15 +136,6 @@
         "chapterTitle": "变法与外放",
         "text": "那时宋朝正在推行「王安石变法」。王安石希望朝廷更有钱、军队更强，于是改税法、改役法，让地方把更多粮食、钱和人力交给中央。支持的人觉得这是在救国家；担心的人觉得改得太急，百姓一下子不适应。",
         "heading": "王安石变法是什么",
-        "nextNodeId": "ch2_fact_disagree"
-      },
-      "ch2_fact_disagree": {
-        "id": "ch2_fact_disagree",
-        "type": "fact",
-        "chapter": 2,
-        "chapterTitle": "变法与外放",
-        "text": "苏轼不反对国家变好，但他担心：新法来得太快，执行的人又不一定都好心，地方上可能乱摊派、伤到普通人家。他写文章指出问题，和王安石意见合不来。争论越来越凶，京城对他来说不再是可以安静写字的地方。",
-        "heading": "苏轼为什么不同意",
         "nextNodeId": "ch2_choice"
       },
       "ch2_choice": {
@@ -160,62 +143,27 @@
         "type": "choice",
         "chapter": 2,
         "chapterTitle": "变法与外放",
-        "text": "面对变法争论，你会怎么走？",
-        "portrait": "sushi",
-        "convergesTo": "ch2_join",
+        "text": "待你书写",
+        "convergesTo": "ch3_open",
         "choices": [
           {
-            "id": "ask_transfer",
-            "label": "坚持自己的看法，请求离开京城",
-            "nextNodeId": "ch2_a",
-            "feedback": "你把争论放下，把脚步迈向远方。"
+            "id": "pick_this",
+            "label": "选这个",
+            "nextNodeId": "ch3_open"
           },
           {
-            "id": "serve_local",
-            "label": "到地方做事，用实际行动证明想法",
-            "nextNodeId": "ch2_b",
-            "feedback": "你把心思放在地方百姓身上，京城反而更远了。"
-          },
-          {
-            "id": "stay_and_fight",
-            "label": "留在京城，当面硬碰王安石",
-            "nextNodeId": "ch2_over",
-            "feedback": "争论越来越激烈，事情变得更糟。"
+            "id": "skip_this",
+            "label": "别选这个",
+            "nextNodeId": "ch2_over"
           }
         ]
-      },
-      "ch2_a": {
-        "id": "ch2_a",
-        "type": "narration",
-        "chapter": 2,
-        "chapterTitle": "变法与外放",
-        "text": "你离开京城，辗转好几个地方。官职还在，可和弟弟的距离越来越远。",
-        "nextNodeId": "ch2_join"
-      },
-      "ch2_b": {
-        "id": "ch2_b",
-        "type": "narration",
-        "chapter": 2,
-        "chapterTitle": "变法与外放",
-        "text": "地方的事务很多。你忙着处理公务，却发现想见苏辙一面，比以前更难。",
-        "nextNodeId": "ch2_join"
       },
       "ch2_over": {
         "id": "ch2_over",
         "type": "gameOver",
         "chapter": 2,
         "chapterTitle": "变法与外放",
-        "text": "你留在京城继续争论。政见冲突越来越尖锐，你被贬得更远，也更难见到苏辙。这条路走不通，《水调歌头》不会在今晚写成。请回到刚才的选择，换一条路。",
-        "speaker": "旁白",
-        "portrait": "anshi"
-      },
-      "ch2_join": {
-        "id": "ch2_join",
-        "type": "narration",
-        "chapter": 2,
-        "chapterTitle": "变法与外放",
-        "text": "外放之后，兄弟见面变得更难。这就是《水调歌头》背后的时代背景：政见不同，人在天涯。",
-        "nextNodeId": "ch3_open"
+        "text": "告诉你别选这个"
       },
       "ch3_open": {
         "id": "ch3_open",
@@ -389,50 +337,92 @@
   },
   "quiz": {
     "schemaVersion": 1,
-    "gradingPrompt": "本课围绕苏轼《水调歌头》的写作时间和主题。\n填空优先看学生是否理解离合难全，以及最后仍有祝福。\n不要因为剧情选择不同而改变评价。用适合 10 到 12 岁的话解释，不要嘲讽。\n",
-    "summaryPrompt": "请根据本课作答，写一段给 10 到 12 岁学生的总评。\n先肯定他认真读词、走进苏轼的故事；再点出还不清楚的地方；最后用“但愿人长久，千里共婵娟”收束鼓励。\n",
+    "gradingPrompt": "本课围绕苏轼《水调歌头》的写作背景、重点字词和主题。\n填空若出现，优先看学生是否理解离合难全，以及最后仍有祝福。\n不要因为剧情选择不同而改变评价。用适合 10 到 12 岁的话解释，不要嘲讽。\n",
+    "summaryPrompt": "请根据本课作答，写一段给 10 到 12 岁学生的总评。\n先肯定他认真读词、走进苏轼的故事；再点出还不清楚的地方（分开的原因、婵娟、难全与祝福）；最后用“但愿人长久，千里共婵娟”收束鼓励。\n",
     "questions": [
       {
-        "id": "q_year_place",
+        "id": "q_separate",
         "type": "choice",
-        "prompt": "苏轼写这首《水调歌头》时，大约是在哪一年、哪个地方？",
+        "prompt": "苏轼和苏辙从小几乎形影不离。后来他们分开、好几年见不了面，主要是因为什么？",
         "options": [
           {
-            "id": "hangzhou_yuanfeng",
-            "label": "元丰二年在杭州"
+            "id": "wutai_huangzhou",
+            "label": "苏轼因为「乌台诗案」被贬到黄州，所以见不到苏辙。",
+            "feedback": "黄州那一贬是后话。写这首词的时候，苏轼还在密州，乌台诗案还没发生。分开的起因更早：变法争论之后，他离开京城到外地做官，和弟弟越走越远。"
           },
           {
-            "id": "mizhou_xining",
-            "label": "熙宁九年在密州"
+            "id": "reform_exile",
+            "label": "苏轼不同意王安石变法来得太急，离开京城到地方做官；苏辙也在别处任职，兄弟越离越远。",
+            "feedback": "对。不是他们不亲，是政见把人推到了不同的地方。苏轼担心新法改得太快、地方上会伤到百姓，和王安石合不来，后来离开京城；苏辙也不在他身边。到密州中秋，已经七年没见面。这份想念，才写进《水调歌头》。"
           },
           {
-            "id": "huangzhou_yuanfeng",
-            "label": "元丰三年在黄州"
+            "id": "brothers_quarrel",
+            "label": "兄弟俩吵架了，谁也不想见谁。",
+            "feedback": "他们没有绝交。苏轼外放、苏辙在别处做官，路途远、书信慢，想见一面很难。词里写「兼怀子由」，是想念，不是赌气。"
           }
         ],
-        "correctOptionId": "mizhou_xining",
-        "classmateOptionId": "hangzhou_yuanfeng",
-        "explanation": "苏轼写《水调歌头》是在熙宁九年（1076）中秋，当时他在密州做官。元丰二年在杭州、元丰三年在黄州，都是常见的记混。",
+        "correctOptionId": "reform_exile",
+        "feedbackSpeaker": "teacher",
         "contextRefs": [
-          "ch3_open",
-          "ch3_b"
+          "ch2_open",
+          "ch2_fact_reform",
+          "ch3_open"
+        ]
+      },
+      {
+        "id": "q_chanjuan",
+        "type": "choice",
+        "prompt": "词的最后一句「但愿人长久，千里共婵娟。」这里的「婵娟」指的是什么？",
+        "options": [
+          {
+            "id": "beauty",
+            "label": "美丽的女子。这个词本来也可以形容美好的容貌。",
+            "feedback": "哈哈，中计！平时说婵娟，是可以说美丽的女子。可苏轼写的是「千里共婵娟」，共的是天上那一轮，不是共一个美人。这儿的婵娟，就是月亮。"
+          },
+          {
+            "id": "chang_e",
+            "label": "月宫里的嫦娥。",
+            "feedback": "嘿，差一点点就绕进月宫了。嫦娥住在月亮里，可这句不是在叫嫦娥的名字。婵娟在这儿就是月亮本身：人长久，共的是这一轮月。"
+          },
+          {
+            "id": "moon",
+            "label": "月亮。苏轼希望两人即使相隔千里，也能共同望着同一轮月。",
+            "feedback": "切，这回让你答对了。我正想说「婵娟不就是漂亮姑娘吗」。在这首词里，婵娟就是月亮——隔得再远，也能共看这一轮。"
+          }
+        ],
+        "correctOptionId": "moon",
+        "feedbackSpeaker": "classmate",
+        "contextRefs": [
+          "line_08"
         ]
       },
       {
         "id": "q_theme",
-        "type": "open",
-        "prompt": "“人有悲欢离合，月有阴晴圆缺，此事古难全。但愿人长久，千里共婵娟。”这两句想告诉读者什么？",
-        "classmateAnswer": "意思是月亮有时圆有时缺，所以人也不必团聚，分开就分开吧。",
-        "classmateIsCorrect": false,
-        "referenceAnswer": "人生离合和月亮圆缺都难以完美；即使相隔千里，也希望彼此长久安康，共同望着同一轮明月。",
-        "misconceptions": [
-          "把“古难全”理解成“分开也没关系，不必祝福”",
-          "忽略“但愿人长久”里的祝福和希望"
+        "type": "choice",
+        "prompt": "「人有悲欢离合，月有阴晴圆缺，此事古难全。但愿人长久，千里共婵娟。」苏轼最想告诉读者的是哪一层？",
+        "options": [
+          {
+            "id": "hard_but_bless",
+            "label": "离合、圆缺都难以事事圆满；即使隔得很远，仍希望彼此长久，共看同一轮月。",
+            "feedback": "你没被何解带走，很好。前半句承认「难全」：人会分别，月不会永远圆。后半句没有停在放弃——「但愿人长久，千里共婵娟」是祝福：人可以不在一起，心仍可以共一轮月。何解只听到「难全」，把祝福听丢了。"
+          },
+          {
+            "id": "just_let_go",
+            "label": "反正难以圆满，分开就分开，不必再盼团聚。",
+            "feedback": "这正是何解的说法，听起来潇洒，却把词读短了。「古难全」是说难以事事圆满，不是说「那就别盼了」。下一句立刻转成祝福。苏轼写给苏辙的，不是绝交书，是「但愿人长久」。"
+          },
+          {
+            "id": "only_describe_moon",
+            "label": "他只是在写中秋月亮很美，没有别的意思。",
+            "feedback": "月亮是引子，不是目的。圆缺用来比喻离合；落点在「难全」之后的那句祝福。没有这层心意，就只是一张中秋风景明信片。"
+          }
         ],
-        "scoringPoints": [
-          "理解“难全”是说难以事事圆满",
-          "理解最后仍有祝福：长久、共明月"
-        ],
+        "correctOptionId": "hard_but_bless",
+        "feedbackSpeaker": "teacher",
+        "hint": {
+          "text": "这还不简单？月亮有时圆有时缺，人嘛——分开就分开呗。他自己都说「古难全」了，还祝什么祝。",
+          "isCorrect": false
+        },
         "contextRefs": [
           "line_07",
           "line_08"

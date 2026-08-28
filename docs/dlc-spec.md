@@ -1,6 +1,6 @@
 # DLC 数据结构和要求
 
-YAML 字段、图规则和最小示例看下面。**先想清楚这一课教什么、故事怎么带、题目考什么**，见 [带着孩子写一关 DLC：Agent 带练指南](teaching/dlc-authoring-for-agents.md)。试评分/总评提示词的方法，见 [提示词试评台](teaching/prompt-lab/README.md)。
+YAML 字段、图规则和最小示例看下面。**先想清楚这一课教什么、故事怎么带、题目考什么**；带练中间产物放仓库根目录 `assets/<poetId>/<work-slug>/`（已 gitignore，见 `AGENTS.md`）。试评分/总评提示词的方法，见 [提示词试评台](teaching/prompt-lab/README.md)。
 
 ## 这篇文档讲什么 / 适合谁看
 
@@ -69,8 +69,22 @@ flowchart LR
 | `files.story/poem/quiz` | 是 | 三个内容文件的相对路径 |
 | `characters[]` | 是 | `id`、`name`、可选 `portrait` |
 | `assets.music` | 否 | 背景音乐相对路径 |
+| `easterEgg` | 否 | 故事结束到读词之间的可选彩蛋小游戏。**不写则最后一页只有「开始读词」，不会出现「这是什么？」** |
 
 资源路径必须是相对路径，不能包含 `..`，也不能以 `/` 开头。
+
+故事最后一页（旁白/史实省略 `nextNodeId`）默认只有「开始读词」。只有配置了 `easterEgg`，才会多出「这是什么？」：
+
+```yaml
+easterEgg:
+  kind: placeholder   # 必须是引擎已登记的种类
+  title: 把酒问月     # 可选
+```
+
+- 点「开始读词」：跳过小游戏，直接读词。
+- 点「这是什么？」：进入小游戏，玩完再进读词。
+- `kind` 必须在引擎注册表里。目前内建 `placeholder` 占位；接上真正的小游戏后再换 kind。
+- 彩蛋结果不进课堂评分。
 
 ### 2. `story.yaml`（故事图）
 
@@ -189,20 +203,31 @@ lines:
 | `summaryPrompt` | 给老师的「本课总评怎么写」 |
 | `questions` | 至少 1 题，选择题和填空题可以混排 |
 
-**选择题 `type: choice`**（浏览器对照 `correctOptionId` 打分，讲解用本课的 `explanation`）
+**选择题 `type: choice`**（浏览器对照 `correctOptionId` 打分，答后由 `feedbackSpeaker` 朗读该选项的 `feedback`。填空架构仍保留，本课 DEMO 可以只用选择。）
+
+每题可自由组合两个开关，一共四种：
+
+| | 无 `hint` | 有 `hint`（答题前何解说） |
+| --- | --- | --- |
+| `feedbackSpeaker: teacher` | 老师问 → 老师讲 | 老师问 → 何解 HINT → 老师讲 |
+| `feedbackSpeaker: classmate` | 老师问 → 何解讲 | 老师问 → 何解 HINT → 何解讲 |
 
 ```yaml
-- id: q_year_place
+- id: q_separate
   type: choice
-  prompt: 苏轼写这首词时，大约在哪一年、哪个地方？
+  prompt: 苏轼和苏辙为什么会分开？
+  feedbackSpeaker: teacher          # 答后谁讲：teacher | classmate
+  # hint:                           # 可选。有则答题前播何解 HINT
+  #   text: 何解抢答的话
+  #   isCorrect: false              # true=帮助型，false=混淆型
   options:
-    - id: hangzhou_yuanfeng
-      label: 元丰二年在杭州
-    - id: mizhou_xining
-      label: 熙宁九年在密州
-  correctOptionId: mizhou_xining
-  classmateOptionId: hangzhou_yuanfeng   # 何解选的那一项
-  explanation: 正确讲解写在这里，老师会原样说出来。
+    - id: reform_exile
+      label: 因为变法争论，兄弟被派到不同地方
+      feedback: 选这项之后，老师或何解要说的话（对错各写一句）
+    - id: brothers_quarrel
+      label: 兄弟吵架了
+      feedback: 针对这个干扰项的讲解
+  correctOptionId: reform_exile
 ```
 
 **填空题 `type: open`**（提交后由服务器上的老师接口评分）
@@ -221,7 +246,7 @@ lines:
     - 提到分别或七年
 ```
 
-`correctOptionId` / `classmateOptionId` 必须是某个 `options.id`。题目 `id` 不能重复。
+`correctOptionId` 必须是某个 `options.id`。题目 `id` 不能重复。选择题每个选项都要写 `feedback`。`hint` 可省略；省略时老师问完直接作答。
 
 ---
 

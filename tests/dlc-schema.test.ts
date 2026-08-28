@@ -1,5 +1,6 @@
 import { parseDlcDirectory } from "../src/dlc/parser";
-import { DlcValidationError } from "../src/dlc/schema";
+import { isChoiceQuestion } from "../src/dlc/quizHelpers";
+import { DlcValidationError, easterEggSchema } from "../src/dlc/schema";
 import { validateStoryGraph } from "../src/dlc/graphValidator";
 import type { StoryNode } from "../src/dlc/schema";
 
@@ -11,9 +12,18 @@ describe("DLC schema and story graph", () => {
   it("compiles the built-in 水调歌头 pack", () => {
     const dlc = parseDlcDirectory("dlc/sushi/shuidiao-getou/hailao-shuidiao");
     expect(dlc.manifest.id).toBe("hailao-shuidiao");
-    expect(dlc.quiz.questions).toHaveLength(2);
-    expect(dlc.quiz.questions.some((item) => item.type === "choice")).toBe(true);
-    expect(dlc.quiz.questions.some((item) => item.type === "open")).toBe(true);
+    expect(dlc.quiz.questions).toHaveLength(3);
+    expect(dlc.quiz.questions.every(isChoiceQuestion)).toBe(true);
+    const [background, word, theme] = dlc.quiz.questions.filter(isChoiceQuestion);
+    expect(background).toMatchObject({ id: "q_separate", feedbackSpeaker: "teacher" });
+    expect(background?.hint).toBeUndefined();
+    expect(word).toMatchObject({ id: "q_chanjuan", feedbackSpeaker: "classmate" });
+    expect(word?.hint).toBeUndefined();
+    expect(theme).toMatchObject({
+      id: "q_theme",
+      feedbackSpeaker: "teacher",
+      hint: { isCorrect: false },
+    });
     expect(dlc.quiz.gradingPrompt.length).toBeGreaterThan(8);
     expect(dlc.quiz.summaryPrompt.length).toBeGreaterThan(8);
     expect(Object.values(dlc.story.nodes).some((item) => item.type === "gameOver")).toBe(true);
@@ -30,6 +40,13 @@ describe("DLC schema and story graph", () => {
       dlc.manifest.characters.find((character) => character.id === "suzhe")
         ?.portraitUrl,
     ).toBeUndefined();
+  });
+
+  it("treats easterEgg as optional and only accepts registered kinds", () => {
+    const dlc = parseDlcDirectory("dlc/sushi/shuidiao-getou/hailao-shuidiao");
+    expect(dlc.manifest.easterEgg).toBeUndefined();
+    expect(easterEggSchema.safeParse({ kind: "placeholder" }).success).toBe(true);
+    expect(easterEggSchema.safeParse({ kind: "not-a-game" }).success).toBe(false);
   });
 
   it("rejects a choice that does not converge", () => {

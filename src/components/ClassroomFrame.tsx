@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import type { Poem, QuizQuestion } from "../dlc/schema";
-import { classmateLine, isChoiceQuestion } from "../dlc/quizHelpers";
+import { classmateLine, hasQuizHint, isChoiceQuestion } from "../dlc/quizHelpers";
 import type { TeacherFeedback } from "../server/ai/AIProvider";
 import { playSfx } from "../audio/playSfx";
-import { useTypewriter } from "../ui/useTypewriter";
+import { computeQuizProgress } from "../ui/lessonProgress";
+import { LessonProgress } from "./LessonProgress";
 import styles from "./classroom.module.css";
 
 type Speaker = "teacher" | "classmate" | "student";
@@ -110,10 +111,27 @@ export function ClassroomFrame({
   onNext,
 }: ClassroomFrameProps) {
   const [beat, setBeat] = useState<Beat>("teacher");
-  const speaker: Speaker =
-    status === "success" || status === "submitting" || status === "error" ? "teacher" : beat;
-  const backdrop = poem.lines.map((line) => line.original).join("　");
+  const prevStatus = useRef(status);
+  useEffect(() => {
+    if (prevStatus.current === "success" && status === "idle") {
+      setBeat("teacher");
+    }
+    prevStatus.current = status;
+  }, [status]);
   const choiceQuestion = isChoiceQuestion(question) ? question : null;
+  const showHint = hasQuizHint(question);
+  const feedbackRole: Speaker =
+    status === "success" && choiceQuestion
+      ? choiceQuestion.feedbackSpeaker
+      : "teacher";
+  const speaker: Speaker =
+    status === "success"
+      ? feedbackRole
+      : status === "submitting" || status === "error"
+        ? "teacher"
+        : beat;
+  const backdrop = poem.lines.map((line) => line.original).join("　");
+  const spokenLine = feedback?.explanation ?? "";
 
   return (
     <div className={styles.shell} data-testid="quiz-stage">
@@ -122,9 +140,7 @@ export function ClassroomFrame({
       </div>
       <header className={styles.header}>
         <div>
-          <p className={styles.kicker}>
-            师生问答 · {index + 1}/{total}
-          </p>
+          <p className={styles.kicker}>师生问答</p>
           <h1>
             {poet} · {workTitle}
           </h1>
@@ -133,6 +149,9 @@ export function ClassroomFrame({
           返回目录
         </Link>
       </header>
+      <div className={styles.progressWrap}>
+        <LessonProgress progress={computeQuizProgress(index, total)} tone="night" />
+      </div>
       <div className={styles.stage}>
         {overlay}
         <div className={styles.sprites}>
@@ -166,174 +185,240 @@ export function ClassroomFrame({
           key={`${question.id}-${speaker}-${status}`}
         >
           <p className={`${styles.speaker} ${speakerColor[speaker]}`}>{portraits[speaker].name}</p>
-
-          {/* === 老师出题 === */}
-          {status === "idle" && beat === "teacher" ? (
-            <>
+          <div className={styles.dialogueBody}>
+            {status === "idle" && beat === "teacher" ? (
               <p className={styles.promptText} data-testid="quiz-prompt">
                 {question.prompt}
               </p>
-              <div className={styles.actions}>
-                <button
-                  className={styles.primary}
-                  data-testid="hear-classmate"
-                  onClick={() => {
-                    playSfx("click");
-                    setBeat("classmate");
-                  }}
-                >
-                  听{portraits.classmate.name}说
-                </button>
-              </div>
-            </>
-          ) : null}
+            ) : null}
 
-          {/* === 同学回答 === */}
-          {status === "idle" && beat === "classmate" ? (
-            <>
+            {status === "idle" && beat === "classmate" ? (
               <TypeLine
                 text={classmateLine(question)}
                 testId="classmate-answer"
                 className={styles.bodyText}
               />
-              <div className={styles.actions}>
-                <button
-                  className={styles.primary}
-                  data-testid="student-turn"
-                  onClick={() => {
-                    playSfx("click");
-                    setBeat("student");
-                  }}
-                >
-                  轮到我答
-                </button>
-              </div>
-            </>
-          ) : null}
+            ) : null}
 
-          {/* === 学生作答 === */}
-          {(status === "idle" && beat === "student") || status === "error" ? (
-            <>
-              <p className={styles.bodyText}>把你的理解写下来，不必和同学一样。</p>
-              {choiceQuestion ? (
-                <div className={styles.choices}>
-                  {choiceQuestion.options.map((option, optionIndex) => (
-                    <button
-                      key={option.id}
-                      className={styles.choice}
-                      data-testid={`quiz-choice-${optionIndex}`}
-                      onClick={() => {
-                        playSfx("click");
-                        onSubmitChoice(option.id);
+            {(status === "idle" && beat === "student") || status === "error" ? (
+              <>
+                <p className={styles.bodyText}>
+                  {choiceQuestion
+                    ? showHint
+                      ? "不必跟着同学说，选出你的理解。"
+                      : "选出你的理解。"
+                    : "把你的理解写下来，不必和同学一样。"}
+                </p>
+                {choiceQuestion ? null : (
+                  <>
+                    <textarea
+                      className={styles.input}
+                      data-testid="answer-input"
+                      maxLength={200}
+                      placeholder="在这里写下你的想法…"
+                      value={answer}
+                      onChange={(event) => onAnswerChange(event.target.value)}
+                      onKeyDown={(event) => {
+                        if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+                          event.preventDefault();
+                          playSfx("click");
+                          onSubmit();
+                        }
                       }}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <>
-                  <textarea
-                    className={styles.input}
-                    data-testid="answer-input"
-                    maxLength={200}
-                    placeholder="在这里写下你的想法…"
-                    value={answer}
-                    onChange={(event) => onAnswerChange(event.target.value)}
-                    onKeyDown={(event) => {
-                      if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-                        event.preventDefault();
-                        playSfx("click");
-                        onSubmit();
-                      }
-                    }}
-                  />
-                  {error ? <p className={styles.muted}>{error}</p> : null}
-                  <div className={styles.actions}>
-                    <button
-                      className={styles.primary}
-                      data-testid="submit-answer"
-                      onClick={() => {
-                        playSfx("click");
-                        onSubmit();
-                      }}
-                    >
-                      {status === "error" ? "重新请教老师" : "提交给老师"}
-                    </button>
-                    {status === "error" ? (
-                      <button className={styles.secondary} onClick={onRetry}>
-                        返回修改
-                      </button>
-                    ) : null}
-                  </div>
-                </>
-              )}
-            </>
-          ) : null}
+                    />
+                    {error ? <p className={styles.muted}>{error}</p> : null}
+                  </>
+                )}
+              </>
+            ) : null}
 
-          {/* === 老师思考中 === */}
-          {status === "submitting" ? (
-            <p className={styles.thinking} data-testid="teacher-thinking">
-              老师正在思考<span>.</span>
-              <span>.</span>
-              <span>.</span>
-            </p>
-          ) : null}
-
-          {/* === 老师点评（分四块独立排版） === */}
-          {status === "success" && feedback ? (
-            <div className={styles.feedback} data-testid="teacher-feedback">
-              <p
-                className={`${styles.assessmentBadge} ${
-                  feedback.assessment === "correct"
-                    ? styles.assessmentCorrect
-                    : feedback.assessment === "incorrect"
-                      ? styles.assessmentIncorrect
-                      : styles.assessmentPartial
-                }`}
-              >
-                点评 · {assessmentLabel[feedback.assessment]}
+            {status === "submitting" ? (
+              <p className={styles.thinking} data-testid="teacher-thinking">
+                老师正在思考<span>.</span>
+                <span>.</span>
+                <span>.</span>
               </p>
+            ) : null}
 
-              <FeedbackSection
-                label={`${portraits.classmate.name}的回答`}
-                text={feedback.classmateAnalysis}
-                blockClass={styles.feedbackClassmate}
-              />
+            {status === "success" && feedback && choiceQuestion ? (
+              <div className={styles.feedback} data-testid="choice-feedback">
+                <p
+                  className={`${styles.assessmentBadge} ${
+                    feedback.assessment === "correct"
+                      ? styles.assessmentCorrect
+                      : feedback.assessment === "incorrect"
+                        ? styles.assessmentIncorrect
+                        : styles.assessmentPartial
+                  }`}
+                >
+                  {feedbackRole === "classmate" ? portraits.classmate.name : "点评"}
+                  {" · "}
+                  {assessmentLabel[feedback.assessment]}
+                </p>
+                <p className={styles.bodyText} data-testid="choice-feedback-text">
+                  {spokenLine}
+                </p>
+              </div>
+            ) : null}
 
-              <FeedbackSection
-                label="你的回答"
-                text={feedback.studentFeedback}
-                blockClass={styles.feedbackStudent}
-              />
+            {status === "success" && feedback && !choiceQuestion ? (
+              <div className={styles.feedback} data-testid="teacher-feedback">
+                <p
+                  className={`${styles.assessmentBadge} ${
+                    feedback.assessment === "correct"
+                      ? styles.assessmentCorrect
+                      : feedback.assessment === "incorrect"
+                        ? styles.assessmentIncorrect
+                        : styles.assessmentPartial
+                  }`}
+                >
+                  点评 · {assessmentLabel[feedback.assessment]}
+                </p>
 
-              <FeedbackSection
-                label="老师讲解"
-                text={feedback.explanation}
-                blockClass={styles.feedbackExplain}
-              />
+                <FeedbackSection
+                  label={`${portraits.classmate.name}的回答`}
+                  text={feedback.classmateAnalysis}
+                  blockClass={styles.feedbackClassmate}
+                />
 
-              <FeedbackSection
-                label="老师鼓励"
-                text={feedback.encouragement}
-                blockClass={styles.feedbackEncourage}
-              />
+                <FeedbackSection
+                  label="你的回答"
+                  text={feedback.studentFeedback}
+                  blockClass={styles.feedbackStudent}
+                />
 
-              {feedback.evidence ? (
-                <p className={styles.evidence}>{feedback.evidence}</p>
-              ) : null}
+                <FeedbackSection
+                  label="老师讲解"
+                  text={feedback.explanation}
+                  blockClass={styles.feedbackExplain}
+                />
+
+                <FeedbackSection
+                  label="老师鼓励"
+                  text={feedback.encouragement}
+                  blockClass={styles.feedbackEncourage}
+                />
+
+                {feedback.evidence ? (
+                  <p className={styles.evidence}>{feedback.evidence}</p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+
+          {status === "idle" && beat === "teacher" && showHint ? (
+            <div className={styles.actions}>
+              <button
+                className={styles.primary}
+                data-testid="hear-classmate"
+                onClick={() => {
+                  playSfx("click");
+                  setBeat("classmate");
+                }}
+              >
+                听{portraits.classmate.name}说
+              </button>
+            </div>
+          ) : null}
+
+          {status === "idle" && beat === "teacher" && !showHint && choiceQuestion ? (
+            <div className={styles.choices}>
+              {choiceQuestion.options.map((option, optionIndex) => (
+                <button
+                  key={option.id}
+                  className={styles.choice}
+                  data-testid={`quiz-choice-${optionIndex}`}
+                  onClick={() => {
+                    playSfx("click");
+                    onSubmitChoice(option.id);
+                  }}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          {status === "idle" && beat === "classmate" ? (
+            <div className={styles.actions}>
+              <button
+                className={styles.primary}
+                data-testid="student-turn"
+                onClick={() => {
+                  playSfx("click");
+                  setBeat("student");
+                }}
+              >
+                轮到我答
+              </button>
+            </div>
+          ) : null}
+
+          {(status === "idle" && beat === "student") || status === "error" ? (
+            choiceQuestion ? (
+              <div className={styles.choices}>
+                {choiceQuestion.options.map((option, optionIndex) => (
+                  <button
+                    key={option.id}
+                    className={styles.choice}
+                    data-testid={`quiz-choice-${optionIndex}`}
+                    onClick={() => {
+                      playSfx("click");
+                      onSubmitChoice(option.id);
+                    }}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            ) : (
               <div className={styles.actions}>
                 <button
                   className={styles.primary}
-                  data-testid="next-question"
+                  data-testid="submit-answer"
                   onClick={() => {
                     playSfx("click");
-                    onNext();
+                    onSubmit();
                   }}
                 >
-                  {index + 1 === total ? "查看总结" : "下一题"}
+                  {status === "error" ? "重新请教老师" : "提交给老师"}
                 </button>
+                {status === "error" ? (
+                  <button className={styles.secondary} onClick={onRetry}>
+                    返回修改
+                  </button>
+                ) : null}
               </div>
+            )
+          ) : null}
+
+          {status === "success" && feedback && choiceQuestion && feedback.assessment !== "correct" ? (
+            <div className={styles.actions}>
+              <button
+                className={styles.primary}
+                data-testid="retry-question"
+                onClick={() => {
+                  playSfx("click");
+                  onRetry();
+                }}
+              >
+                再答一次
+              </button>
+            </div>
+          ) : null}
+
+          {status === "success" && feedback && (!choiceQuestion || feedback.assessment === "correct") ? (
+            <div className={styles.actions}>
+              <button
+                className={styles.primary}
+                data-testid="next-question"
+                onClick={() => {
+                  playSfx("click");
+                  onNext();
+                }}
+              >
+                {index + 1 === total ? "查看总结" : "下一题"}
+              </button>
             </div>
           ) : null}
         </motion.section>

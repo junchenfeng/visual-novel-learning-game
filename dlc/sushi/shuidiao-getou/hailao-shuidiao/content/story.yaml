@@ -18,7 +18,7 @@ nodes:
     chapter: 1
     chapterTitle: 苏轼与苏辙
     portrait: suzhe
-    convergesTo: ch1_join
+    convergesTo: ch2_open
     text: 今晚月亮很圆。如果你是苏轼，想念弟弟的时候会做什么？
     choices:
       - id: write_letter
@@ -34,24 +34,18 @@ nodes:
     chapter: 1
     chapterTitle: 苏轼与苏辙
     text: 你铺开纸，却不知道这封信要走多久。你们不在同一个地方做官，见面比写信难得多。
-    nextNodeId: ch1_join
+    nextNodeId: ch2_open
   - id: ch1_b
     type: narration
     chapter: 1
     chapterTitle: 苏轼与苏辙
     text: 你想起小时候，弟弟总爱追着你问字、问诗。后来他的文章也很出色，你们互相鼓励，也互相想念。
-    nextNodeId: ch1_join
-  - id: ch1_join
-    type: narration
-    chapter: 1
-    chapterTitle: 苏轼与苏辙
-    text: 无论先写信还是先回忆，结果都一样：你非常想念苏辙。这种想念，会写进今晚的词里。
     nextNodeId: ch2_open
   - id: ch2_open
     type: narration
     chapter: 2
     chapterTitle: 变法与外放
-    text: 京城里正在为一件大事争论。在你决定怎么走之前，先看清这件事到底是什么。
+    text: 你俩之所以天各一方，是因为之前京城的一件大事...
     nextNodeId: ch2_fact_reform
   - id: ch2_fact_reform
     type: fact
@@ -59,59 +53,25 @@ nodes:
     chapterTitle: 变法与外放
     heading: 王安石变法是什么
     text: 那时宋朝正在推行「王安石变法」。王安石希望朝廷更有钱、军队更强，于是改税法、改役法，让地方把更多粮食、钱和人力交给中央。支持的人觉得这是在救国家；担心的人觉得改得太急，百姓一下子不适应。
-    nextNodeId: ch2_fact_disagree
-  - id: ch2_fact_disagree
-    type: fact
-    chapter: 2
-    chapterTitle: 变法与外放
-    heading: 苏轼为什么不同意
-    text: 苏轼不反对国家变好，但他担心：新法来得太快，执行的人又不一定都好心，地方上可能乱摊派、伤到普通人家。他写文章指出问题，和王安石意见合不来。争论越来越凶，京城对他来说不再是可以安静写字的地方。
     nextNodeId: ch2_choice
   - id: ch2_choice
     type: choice
     chapter: 2
     chapterTitle: 变法与外放
-    portrait: sushi
-    convergesTo: ch2_join
-    text: 面对变法争论，你会怎么走？
+    convergesTo: ch3_open
+    text: 待你书写
     choices:
-      - id: ask_transfer
-        label: 坚持自己的看法，请求离开京城
-        nextNodeId: ch2_a
-        feedback: 你把争论放下，把脚步迈向远方。
-      - id: serve_local
-        label: 到地方做事，用实际行动证明想法
-        nextNodeId: ch2_b
-        feedback: 你把心思放在地方百姓身上，京城反而更远了。
-      - id: stay_and_fight
-        label: 留在京城，当面硬碰王安石
+      - id: pick_this
+        label: 选这个
+        nextNodeId: ch3_open
+      - id: skip_this
+        label: 别选这个
         nextNodeId: ch2_over
-        feedback: 争论越来越激烈，事情变得更糟。
-  - id: ch2_a
-    type: narration
-    chapter: 2
-    chapterTitle: 变法与外放
-    text: 你离开京城，辗转好几个地方。官职还在，可和弟弟的距离越来越远。
-    nextNodeId: ch2_join
-  - id: ch2_b
-    type: narration
-    chapter: 2
-    chapterTitle: 变法与外放
-    text: 地方的事务很多。你忙着处理公务，却发现想见苏辙一面，比以前更难。
-    nextNodeId: ch2_join
   - id: ch2_over
     type: gameOver
     chapter: 2
     chapterTitle: 变法与外放
-    portrait: anshi
-    speaker: 旁白
-    text: 你留在京城继续争论。政见冲突越来越尖锐，你被贬得更远，也更难见到苏辙。这条路走不通，《水调歌头》不会在今晚写成。请回到刚才的选择，换一条路。
-  - id: ch2_join
-    type: narration
-    chapter: 2
-    chapterTitle: 变法与外放
-    text: 外放之后，兄弟见面变得更难。这就是《水调歌头》背后的时代背景：政见不同，人在天涯。
-    nextNodeId: ch3_open
+    text: 告诉你别选这个
   - id: ch3_open
     type: narration
     chapter: 3

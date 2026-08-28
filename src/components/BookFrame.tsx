@@ -1,6 +1,8 @@
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { chapterLabel } from "../ui/chapterLabel";
+import type { SegmentProgress } from "../ui/lessonProgress";
+import { LessonProgress } from "./LessonProgress";
 import styles from "./book.module.css";
 
 export type ChapterTab = {
@@ -17,6 +19,7 @@ type BookFrameProps = {
   portraitSrc?: string;
   portraitName?: string;
   overlay?: ReactNode;
+  progress?: SegmentProgress;
   children: ReactNode;
 };
 
@@ -28,6 +31,7 @@ export function BookFrame({
   portraitSrc,
   portraitName,
   overlay,
+  progress,
   children,
 }: BookFrameProps) {
   const activeChapterConfig = chapters.find(
@@ -51,6 +55,11 @@ export function BookFrame({
           返回目录
         </Link>
       </header>
+      {progress ? (
+        <div className={styles.progressWrap}>
+          <LessonProgress progress={progress} />
+        </div>
+      ) : null}
       <div className={styles.stage}>
         <aside className={styles.spine} aria-label="章节书脊">
           {chapters.map((chapter) => (

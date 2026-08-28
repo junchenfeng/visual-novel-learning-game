@@ -8,13 +8,24 @@ export function isChoiceQuestion(question: QuizQuestion): question is ChoiceQues
   return question.type === "choice";
 }
 
+export function hasQuizHint(question: QuizQuestion): boolean {
+  if (isOpenQuestion(question)) {
+    return true;
+  }
+  return Boolean(question.hint);
+}
+
 export function classmateLine(question: QuizQuestion): string {
   if (question.type === "open") {
     return question.classmateAnswer;
   }
-  return question.options.find((item) => item.id === question.classmateOptionId)?.label ?? "";
+  return question.hint?.text ?? "";
 }
 
 export function optionLabel(question: ChoiceQuestion, optionId: string): string {
   return question.options.find((item) => item.id === optionId)?.label ?? optionId;
+}
+
+export function optionFeedback(question: ChoiceQuestion, optionId: string): string {
+  return question.options.find((item) => item.id === optionId)?.feedback ?? "";
 }

@@ -87,25 +87,30 @@ export function CurioBook({ work, layout }: CurioBookProps) {
   return (
     <div className={styles.bookWrap}>
       <Link
-        className={bookBaseClass}
+        className={styles.bookHit}
         href={`/play/${selectedDlc.id}`}
         title={`${work.title} — ${selectedDlc.displayAuthor} 版本`}
-        style={{ ["--book-color" as string]: bookColor }}
       >
-        {layout === "scroll" ? (
-          <>
-            <span className={`${styles.scrollRoll} ${styles.scrollRollLeft}`} />
-            <span className={`${styles.scrollRoll} ${styles.scrollRollRight}`} />
-            <span className={styles.scrollTag} />
-            <span className={styles.bookTitle}>{work.title}</span>
-          </>
-        ) : (
-          <>
-            {layout === "horizontal" && <span className={styles.bookSpine} />}
-            <span className={styles.bookTitle}>{work.title}</span>
-          </>
-        )}
-        <span className={styles.inkGlow} aria-hidden="true" />
+        <span
+          className={bookBaseClass}
+          style={{ ["--book-color" as string]: bookColor }}
+        >
+          {layout === "scroll" ? (
+            <>
+              <span className={`${styles.scrollRoll} ${styles.scrollRollLeft}`} />
+              <span className={`${styles.scrollRoll} ${styles.scrollRollRight}`} />
+              <span className={styles.scrollTag} />
+              <span className={styles.bookTitle}>{work.title}</span>
+            </>
+          ) : (
+            <>
+              {layout === "horizontal" && <span className={styles.bookSpine} />}
+              <span className={styles.bookTitle}>{work.title}</span>
+            </>
+          )}
+          <span className={styles.inkGlow} aria-hidden="true" />
+        </span>
+        <span className={styles.readyCaption}>可阅读</span>
       </Link>
       {hasMultiple && (
         <div className={styles.packSwitcher}>

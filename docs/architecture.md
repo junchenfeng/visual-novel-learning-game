@@ -37,7 +37,9 @@ flowchart TD
   catalog[选诗人和书] --> story[背景故事]
   story -->|选错路| gameOver[此路不通]
   gameOver -->|重新选择| story
-  story --> poem[宣纸读词]
+  story -->|开始读词| poem[宣纸读词]
+  story -->|这是什么？（需配置 easterEgg）| egg[彩蛋小游戏]
+  egg --> poem
   poem --> quiz[师生问答]
   quiz --> summary[学习总结]
 ```
@@ -60,9 +62,10 @@ flowchart TD
 
 - `story`：旁白 / 史实 / 选择 / Game Over
 - `pageTransition`：翻页动画进行中
+- `easterEgg`：可选彩蛋小游戏（仅当 manifest 配置了 `easterEgg`）
 - `poem`：逐句揭示
 - `quiz.idle | submitting | success | error`
-- `summary.generating | ready | error`
+- `summary.generating | ready | error
 
 ### 其他库
 

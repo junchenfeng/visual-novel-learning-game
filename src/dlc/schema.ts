@@ -31,6 +31,16 @@ export const compiledCharacterSchema = z.object({
   portraitUrl: z.string().min(1).optional(),
 });
 
+/** 引擎已登记的彩蛋小游戏。接上真正的游戏时，在这里加 kind，并在注册表里挂组件。 */
+export const EASTER_EGG_KINDS = ["placeholder"] as const;
+export const easterEggKindSchema = z.enum(EASTER_EGG_KINDS);
+
+export const easterEggSchema = z.object({
+  kind: easterEggKindSchema,
+  title: z.string().min(1).optional(),
+  params: z.record(z.string(), z.unknown()).optional(),
+});
+
 export const manifestSchema = z.object({
   schemaVersion: z.literal(SCHEMA_VERSION),
   id: idSchema,
@@ -58,6 +68,7 @@ export const manifestSchema = z.object({
       music: relativePathSchema.optional(),
     })
     .optional(),
+  easterEgg: easterEggSchema.optional(),
 });
 
 export const storyChoiceOptionSchema = z.object({
@@ -155,6 +166,12 @@ export const poemSchema = z.object({
 export const quizOptionSchema = z.object({
   id: idSchema,
   label: z.string().min(1),
+  feedback: z.string().min(1),
+});
+
+export const quizHintSchema = z.object({
+  text: z.string().min(1),
+  isCorrect: z.boolean(),
 });
 
 export const openQuestionSchema = z.object({
@@ -176,8 +193,8 @@ export const choiceQuestionSchema = z
     prompt: z.string().min(1),
     options: z.array(quizOptionSchema).min(2),
     correctOptionId: idSchema,
-    classmateOptionId: idSchema,
-    explanation: z.string().min(1),
+    feedbackSpeaker: z.enum(["teacher", "classmate"]),
+    hint: quizHintSchema.optional(),
     contextRefs: z.array(z.string()).optional(),
   })
   .superRefine((question, ctx) => {
@@ -194,13 +211,6 @@ export const choiceQuestionSchema = z
         code: "custom",
         message: "correctOptionId 必须是某个选项 id",
         path: ["correctOptionId"],
-      });
-    }
-    if (!optionIds.has(question.classmateOptionId)) {
-      ctx.addIssue({
-        code: "custom",
-        message: "classmateOptionId 必须是某个选项 id",
-        path: ["classmateOptionId"],
       });
     }
   });
@@ -233,6 +243,8 @@ export const compiledDlcSchema = z.object({
 });
 
 export type Manifest = z.infer<typeof manifestSchema>;
+export type EasterEggConfig = z.infer<typeof easterEggSchema>;
+export type EasterEggKind = z.infer<typeof easterEggKindSchema>;
 export type StoryNode = z.infer<typeof storyNodeSchema>;
 export type NarrationNode = z.infer<typeof narrationNodeSchema>;
 export type ChoiceNode = z.infer<typeof choiceNodeSchema>;
@@ -244,6 +256,7 @@ export type Quiz = z.infer<typeof quizSchema>;
 export type QuizQuestion = z.infer<typeof quizQuestionSchema>;
 export type OpenQuestion = z.infer<typeof openQuestionSchema>;
 export type ChoiceQuestion = z.infer<typeof choiceQuestionSchema>;
+export type QuizHint = z.infer<typeof quizHintSchema>;
 export type CompiledDlc = z.infer<typeof compiledDlcSchema>;
 
 export class DlcValidationError extends Error {

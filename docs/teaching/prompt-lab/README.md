@@ -54,4 +54,4 @@ SUMMARY_MASTER_PROMPT（冻结） + summaryPrompt（本课） → 总结页总�
 
 禁止：改 `MASTER_PROMPT` / `SUMMARY_MASTER_PROMPT`、给孩子的提示词打分、调用 `/api/teacher` 把结果写进游戏、改 `quiz.yaml`。
 
-备课阶段如何设计题目和何解 HINT，见 [dlc-authoring-for-agents.md](../dlc-authoring-for-agents.md)。
+备课阶段工作单与落盘路径，见仓库根目录 `AGENTS.md`。

@@ -51,10 +51,10 @@ export const POET_ROSTER: RosterPoet[] = [
     poet: "苏轼",
     poetPortraitUrl: poetPortrait("sushi"),
     works: [
-      { title: "六月二十七日望湖楼醉书" },
+      { title: "水调歌头・明月几时有" },
       { title: "西江月・夜行黄沙道中" },
       { title: "江城子・密州出猎" },
-      { title: "水调歌头・明月几时有" },
+      { title: "六月二十七日望湖楼醉书" },
     ],
   },
   {
