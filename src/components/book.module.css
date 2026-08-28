@@ -26,6 +26,8 @@
 .kicker {
   font-size: var(--type-kicker, 13px);
   letter-spacing: 0.18em;
+  font-family: var(--font-sans);
+  font-weight: 500;
 }
 
 .back {
@@ -33,7 +35,8 @@
   background: #f7efdc;
   color: inherit;
   padding: 6px 12px;
-  font: inherit;
+  font-family: var(--font-sans);
+  font-size: 14px;
   cursor: pointer;
 }
 
@@ -83,6 +86,8 @@
   writing-mode: vertical-rl;
   font-size: 20px;
   letter-spacing: 0.28em;
+  font-family: var(--font-sans);
+  font-weight: 500;
 }
 
 .tabTitle {
@@ -90,6 +95,7 @@
   font-size: 13px;
   letter-spacing: 0.22em;
   opacity: 0.86;
+  font-family: var(--font-sans);
 }
 
 .tabActive {
@@ -210,6 +216,8 @@
 .speaker {
   font-size: var(--type-kicker, 13px);
   letter-spacing: 0.12em;
+  font-family: var(--font-sans);
+  font-weight: 500;
 }
 
 .bodyText {
@@ -248,7 +256,7 @@
 .choice,
 .primary,
 .secondary {
-  font: inherit;
+  font-family: var(--font-sans);
   cursor: pointer;
   border: 1px solid #2c2416;
   background: #fffaf0;
@@ -256,6 +264,9 @@
   padding: 10px 14px;
   min-height: 44px;
   text-align: left;
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
 }
 
 .primary {
@@ -302,7 +313,9 @@
 .input {
   width: 100%;
   min-height: 96px;
-  font: inherit;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.7;
   padding: 12px;
   border: 1px solid #2c2416;
   background: #fffaf0;

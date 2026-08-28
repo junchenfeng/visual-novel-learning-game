@@ -37,13 +37,16 @@
 .back,
 .primary,
 .secondary {
-  font: inherit;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
   cursor: pointer;
   border: 1px solid #f4ead5;
   background: transparent;
   color: inherit;
   padding: 8px 14px;
   min-height: 44px;
+  letter-spacing: 0.02em;
 }
 
 .primary {
@@ -127,6 +130,8 @@
   letter-spacing: 0.16em;
   font-size: var(--type-kicker, 13px);
   margin-bottom: 8px;
+  font-family: var(--font-sans);
+  font-weight: 500;
 }
 
 .speakerTeacher {
@@ -150,7 +155,9 @@
   width: 100%;
   min-height: 88px;
   margin-top: 12px;
-  font: inherit;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.7;
   padding: 12px;
   border: 1px solid #f4ead5;
   background: #10141c;
@@ -168,6 +175,8 @@
 .kicker {
   letter-spacing: 0.16em;
   font-size: var(--type-kicker, 13px);
+  font-family: var(--font-sans);
+  font-weight: 500;
 }
 
 .feedback p {
@@ -194,7 +203,9 @@
 }
 
 .choice {
-  font: inherit;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
   cursor: pointer;
   text-align: left;
   border: 1px solid #f4ead5;
@@ -202,6 +213,7 @@
   color: inherit;
   padding: 10px 14px;
   min-height: 44px;
+  letter-spacing: 0.02em;
 }
 
 .spriteThinking img {

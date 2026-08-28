@@ -1,0 +1,265 @@
+.mask {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 24px;
+  background: radial-gradient(
+    circle at 50% 42%,
+    rgba(100, 84, 52, 0.18) 0%,
+    rgba(10, 8, 5, 0.78) 62%,
+    rgba(5, 4, 2, 0.9) 100%
+  );
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  overflow: hidden;
+  animation: maskFade 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes maskFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 墨晕回环：从卡片后向外扩散的淡墨圆环 */
+.ring {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 240px;
+  height: 240px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px solid rgba(210, 180, 120, 0.28);
+  box-shadow:
+    0 0 0 18px rgba(178, 148, 96, 0.1),
+    0 0 0 42px rgba(178, 148, 96, 0.07),
+    0 0 0 80px rgba(178, 148, 96, 0.05);
+  opacity: 0;
+  animation: ringPulse 2.4s cubic-bezier(0.4, 0, 0.2, 1) 0.25s infinite both;
+}
+
+@keyframes ringPulse {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.55);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+}
+
+/* 浮尘墨点 */
+.particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.particles i {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(214, 184, 130, 0.5);
+  filter: blur(1px);
+  opacity: 0;
+  animation: floatUp 3.6s ease-in-out infinite;
+}
+
+.particles i:nth-child(1) {
+  left: 18%;
+  top: 64%;
+  animation-delay: 0.2s;
+}
+.particles i:nth-child(2) {
+  left: 30%;
+  top: 78%;
+  width: 4px;
+  height: 4px;
+  animation-delay: 1.1s;
+}
+.particles i:nth-child(3) {
+  left: 72%;
+  top: 70%;
+  animation-delay: 0.6s;
+}
+.particles i:nth-child(4) {
+  left: 84%;
+  top: 58%;
+  width: 5px;
+  height: 5px;
+  animation-delay: 1.8s;
+}
+.particles i:nth-child(5) {
+  left: 48%;
+  top: 86%;
+  animation-delay: 2.4s;
+}
+.particles i:nth-child(6) {
+  left: 8%;
+  top: 48%;
+  width: 4px;
+  height: 4px;
+  animation-delay: 2.9s;
+}
+
+@keyframes floatUp {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.6);
+  }
+  25% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-46px) scale(1);
+  }
+}
+
+/* 结局卡片 */
+.card {
+  position: relative;
+  width: min(88%, 300px);
+  padding: 34px 26px 28px;
+  text-align: center;
+  color: var(--ink, #2c2416);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(214, 184, 130, 0.25), transparent 60%),
+    linear-gradient(180deg, #f6eede 0%, #ecdcc0 100%);
+  border: 1px solid rgba(140, 104, 48, 0.55);
+  outline: 1px solid rgba(255, 242, 214, 0.55);
+  outline-offset: 2px;
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.45),
+    inset 0 0 40px rgba(120, 92, 46, 0.12);
+  animation: cardIn 0.7s cubic-bezier(0.34, 1.4, 0.4, 1) 0.12s both;
+}
+
+@keyframes cardIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.55) translateY(26px);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* 印章 */
+.seal {
+  position: absolute;
+  top: -22px;
+  right: 14px;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  font-family: "Songti SC", "SimSun", "STSong", serif;
+  color: #fff;
+  background: linear-gradient(160deg, #b13a2e, #7c241c);
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+  transform: rotate(9deg);
+  animation: sealSlam 0.6s cubic-bezier(0.34, 1.56, 0.4, 1) 0.5s both;
+}
+
+@keyframes sealSlam {
+  0% {
+    opacity: 0;
+    transform: rotate(-40deg) scale(2.4);
+  }
+  60% {
+    opacity: 1;
+    transform: rotate(14deg) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(9deg) scale(1);
+  }
+}
+
+.kicker {
+  margin: 0 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+  color: #8a6b3a;
+}
+
+.title {
+  margin: 0 0 14px;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-indent: 0.18em;
+  color: #2c2416;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.45);
+}
+
+.body {
+  min-height: 4.2em;
+  margin: 0 0 20px;
+  font-size: 15px;
+  line-height: 2.05;
+  color: #42372a;
+  text-align: left;
+  cursor: pointer;
+}
+
+.caret {
+  color: #a63232;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.muted {
+  margin: 0;
+  font-size: 11px;
+  color: #8a7a5a;
+}
+
+.replay {
+  appearance: none;
+  border: 1px solid rgba(140, 104, 48, 0.6);
+  background: linear-gradient(180deg, #3a2c1e, #241a10);
+  color: #f0e2c6;
+  font-family: inherit;
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  padding: 12px 22px;
+  cursor: pointer;
+  transition:
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+.replay:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.38);
+}
+
+.replay:active {
+  transform: translateY(0);
+}

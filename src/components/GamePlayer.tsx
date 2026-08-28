@@ -12,6 +12,7 @@ import { LocalStorageAdapter } from "../storage/LocalStorageAdapter";
 import { createId } from "../ui/uuid";
 import { BookFrame, type ChapterTab } from "./BookFrame";
 import { CourtroomFrame, type ClassroomPortraits } from "./CourtroomFrame";
+import { GameOverModal } from "./GameOverModal";
 import { GameViewport } from "./GameViewport";
 import { NarrativeGate } from "./NarrativeGate";
 import { PoemScrollFrame } from "./PoemScrollFrame";
@@ -387,7 +388,7 @@ export function GamePlayer({ dlc }: GamePlayerProps) {
         portraitName={portrait.name}
         overlay={overlay}
       >
-        {snapshot.matches("story") ? (
+        {snapshot.matches("story") && node.type !== "gameOver" ? (
           <StoryPhase
             key={node.id}
             node={node}
@@ -420,5 +421,25 @@ export function GamePlayer({ dlc }: GamePlayerProps) {
     );
   }
 
-  return <GameViewport>{screen}</GameViewport>;
+  const isGameOverNode =
+    snapshot.matches("story") && node.type === "gameOver";
+
+  return (
+    <GameViewport>
+      {screen}
+      {isGameOverNode ? (
+        <GameOverModal
+          node={node}
+          onReplay={() => {
+            lastGameOver.current = "";
+            appendEvent("story.replayed", {
+              fromNodeId: node.id,
+              toNodeId: context.lastChoiceNodeId,
+            });
+            send({ type: "REPLAY_CHOICE" });
+          }}
+        />
+      ) : null}
+    </GameViewport>
+  );
 }

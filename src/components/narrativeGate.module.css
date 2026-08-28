@@ -90,6 +90,8 @@
   font-size: var(--type-kicker, 12px);
   letter-spacing: 0.24em;
   opacity: 0.72;
+  font-family: var(--font-sans);
+  font-weight: 500;
 }
 
 .narrative {
@@ -108,7 +110,9 @@
   justify-content: space-between;
   color: inherit;
   background: transparent;
-  font: inherit;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  letter-spacing: 0.04em;
   cursor: pointer;
 }
 
@@ -128,6 +132,7 @@
   font-size: var(--type-caption, 12px);
   letter-spacing: 0.08em;
   opacity: 0.62;
+  font-family: var(--font-sans);
 }
 
 @keyframes gate-moon-in {
