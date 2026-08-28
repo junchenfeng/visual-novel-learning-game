@@ -88,10 +88,10 @@
 
 .speakerName {
   font-family: var(--font-sans);
-  font-size: var(--type-kicker, 11px);
-  letter-spacing: 0.12em;
-  color: #6f3030;
-  font-weight: 500;
+  font-size: var(--type-kicker, 12px);
+  letter-spacing: 0.16em;
+  color: #8a5a1e;
+  font-weight: 700;
 }
 
 .slipWrap {
@@ -101,10 +101,10 @@
 
 .slip {
   position: relative;
-  padding: 12px 14px 14px 16px;
-  border: 1px solid rgba(111, 48, 48, 0.22);
-  border-left: 3px solid #6f3030;
-  background: #f7efe3;
+  padding: 14px 16px 16px 18px;
+  border: 1px solid rgba(184, 134, 11, 0.45);
+  border-left: 3px solid #b8860b;
+  background: linear-gradient(180deg, rgba(255, 248, 225, 0.85), rgba(247, 236, 210, 0.7));
 }
 
 .slip::before {
@@ -119,11 +119,23 @@
 
 .slipKicker {
   margin-bottom: 8px;
-  color: #6f3030;
+  color: #8a5a1e;
   font-family: var(--font-sans);
-  font-size: var(--type-kicker, 11px);
-  letter-spacing: 0.2em;
-  font-weight: 500;
+  font-size: var(--type-kicker, 12px);
+  letter-spacing: 0.24em;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slipKicker::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: #b8860b;
+  transform: rotate(45deg);
+  flex-shrink: 0;
 }
 
 .slipBody {

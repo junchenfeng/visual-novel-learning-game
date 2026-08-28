@@ -25,22 +25,23 @@
 
 .kicker {
   font-size: var(--type-kicker, 13px);
-  letter-spacing: 0.22em;
+  letter-spacing: 0.24em;
   font-family: var(--font-sans);
-  font-weight: 600;
-  color: #6f3030;
+  font-weight: 700;
+  color: #8a5a1e;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .kicker::before {
   content: "";
-  width: 6px;
-  height: 6px;
-  background: #a63232;
+  width: 8px;
+  height: 8px;
+  background: #b8860b;
   transform: rotate(45deg);
   flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(184, 134, 11, 0.3);
 }
 
 .back {
@@ -226,15 +227,31 @@
   color: #2c2416;
 }
 
+.page[data-has-background="true"] .kicker {
+  color: #d4a84b;
+}
+
+.page[data-has-background="true"] .kicker::before {
+  background: #d4a84b;
+}
+
+.page[data-has-background="true"] .speaker {
+  color: #d4a84b;
+}
+
+.page[data-has-background="true"] .speaker::before {
+  background: #d4a84b;
+}
+
 .speaker {
   font-size: var(--type-kicker, 13px);
-  letter-spacing: 0.2em;
+  letter-spacing: 0.24em;
   font-family: var(--font-sans);
-  font-weight: 600;
-  color: #6f3030;
-  padding-left: 14px;
+  font-weight: 700;
+  color: #6b4a1a;
+  padding-left: 16px;
   position: relative;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .speaker::before {
@@ -243,10 +260,9 @@
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 8px;
-  height: 8px;
-  background: #a63232;
-  box-shadow: inset 0 0 0 1px rgba(44, 36, 22, 0.3);
+  width: 10px;
+  height: 2px;
+  background: #b8860b;
 }
 
 .bodyText {
@@ -263,13 +279,13 @@
 }
 
 .factText {
-  padding: 18px 20px 18px 22px;
-  border: 1px dashed #2c2416;
-  border-left: 3px solid #a63232;
-  background: rgba(255, 250, 240, 0.78);
+  padding: 20px 22px 20px 22px;
+  border: 1px solid rgba(184, 134, 11, 0.55);
+  border-left: 3px solid #b8860b;
+  background: linear-gradient(180deg, rgba(255, 248, 225, 0.85), rgba(247, 236, 210, 0.72));
   text-indent: 0;
   position: relative;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .choices,
