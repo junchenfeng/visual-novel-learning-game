@@ -1,0 +1,220 @@
+.shell {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  background:
+    radial-gradient(circle at top, #efe2c4 0%, transparent 40%),
+    #cbb58a;
+  color: #2c2416;
+}
+
+.closedBook {
+  margin: 24px 0 24px 16px;
+  border: 2px solid #2c2416;
+  background: repeating-linear-gradient(
+    90deg,
+    #6f3030,
+    #6f3030 14px,
+    #4e2020 14px,
+    #4e2020 18px
+  );
+  color: #f7efdc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  letter-spacing: 0.32em;
+  font-size: 18px;
+}
+
+.paperWrap {
+  min-height: 0;
+  overflow: hidden;
+  padding: 24px 20px 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.header h1 {
+  font-size: clamp(18px, 5.4cqw, 24px);
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+.back,
+.primary {
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid #2c2416;
+  background: #fffaf0;
+  color: inherit;
+  padding: 8px 14px;
+  min-height: 44px;
+}
+
+.primary {
+  background: #2c2416;
+  color: #f7efdc;
+}
+
+.paper {
+  flex: 1;
+  overflow: auto;
+  max-width: 42rem;
+  margin: 0 auto;
+  width: 100%;
+  min-height: 0;
+  padding: 36px 28px 48px;
+  background:
+    linear-gradient(180deg, rgba(44, 36, 22, 0.04), transparent 12%),
+    #fbf6e8;
+  border: 1px solid #d7c49a;
+  box-shadow: 0 12px 0 rgba(44, 36, 22, 0.08);
+}
+
+.line {
+  padding: 18px 0 22px;
+  border-bottom: 1px dashed rgba(44, 36, 22, 0.18);
+}
+
+.line:last-of-type {
+  border-bottom: 0;
+}
+
+.original {
+  font-family: var(--font-poem-original), "Kaiti SC", KaiTi, cursive;
+  font-size: clamp(26px, 7.2cqi, 36px);
+  line-height: 1.65;
+}
+
+.glosses {
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  list-style: none;
+}
+
+.gloss {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 9px;
+  border: 1px dashed rgba(44, 36, 22, 0.22);
+  background: rgba(255, 252, 246, 0.8);
+  color: #4a3c28;
+  font-size: var(--type-caption, 13px);
+  line-height: 1.45;
+}
+
+.glossWord {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.glossMeaning {
+  color: #6a5a42;
+}
+
+.translation {
+  margin-top: 10px;
+  font-size: var(--type-body, 16px);
+  line-height: 1.75;
+}
+
+.note {
+  margin-top: 14px;
+  padding: 12px 14px 14px 16px;
+  border: 1px solid rgba(111, 48, 48, 0.22);
+  border-left: 3px solid #6f3030;
+  background: #f7efe3;
+}
+
+.noteKicker {
+  margin-bottom: 6px;
+  color: #6f3030;
+  font-size: var(--type-kicker, 11px);
+  letter-spacing: 0.2em;
+}
+
+.noteBody {
+  font-size: clamp(16px, 4.4cqi, 19px);
+  line-height: 1.75;
+}
+
+.current {
+  background: rgba(111, 48, 48, 0.06);
+  margin: 0 -12px;
+  padding: 18px 12px 22px;
+}
+
+.actions {
+  margin-top: 24px;
+  position: sticky;
+  bottom: 12px;
+}
+
+.kicker {
+  letter-spacing: 0.16em;
+  font-size: var(--type-kicker, 13px);
+  margin-bottom: 6px;
+}
+
+@container game (max-width: 800px) {
+  .shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: 72px 1fr;
+  }
+
+  .closedBook {
+    margin: 12px 16px 0;
+    writing-mode: horizontal-tb;
+    letter-spacing: 0.2em;
+    min-height: 56px;
+    font-size: var(--type-title, 18px);
+  }
+
+  .paperWrap {
+    padding: 14px 14px max(16px, env(safe-area-inset-bottom));
+  }
+
+  .header {
+    margin-bottom: 12px;
+  }
+
+  .header h1 {
+    max-width: 260px;
+    font-size: var(--type-title, clamp(17px, 4.6cqw, 19px));
+  }
+
+  .back {
+    padding: 6px 10px;
+    font-size: var(--type-caption, 13px);
+  }
+
+  .paper {
+    padding: 24px 20px 32px;
+  }
+
+  .original {
+    font-size: clamp(24px, 7.2cqi, 34px);
+  }
+
+  .translation {
+    font-size: var(--type-body, 16px);
+  }
+
+  .noteBody {
+    font-size: clamp(16px, 4.4cqi, 19px);
+  }
+}

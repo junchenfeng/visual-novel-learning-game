@@ -1,0 +1,82 @@
+.desktopShell {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(24px, 5vw, 88px);
+  overflow: clip;
+  padding: 4dvh 24px;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(202, 161, 90, 0.2), transparent 36%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 7px),
+    #15120f;
+}
+
+.viewport {
+  container: game / inline-size;
+  flex: 0 0 auto;
+  width: 430px;
+  height: 932px;
+  zoom: min(1.35, calc(92dvh / 932px), calc((100vw - 220px) / 430px));
+  overflow: clip;
+  position: relative;
+  border: 1px solid rgba(239, 217, 174, 0.5);
+  border-radius: 28px;
+  background: #d9c7a1;
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.58),
+    0 0 0 8px #25201b,
+    0 0 0 9px rgba(239, 217, 174, 0.18);
+}
+
+.canvas {
+  height: 100%;
+  min-height: 0;
+  --type-kicker: clamp(11px, 2.6cqi, 12px);
+  --type-title: clamp(15px, 4.2cqi, 18px);
+  --type-body: clamp(15px, 4cqi, 17px);
+  --type-caption: clamp(11px, 2.8cqi, 13px);
+}
+
+.sideOrnament {
+  width: 54px;
+  color: rgba(232, 209, 165, 0.62);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  font-size: 18px;
+  letter-spacing: 0.2em;
+}
+
+.sideOrnament i {
+  width: 1px;
+  height: min(28dvh, 220px);
+  background: linear-gradient(transparent, currentColor 18%, currentColor 82%, transparent);
+}
+
+.sideOrnamentRight {
+  flex-direction: column-reverse;
+}
+
+@media (max-width: 600px) {
+  .desktopShell {
+    min-height: 100dvh;
+    display: block;
+    padding: 0;
+    background: #d9c7a1;
+  }
+
+  .viewport {
+    width: 100%;
+    height: 100dvh;
+    zoom: 1;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .sideOrnament {
+    display: none;
+  }
+}

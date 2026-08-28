@@ -1,0 +1,471 @@
+{
+  "schemaVersion": 1,
+  "publicBasePath": "/dlc/hailao-chibi",
+  "manifest": {
+    "schemaVersion": 1,
+    "id": "hailao-chibi",
+    "version": "1.0.0",
+    "title": "赤壁",
+    "author": "海狸老师",
+    "poet": "杜牧",
+    "poetId": "dumu",
+    "workTitle": "赤壁",
+    "summary": "穿越到赤壁之战前的东吴，化身大都督周瑜做三连抉择，读懂那一阵改写历史的“东风”，体会杜牧的怀才不遇。",
+    "startStoryNodeId": "ch1_fact",
+    "classroom": {
+      "teacher": "teacher",
+      "classmate": "classmate",
+      "student": "student"
+    },
+    "files": {
+      "story": "content/story.yaml",
+      "poem": "content/poem.yaml",
+      "quiz": "content/quiz.yaml"
+    },
+    "characters": [
+      {
+        "id": "zhouyu",
+        "name": "周瑜"
+      },
+      {
+        "id": "sunquan",
+        "name": "孙权"
+      },
+      {
+        "id": "zhangzhao",
+        "name": "张昭"
+      },
+      {
+        "id": "lusu",
+        "name": "鲁肃"
+      },
+      {
+        "id": "zhugeliang",
+        "name": "诸葛亮"
+      },
+      {
+        "id": "huanggai",
+        "name": "黄盖"
+      },
+      {
+        "id": "caocao",
+        "name": "曹操"
+      },
+      {
+        "id": "dumu",
+        "name": "杜牧",
+        "portraitUrl": "/poets/dumu.webp"
+      },
+      {
+        "id": "teacher",
+        "name": "老师",
+        "portraitUrl": "/portraits/teacher-cutout.png"
+      },
+      {
+        "id": "classmate",
+        "name": "何解",
+        "portraitUrl": "/portraits/classmate-cutout.png"
+      },
+      {
+        "id": "student",
+        "name": "你",
+        "portraitUrl": "/portraits/student.webp"
+      }
+    ]
+  },
+  "story": {
+    "startNodeId": "ch1_fact",
+    "chapters": [
+      {
+        "chapter": 1,
+        "backgroundUrl": "/dlc/hailao-chibi/assets/backgrounds/chapter-1.jpeg"
+      },
+      {
+        "chapter": 2,
+        "backgroundUrl": "/dlc/hailao-chibi/assets/backgrounds/chapter-2.jpeg"
+      },
+      {
+        "chapter": 3,
+        "backgroundUrl": "/dlc/hailao-chibi/assets/backgrounds/chapter-3.jpeg"
+      },
+      {
+        "chapter": 4,
+        "backgroundUrl": "/dlc/hailao-chibi/assets/backgrounds/chapter-4.jpeg"
+      }
+    ],
+    "nodes": {
+      "ch1_fact": {
+        "id": "ch1_fact",
+        "type": "fact",
+        "chapter": 1,
+        "chapterTitle": "主战还是主降",
+        "text": "建安十三年（208），曹操二十余万大军南下，虎视东吴。孙权帐下，张昭等大臣主张投降，周瑜与鲁肃则力主抵抗。孙权握着剑，心里摇摆不定——这一仗打不打，就压在你这个大都督周瑜身上了。",
+        "heading": "孙权帐下的争论",
+        "nextNodeId": "ch1_choice"
+      },
+      "ch1_choice": {
+        "id": "ch1_choice",
+        "type": "choice",
+        "chapter": 1,
+        "chapterTitle": "主战还是主降",
+        "text": "你身为东吴大都督周瑜，要怎么劝孙权？",
+        "portrait": "zhouyu",
+        "convergesTo": "ch1_join",
+        "choices": [
+          {
+            "id": "encourage",
+            "label": "力陈曹军四大弱点，激起孙权决心",
+            "nextNodeId": "ch1_a",
+            "feedback": "你把曹军的软肋一条条摆在桌面上。"
+          },
+          {
+            "id": "unite",
+            "label": "联合鲁肃、诸葛亮一起进言，稳住孙权",
+            "nextNodeId": "ch1_b",
+            "feedback": "你搬来了最强的帮手，一起劝孙权。"
+          },
+          {
+            "id": "surrender",
+            "label": "顺着主降派，说曹军势大不如早降",
+            "nextNodeId": "ch1_over",
+            "feedback": "你低下了头，劝孙权投降。"
+          }
+        ]
+      },
+      "ch1_a": {
+        "id": "ch1_a",
+        "type": "narration",
+        "chapter": 1,
+        "chapterTitle": "主战还是主降",
+        "text": "你一口气点破曹军的四大弱点：远来疲惫、北兵不习水战、后方不稳、水土不服容易生病。孙权越听越亮，猛地拔剑砍下桌案一角——抗曹定了！",
+        "nextNodeId": "ch1_join"
+      },
+      "ch1_b": {
+        "id": "ch1_b",
+        "type": "narration",
+        "chapter": 1,
+        "chapterTitle": "主战还是主降",
+        "text": "你请来鲁肃，又邀诸葛亮一同进言。孙权看着眼前三个同心抗曹的身影，终于下定了决心——听你们的，打！",
+        "nextNodeId": "ch1_join"
+      },
+      "ch1_over": {
+        "id": "ch1_over",
+        "type": "gameOver",
+        "chapter": 1,
+        "chapterTitle": "主战还是主降",
+        "text": "孙权就坡下驴，东吴献降，曹操兵不血刃拿下江东。赤壁之战根本不会发生，杜牧也就无诗可写了。这条路走不通，请回到刚才的选择换一条路。",
+        "speaker": "旁白",
+        "portrait": "caocao"
+      },
+      "ch1_join": {
+        "id": "ch1_join",
+        "type": "narration",
+        "chapter": 1,
+        "chapterTitle": "主战还是主降",
+        "text": "孙权拔剑砍案——抗曹定了！可这一仗，到底该怎么打？以少胜多，绝不容易。",
+        "nextNodeId": "ch2_fact"
+      },
+      "ch2_fact": {
+        "id": "ch2_fact",
+        "type": "fact",
+        "chapter": 2,
+        "chapterTitle": "怎么打",
+        "text": "曹军水寨连成一片、声势浩大，硬碰硬几乎必败。这时老将黄盖献上诈降火攻之计；谋士庞统又献上连环计，把曹军的战船用铁环锁在一起（演义）。一个大胆的念头在你心里成形。",
+        "heading": "火攻的念头",
+        "nextNodeId": "ch2_choice"
+      },
+      "ch2_choice": {
+        "id": "ch2_choice",
+        "type": "choice",
+        "chapter": 2,
+        "chapterTitle": "怎么打",
+        "text": "箭在弦上，你决定怎么打这一仗？",
+        "portrait": "zhouyu",
+        "convergesTo": "ch2_join",
+        "choices": [
+          {
+            "id": "fire",
+            "label": "采纳黄盖诈降，船载柴草引火攻营",
+            "nextNodeId": "ch2_a",
+            "feedback": "你把宝押在一把大火上。"
+          },
+          {
+            "id": "charge",
+            "label": "堂堂正正，正面决战硬拼",
+            "nextNodeId": "ch2_over1",
+            "feedback": "你决定和曹军正面见真章。"
+          },
+          {
+            "id": "defend",
+            "label": "坚壁清野，闭门死守等曹军退",
+            "nextNodeId": "ch2_over2",
+            "feedback": "你不急，打算把曹军耗走。"
+          }
+        ]
+      },
+      "ch2_a": {
+        "id": "ch2_a",
+        "type": "narration",
+        "chapter": 2,
+        "chapterTitle": "怎么打",
+        "text": "黄盖带船诈降，船里装满柴草膏油，借着水势直逼曹营。万事俱备，只欠最后一样老天送的东西。",
+        "nextNodeId": "ch2_join"
+      },
+      "ch2_over1": {
+        "id": "ch2_over1",
+        "type": "gameOver",
+        "chapter": 2,
+        "chapterTitle": "怎么打",
+        "text": "你以弱击强非要硬拼，黄盖劝不动你，东吴水军一战大败。赤壁的结局被改写，杜牧此后也无从写起。请回到刚才的选择换一条路。",
+        "speaker": "旁白",
+        "portrait": "caocao"
+      },
+      "ch2_over2": {
+        "id": "ch2_over2",
+        "type": "gameOver",
+        "chapter": 2,
+        "chapterTitle": "怎么打",
+        "text": "你闭门死守，一拖再拖，曹军反而站稳脚跟。主降派趁机复起，东吴不战而降。坐守错失战机，赤壁终究没有发生。请回到刚才的选择换一条路。",
+        "speaker": "旁白",
+        "portrait": "caocao"
+      },
+      "ch2_join": {
+        "id": "ch2_join",
+        "type": "narration",
+        "chapter": 2,
+        "chapterTitle": "怎么打",
+        "text": "火攻之计定下了。可火船要真烧起来，还差最后一样东西——一场东风。",
+        "nextNodeId": "ch3_fact"
+      },
+      "ch3_fact": {
+        "id": "ch3_fact",
+        "type": "fact",
+        "chapter": 3,
+        "chapterTitle": "敢不敢赌东风",
+        "text": "东南风是火攻成败的关键。演义里，诸葛亮登坛设坛「借东风」；而正史中，不过是冬至前后恰好刮起的东南风。可无论来源如何，这阵风都十足关键。",
+        "heading": "那一阵关键的风",
+        "nextNodeId": "ch3_choice"
+      },
+      "ch3_choice": {
+        "id": "ch3_choice",
+        "type": "choice",
+        "chapter": 3,
+        "chapterTitle": "敢不敢赌东风",
+        "text": "面对这一阵决定成败的风，你选哪种赌法？",
+        "portrait": "zhouyu",
+        "convergesTo": "ch3_join",
+        "choices": [
+          {
+            "id": "borrow_wind",
+            "label": "请诸葛亮设坛借东风，配合黄盖火船",
+            "nextNodeId": "ch3_a",
+            "feedback": "你把成败托付给诸葛亮的法术（演义）。"
+          },
+          {
+            "id": "trust_nature",
+            "label": "不靠人算，遣黄盖按计进发，赌冬至风起",
+            "nextNodeId": "ch3_b",
+            "feedback": "你不求天助神借，按正史等那阵自然的风。"
+          },
+          {
+            "id": "cancel",
+            "label": "不信东风，临时取消火攻",
+            "nextNodeId": "ch3_over",
+            "feedback": "你害怕赌输，干脆撤掉了火攻。"
+          }
+        ]
+      },
+      "ch3_a": {
+        "id": "ch3_a",
+        "type": "narration",
+        "chapter": 3,
+        "chapterTitle": "敢不敢赌东风",
+        "text": "七星坛上风旗猎猎，诸葛亮祭起东南风，黄盖火船趁着风势直扑曹营（演义）。大火烧得江面通红，曹操狼狈北归。",
+        "nextNodeId": "ch3_join"
+      },
+      "ch3_b": {
+        "id": "ch3_b",
+        "type": "narration",
+        "chapter": 3,
+        "chapterTitle": "敢不敢赌东风",
+        "text": "冬至前后，东南风如约吹起，黄盖火船乘着风势烧向曹军连环战船（正史）。风助火势，赤壁一战定乾坤，曹操败走。",
+        "nextNodeId": "ch3_join"
+      },
+      "ch3_over": {
+        "id": "ch3_over",
+        "type": "gameOver",
+        "chapter": 3,
+        "chapterTitle": "敢不敢赌东风",
+        "text": "你临时撤掉火攻，黄盖船队无功而返，反被曹军识破。赤壁功亏一篑，这场大战终究没有燃起。请回到刚才的选择换一条路。",
+        "speaker": "旁白",
+        "portrait": "caocao"
+      },
+      "ch3_join": {
+        "id": "ch3_join",
+        "type": "narration",
+        "chapter": 3,
+        "chapterTitle": "敢不敢赌东风",
+        "text": "东南风终究起了——周瑜等到了那阵改写历史的风。可这风，究竟是借来的，还是碰巧来的？",
+        "nextNodeId": "ch4_close"
+      },
+      "ch4_close": {
+        "id": "ch4_close",
+        "type": "narration",
+        "chapter": 4,
+        "chapterTitle": "黄州江边",
+        "text": "镜头拉回多年后的黄州江边。此刻的杜牧正被外放他乡，抱负无处施展、心情失意——他空有兵略，却始终等不来一阵「东风」。他捡起水里断戟，磨洗辨认，回望这场旧战：周瑜的胜利成在那一阵风，而自己的「东风」又在何方？他提笔，写下那四句诗《赤壁》。"
+      }
+    }
+  },
+  "poem": {
+    "schemaVersion": 1,
+    "title": "赤壁",
+    "lines": [
+      {
+        "id": "line_01",
+        "original": "折戟沉沙铁未销",
+        "translation": "一支折断的戟沉埋在沙里，铁还没有完全销蚀。",
+        "note": "一件从沙里捞起的旧兵器，牵出诗人对一场旧战的追想——这叫借物起兴。",
+        "glosses": [
+          {
+            "word": "折戟",
+            "meaning": "折断的戟，古代的一种兵器"
+          },
+          {
+            "word": "销",
+            "meaning": "销蚀、腐蚀"
+          }
+        ]
+      },
+      {
+        "id": "line_02",
+        "original": "自将磨洗认前朝",
+        "translation": "我把这支戟拿起来磨洗，认出它是前朝（三国时代）的遗物。",
+        "glosses": [
+          {
+            "word": "磨洗",
+            "meaning": "打磨清洗"
+          },
+          {
+            "word": "前朝",
+            "meaning": "指三国时期"
+          }
+        ]
+      },
+      {
+        "id": "line_03",
+        "original": "东风不与周郎便",
+        "translation": "倘若当年东风不给周郎方便（相助）。",
+        "note": "东风不只是天气，它像「机遇」：周瑜的胜利，成就在这一阵风上。",
+        "glosses": [
+          {
+            "word": "周郎",
+            "meaning": "周瑜"
+          },
+          {
+            "word": "便",
+            "meaning": "便利、相助；这里是“倘若……相助”"
+          }
+        ]
+      },
+      {
+        "id": "line_04",
+        "original": "铜雀春深锁二乔",
+        "translation": "那么大乔、小乔，大概早已被锁进春深重重的铜雀台里了。",
+        "note": "不说东吴整个败了，只写二乔被锁进铜雀台——用两个人影，代指一国之亡（以小见大）。",
+        "glosses": [
+          {
+            "word": "铜雀",
+            "meaning": "铜雀台，曹操在邺城所建之台"
+          },
+          {
+            "word": "二乔",
+            "meaning": "大乔、小乔，孙策与周瑜之妻，这里代指东吴"
+          }
+        ]
+      }
+    ]
+  },
+  "quiz": {
+    "schemaVersion": 1,
+    "gradingPrompt": "本课围绕杜牧《赤壁》的史实（赤壁之战、咏史）、东风象征机遇、二乔以小见大，以及借史抒怀（怀才不遇）。\n选择与填空都先看学生是否理解“东风＝机遇”和“二乔代指东吴、以小见大”。\n不要因为剧情里选了哪条正路而改变评价。用适合 10 到 12 岁的话解释，不要嘲讽。\n",
+    "summaryPrompt": "请根据本课作答，写一段给 10 到 12 岁学生的总评。\n先肯定他认真走进周瑜与杜牧的故事；再点出东风机遇、借史抒怀还不清楚的地方；最后用“东风不与周郎便”收束，鼓励他把“机遇”“怀才不遇”记住。\n",
+    "questions": [
+      {
+        "id": "q_year",
+        "type": "choice",
+        "prompt": "杜牧回望的这场赤壁之战，发生在哪一年？",
+        "options": [
+          {
+            "id": "year_208",
+            "label": "建安十三年，公元 208 年"
+          },
+          {
+            "id": "year_220",
+            "label": "公元 220 年"
+          },
+          {
+            "id": "year_280",
+            "label": "公元 280 年"
+          }
+        ],
+        "correctOptionId": "year_208",
+        "classmateOptionId": "year_220",
+        "explanation": "赤壁之战在建安十三年，即公元 208 年，孙刘联军大破曹操。220 年是曹魏建立，280 年才是西晋灭吴，都是常见的记混。",
+        "contextRefs": [
+          "ch1_fact"
+        ]
+      },
+      {
+        "id": "q_dongfeng",
+        "type": "choice",
+        "prompt": "“东风不与周郎便”里的“东风”，想告诉我们什么？",
+        "options": [
+          {
+            "id": "df_wind_weather",
+            "label": "就是当天帮忙运粮的普通东风天气"
+          },
+          {
+            "id": "df_chance",
+            "label": "东风象征机遇与碰巧，周瑜抓住了它取胜"
+          },
+          {
+            "id": "df_cao_wind",
+            "label": "东风是曹操算好、用来助攻的"
+          }
+        ],
+        "correctOptionId": "df_chance",
+        "classmateOptionId": "df_wind_weather",
+        "explanation": "东风这里不只是天气，它像机遇与碰巧。周瑜赢，就赢在恰好抓住这一阵东风；杜牧感叹的，正是这种可遇不可求的机遇。",
+        "contextRefs": [
+          "line_03",
+          "ch3_join",
+          "ch3_a",
+          "ch3_b"
+        ]
+      },
+      {
+        "id": "q_erqiao",
+        "type": "open",
+        "prompt": "杜牧不说东吴战败，只说“铜雀春深锁二乔”，为什么这样写？他想借这场旧战感慨什么？",
+        "classmateAnswer": "这句话就是写大乔小乔后来被关在铜雀台里，很惨。",
+        "classmateIsCorrect": false,
+        "referenceAnswer": "用二乔代指整个东吴（以小见大）：如果当年没有东风，东吴早已灭亡，二乔也会被锁进铜雀台。杜牧借此感叹战争的胜负里有太多碰巧与机遇，也暗说自己像缺一阵“东风”一样怀才不遇。",
+        "misconceptions": [
+          "把二乔只当成两个女子在后宫，没读出代指整个东吴",
+          "只看到“惨”，没读出借史抒怀、怀才不遇"
+        ],
+        "scoringPoints": [
+          "理解二乔是代指东吴 / 以小见大",
+          "理解“若无东风则东吴必亡”的假设",
+          "提到机遇难得或杜牧的怀才不遇"
+        ],
+        "contextRefs": [
+          "line_04",
+          "ch3_join",
+          "ch4_close"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,65 @@
+schemaVersion: 1
+title: 水调歌头·明月几时有
+lines:
+  - id: line_01
+    original: 明月几时有？把酒问青天。
+    glosses:
+      - word: 把酒
+        meaning: 端起酒杯
+    translation: 天上的明月什么时候开始有的？我端起酒杯，询问苍天。
+    note: 中秋夜，苏轼先把问题抛给月亮。
+  - id: line_02
+    original: 不知天上宫阙，今夕是何年。
+    glosses:
+      - word: 宫阙
+        pinyin: què
+        meaning: 宫殿
+    translation: 不知道天上的宫殿里，今晚到底是哪一年。
+  - id: line_03
+    original: 我欲乘风归去，又恐琼楼玉宇，高处不胜寒。
+    glosses:
+      - word: 归去
+        meaning: 回到天上
+      - word: 琼楼玉宇
+        pinyin: qióng
+        meaning: 指月宫
+      - word: 不胜
+        pinyin: shēng
+        meaning: 经受不住
+    translation: 我想乘着风回到天上，又怕那美玉做成的楼阁太高、太冷。
+    note: “归去”像回家。苏轼把月亮当成另一个家园，却又犹豫。
+  - id: line_04
+    original: 起舞弄清影，何似在人间。
+    glosses:
+      - word: 弄
+        meaning: 赏玩
+      - word: 何似
+        meaning: 哪里比得上
+    translation: 我在月光下起舞，和自己的影子玩耍，这哪里比得上留在人间呢？
+  - id: line_05
+    original: 转朱阁，低绮户，照无眠。
+    glosses:
+      - word: 绮户
+        pinyin: qǐ
+        meaning: 雕花门窗
+      - word: 无眠
+        meaning: 睡不着的人
+    translation: 月亮转过朱红的楼阁，低低照进雕花的窗户，照着睡不着的人。
+  - id: line_06
+    original: 不应有恨，何事长向别时圆？
+    glosses:
+      - word: 何事
+        meaning: 为什么
+    translation: 月亮不该有怨恨吧，为什么总在人们分离的时候特别圆？
+  - id: line_07
+    original: 人有悲欢离合，月有阴晴圆缺，此事古难全。
+    translation: 人有悲伤、欢乐、离别、团聚，月亮也有阴、晴、圆、缺，这样的事自古就难以两全。
+    note: 这是全词最宽广的一句：天下人都会分别，月亮也不会永远圆。
+  - id: line_08
+    original: 但愿人长久，千里共婵娟。
+    glosses:
+      - word: 婵娟
+        pinyin: chán juān
+        meaning: 月亮
+    translation: 只希望我们都平安长久，即使相隔千里，也能共同拥有这一轮明月。
+    note: 婵娟指月亮。这是苏轼对弟弟苏辙，也是对所有离别之人的祝福。

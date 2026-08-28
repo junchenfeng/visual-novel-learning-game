@@ -1,0 +1,443 @@
+{
+  "schemaVersion": 1,
+  "publicBasePath": "/dlc/hailao-shuidiao",
+  "manifest": {
+    "schemaVersion": 1,
+    "id": "hailao-shuidiao",
+    "version": "1.0.0",
+    "title": "水调歌头",
+    "author": "海狸老师",
+    "poet": "苏轼",
+    "poetId": "sushi",
+    "workTitle": "水调歌头·明月几时有",
+    "summary": "穿越到北宋熙宁九年的中秋夜，走进苏轼思念弟弟苏辙的心情，读懂这首千古名词。",
+    "startStoryNodeId": "ch1_open",
+    "classroom": {
+      "teacher": "teacher",
+      "classmate": "classmate",
+      "student": "student"
+    },
+    "files": {
+      "story": "content/story.yaml",
+      "poem": "content/poem.yaml",
+      "quiz": "content/quiz.yaml"
+    },
+    "characters": [
+      {
+        "id": "sushi",
+        "name": "苏轼",
+        "portraitUrl": "/poets/sushi.webp"
+      },
+      {
+        "id": "suzhe",
+        "name": "苏辙"
+      },
+      {
+        "id": "anshi",
+        "name": "王安石"
+      },
+      {
+        "id": "moon",
+        "name": "中秋月"
+      },
+      {
+        "id": "teacher",
+        "name": "老师",
+        "portraitUrl": "/portraits/teacher-cutout.png"
+      },
+      {
+        "id": "classmate",
+        "name": "何解",
+        "portraitUrl": "/portraits/classmate-cutout.png"
+      },
+      {
+        "id": "student",
+        "name": "你",
+        "portraitUrl": "/portraits/student.webp"
+      }
+    ]
+  },
+  "story": {
+    "startNodeId": "ch1_open",
+    "chapters": [
+      {
+        "chapter": 1,
+        "backgroundUrl": "/dlc/hailao-shuidiao/assets/backgrounds/chapter-1-brothers.webp"
+      },
+      {
+        "chapter": 2,
+        "backgroundUrl": "/dlc/hailao-shuidiao/assets/backgrounds/chapter-2-reform-debate.webp"
+      },
+      {
+        "chapter": 3,
+        "backgroundUrl": "/dlc/hailao-shuidiao/assets/backgrounds/chapter-3-mid-autumn.webp"
+      }
+    ],
+    "nodes": {
+      "ch1_open": {
+        "id": "ch1_open",
+        "type": "narration",
+        "chapter": 1,
+        "chapterTitle": "苏轼与苏辙",
+        "text": "你忽然发现自己变成了苏轼。身边最亲的人，是弟弟苏辙。你们从小一起读书、一起写文章，别人常说苏家兄弟像分不开的左右手。",
+        "nextNodeId": "ch1_choice"
+      },
+      "ch1_choice": {
+        "id": "ch1_choice",
+        "type": "choice",
+        "chapter": 1,
+        "chapterTitle": "苏轼与苏辙",
+        "text": "今晚月亮很圆。如果你是苏轼，最想怎样想念弟弟？",
+        "portrait": "suzhe",
+        "convergesTo": "ch1_join",
+        "choices": [
+          {
+            "id": "write_letter",
+            "label": "先给弟弟写信，告诉他今晚的月亮",
+            "nextNodeId": "ch1_a",
+            "feedback": "信很慢，但你还是想把心里的话写下来。"
+          },
+          {
+            "id": "remember_childhood",
+            "label": "先回忆小时候一起读书的日子",
+            "nextNodeId": "ch1_b",
+            "feedback": "旧时光一下子涌上来，弟弟的声音仿佛还在耳边。"
+          }
+        ]
+      },
+      "ch1_a": {
+        "id": "ch1_a",
+        "type": "narration",
+        "chapter": 1,
+        "chapterTitle": "苏轼与苏辙",
+        "text": "你铺开纸，却不知道这封信要走多久。你们不在同一个地方做官，见面比写信难得多。",
+        "nextNodeId": "ch1_join"
+      },
+      "ch1_b": {
+        "id": "ch1_b",
+        "type": "narration",
+        "chapter": 1,
+        "chapterTitle": "苏轼与苏辙",
+        "text": "你想起小时候，弟弟总爱追着你问字、问诗。后来他的文章也很出色，你们互相鼓励，也互相想念。",
+        "nextNodeId": "ch1_join"
+      },
+      "ch1_join": {
+        "id": "ch1_join",
+        "type": "narration",
+        "chapter": 1,
+        "chapterTitle": "苏轼与苏辙",
+        "text": "无论先写信还是先回忆，结果都一样：你非常想念苏辙。这种想念，会写进今晚的词里。",
+        "nextNodeId": "ch2_open"
+      },
+      "ch2_open": {
+        "id": "ch2_open",
+        "type": "narration",
+        "chapter": 2,
+        "chapterTitle": "变法与外放",
+        "text": "京城里正在为一件大事争论。在你决定怎么走之前，先看清这件事到底是什么。",
+        "nextNodeId": "ch2_fact_reform"
+      },
+      "ch2_fact_reform": {
+        "id": "ch2_fact_reform",
+        "type": "fact",
+        "chapter": 2,
+        "chapterTitle": "变法与外放",
+        "text": "那时宋朝正在推行「王安石变法」。王安石希望朝廷更有钱、军队更强，于是改税法、改役法，让地方把更多粮食、钱和人力交给中央。支持的人觉得这是在救国家；担心的人觉得改得太急，百姓一下子不适应。",
+        "heading": "王安石变法是什么",
+        "nextNodeId": "ch2_fact_disagree"
+      },
+      "ch2_fact_disagree": {
+        "id": "ch2_fact_disagree",
+        "type": "fact",
+        "chapter": 2,
+        "chapterTitle": "变法与外放",
+        "text": "苏轼不反对国家变好，但他担心：新法来得太快，执行的人又不一定都好心，地方上可能乱摊派、伤到普通人家。他写文章指出问题，和王安石意见合不来。争论越来越凶，京城对他来说不再是可以安静写字的地方。",
+        "heading": "苏轼为什么不同意",
+        "nextNodeId": "ch2_choice"
+      },
+      "ch2_choice": {
+        "id": "ch2_choice",
+        "type": "choice",
+        "chapter": 2,
+        "chapterTitle": "变法与外放",
+        "text": "面对变法争论，你会怎么走？",
+        "portrait": "sushi",
+        "convergesTo": "ch2_join",
+        "choices": [
+          {
+            "id": "ask_transfer",
+            "label": "坚持自己的看法，请求离开京城",
+            "nextNodeId": "ch2_a",
+            "feedback": "你把争论放下，把脚步迈向远方。"
+          },
+          {
+            "id": "serve_local",
+            "label": "到地方做事，用实际行动证明想法",
+            "nextNodeId": "ch2_b",
+            "feedback": "你把心思放在地方百姓身上，京城反而更远了。"
+          },
+          {
+            "id": "stay_and_fight",
+            "label": "留在京城，当面硬碰王安石",
+            "nextNodeId": "ch2_over",
+            "feedback": "争论越来越激烈，事情变得更糟。"
+          }
+        ]
+      },
+      "ch2_a": {
+        "id": "ch2_a",
+        "type": "narration",
+        "chapter": 2,
+        "chapterTitle": "变法与外放",
+        "text": "你离开京城，辗转好几个地方。官职还在，可和弟弟的距离越来越远。",
+        "nextNodeId": "ch2_join"
+      },
+      "ch2_b": {
+        "id": "ch2_b",
+        "type": "narration",
+        "chapter": 2,
+        "chapterTitle": "变法与外放",
+        "text": "地方的事务很多。你忙着处理公务，却发现想见苏辙一面，比以前更难。",
+        "nextNodeId": "ch2_join"
+      },
+      "ch2_over": {
+        "id": "ch2_over",
+        "type": "gameOver",
+        "chapter": 2,
+        "chapterTitle": "变法与外放",
+        "text": "你留在京城继续争论。政见冲突越来越尖锐，你被贬得更远，也更难见到苏辙。这条路走不通，《水调歌头》不会在今晚写成。请回到刚才的选择，换一条路。",
+        "speaker": "旁白",
+        "portrait": "anshi"
+      },
+      "ch2_join": {
+        "id": "ch2_join",
+        "type": "narration",
+        "chapter": 2,
+        "chapterTitle": "变法与外放",
+        "text": "外放之后，兄弟见面变得更难。这就是《水调歌头》背后的时代背景：政见不同，人在天涯。",
+        "nextNodeId": "ch3_open"
+      },
+      "ch3_open": {
+        "id": "ch3_open",
+        "type": "narration",
+        "chapter": 3,
+        "chapterTitle": "密州中秋",
+        "text": "熙宁七年（1074），你调到密州。你曾经希望调到离苏辙更近的地方，好常见面。这个愿望没有实现。",
+        "nextNodeId": "ch3_choice"
+      },
+      "ch3_choice": {
+        "id": "ch3_choice",
+        "type": "choice",
+        "chapter": 3,
+        "chapterTitle": "密州中秋",
+        "text": "熙宁九年中秋，皓月当空。你会先做什么？",
+        "portrait": "moon",
+        "convergesTo": "ch3_join",
+        "choices": [
+          {
+            "id": "toast_sky",
+            "label": "举起酒杯，问问天上的月亮",
+            "nextNodeId": "ch3_a",
+            "feedback": "酒很凉，月很亮，你把问题抛给青天。"
+          },
+          {
+            "id": "count_years",
+            "label": "默默数一数，和弟弟分别多少年了",
+            "nextNodeId": "ch3_b",
+            "feedback": "你算了又算：分别，已经七年。"
+          }
+        ]
+      },
+      "ch3_a": {
+        "id": "ch3_a",
+        "type": "narration",
+        "chapter": 3,
+        "chapterTitle": "密州中秋",
+        "text": "你问月亮：天上的宫殿今晚是哪一年？你想乘风回去，又怕高处太冷。人间虽然有别离，却还有弟弟。",
+        "nextNodeId": "ch3_join"
+      },
+      "ch3_b": {
+        "id": "ch3_b",
+        "type": "narration",
+        "chapter": 3,
+        "chapterTitle": "密州中秋",
+        "text": "从分别到今晚，已经七年。密州的月光铺满地面，你知道弟弟此刻也在某处望着同一轮月。",
+        "nextNodeId": "ch3_join"
+      },
+      "ch3_join": {
+        "id": "ch3_join",
+        "type": "narration",
+        "chapter": 3,
+        "chapterTitle": "密州中秋",
+        "text": "七年未见。酒杯里倒映着月亮。你决定把心里的话写成《水调歌头》。下面，请一句一句读它。"
+      }
+    }
+  },
+  "poem": {
+    "schemaVersion": 1,
+    "title": "水调歌头·明月几时有",
+    "lines": [
+      {
+        "id": "line_01",
+        "original": "明月几时有？把酒问青天。",
+        "translation": "天上的明月什么时候开始有的？我端起酒杯，询问苍天。",
+        "note": "中秋夜，苏轼先把问题抛给月亮。",
+        "glosses": [
+          {
+            "word": "把酒",
+            "meaning": "端起酒杯"
+          }
+        ]
+      },
+      {
+        "id": "line_02",
+        "original": "不知天上宫阙，今夕是何年。",
+        "translation": "不知道天上的宫殿里，今晚到底是哪一年。",
+        "glosses": [
+          {
+            "word": "宫阙",
+            "pinyin": "què",
+            "meaning": "宫殿"
+          }
+        ]
+      },
+      {
+        "id": "line_03",
+        "original": "我欲乘风归去，又恐琼楼玉宇，高处不胜寒。",
+        "translation": "我想乘着风回到天上，又怕那美玉做成的楼阁太高、太冷。",
+        "note": "“归去”像回家。苏轼把月亮当成另一个家园，却又犹豫。",
+        "glosses": [
+          {
+            "word": "归去",
+            "meaning": "回到天上"
+          },
+          {
+            "word": "琼楼玉宇",
+            "pinyin": "qióng",
+            "meaning": "指月宫"
+          },
+          {
+            "word": "不胜",
+            "pinyin": "shēng",
+            "meaning": "经受不住"
+          }
+        ]
+      },
+      {
+        "id": "line_04",
+        "original": "起舞弄清影，何似在人间。",
+        "translation": "我在月光下起舞，和自己的影子玩耍，这哪里比得上留在人间呢？",
+        "glosses": [
+          {
+            "word": "弄",
+            "meaning": "赏玩"
+          },
+          {
+            "word": "何似",
+            "meaning": "哪里比得上"
+          }
+        ]
+      },
+      {
+        "id": "line_05",
+        "original": "转朱阁，低绮户，照无眠。",
+        "translation": "月亮转过朱红的楼阁，低低照进雕花的窗户，照着睡不着的人。",
+        "glosses": [
+          {
+            "word": "绮户",
+            "pinyin": "qǐ",
+            "meaning": "雕花门窗"
+          },
+          {
+            "word": "无眠",
+            "meaning": "睡不着的人"
+          }
+        ]
+      },
+      {
+        "id": "line_06",
+        "original": "不应有恨，何事长向别时圆？",
+        "translation": "月亮不该有怨恨吧，为什么总在人们分离的时候特别圆？",
+        "glosses": [
+          {
+            "word": "何事",
+            "meaning": "为什么"
+          }
+        ]
+      },
+      {
+        "id": "line_07",
+        "original": "人有悲欢离合，月有阴晴圆缺，此事古难全。",
+        "translation": "人有悲伤、欢乐、离别、团聚，月亮也有阴、晴、圆、缺，这样的事自古就难以两全。",
+        "note": "这是全词最宽广的一句：天下人都会分别，月亮也不会永远圆。",
+        "glosses": []
+      },
+      {
+        "id": "line_08",
+        "original": "但愿人长久，千里共婵娟。",
+        "translation": "只希望我们都平安长久，即使相隔千里，也能共同拥有这一轮明月。",
+        "note": "婵娟指月亮。这是苏轼对弟弟苏辙，也是对所有离别之人的祝福。",
+        "glosses": [
+          {
+            "word": "婵娟",
+            "pinyin": "chán juān",
+            "meaning": "月亮"
+          }
+        ]
+      }
+    ]
+  },
+  "quiz": {
+    "schemaVersion": 1,
+    "gradingPrompt": "本课围绕苏轼《水调歌头》的写作时间和主题。\n填空优先看学生是否理解离合难全，以及最后仍有祝福。\n不要因为剧情选择不同而改变评价。用适合 10 到 12 岁的话解释，不要嘲讽。\n",
+    "summaryPrompt": "请根据本课作答，写一段给 10 到 12 岁学生的总评。\n先肯定他认真读词、走进苏轼的故事；再点出还不清楚的地方；最后用“但愿人长久，千里共婵娟”收束鼓励。\n",
+    "questions": [
+      {
+        "id": "q_year_place",
+        "type": "choice",
+        "prompt": "苏轼写这首《水调歌头》时，大约是在哪一年、哪个地方？",
+        "options": [
+          {
+            "id": "hangzhou_yuanfeng",
+            "label": "元丰二年在杭州"
+          },
+          {
+            "id": "mizhou_xining",
+            "label": "熙宁九年在密州"
+          },
+          {
+            "id": "huangzhou_yuanfeng",
+            "label": "元丰三年在黄州"
+          }
+        ],
+        "correctOptionId": "mizhou_xining",
+        "classmateOptionId": "hangzhou_yuanfeng",
+        "explanation": "苏轼写《水调歌头》是在熙宁九年（1076）中秋，当时他在密州做官。元丰二年在杭州、元丰三年在黄州，都是常见的记混。",
+        "contextRefs": [
+          "ch3_open",
+          "ch3_b"
+        ]
+      },
+      {
+        "id": "q_theme",
+        "type": "open",
+        "prompt": "“人有悲欢离合，月有阴晴圆缺，此事古难全。但愿人长久，千里共婵娟。”这两句想告诉读者什么？",
+        "classmateAnswer": "意思是月亮有时圆有时缺，所以人也不必团聚，分开就分开吧。",
+        "classmateIsCorrect": false,
+        "referenceAnswer": "人生离合和月亮圆缺都难以完美；即使相隔千里，也希望彼此长久安康，共同望着同一轮明月。",
+        "misconceptions": [
+          "把“古难全”理解成“分开也没关系，不必祝福”",
+          "忽略“但愿人长久”里的祝福和希望"
+        ],
+        "scoringPoints": [
+          "理解“难全”是说难以事事圆满",
+          "理解最后仍有祝福：长久、共明月"
+        ],
+        "contextRefs": [
+          "line_07",
+          "line_08"
+        ]
+      }
+    ]
+  }
+}

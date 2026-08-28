@@ -1,0 +1,642 @@
+.shelfPage {
+  min-height: 100dvh;
+  padding: 28px 24px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background-color: #f0e6d0;
+  background-image:
+    radial-gradient(ellipse at top left, rgba(184, 134, 11, 0.08), transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(139, 90, 43, 0.08), transparent 55%),
+    url("/xuanzhi-bg.webp");
+  background-size: auto, auto, 600px 600px;
+  background-blend-mode: normal, normal, multiply;
+  color: #2c2416;
+  font-family: "Songti SC", "SimSun", "STSong", "Noto Serif SC", serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 0 4px;
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.titleKicker {
+  font-size: 13px;
+  letter-spacing: 0.32em;
+  color: #8b5a2b;
+  text-indent: 0.32em;
+}
+
+.title {
+  font-size: clamp(26px, 4.8vw, 40px);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #2c2416;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.title::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 1.1em;
+  background: #a63232;
+  box-shadow: inset 0 0 0 1px rgba(44, 36, 22, 0.35);
+}
+
+.subtitle {
+  font-size: 13.5px;
+  color: #5a4a32;
+  margin-top: 4px;
+  letter-spacing: 0.06em;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #b8860b;
+  background: rgba(255, 250, 230, 0.6);
+  color: #5a4a32;
+  font-size: 13.5px;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.backLink:hover {
+  background: #f7efdc;
+  border-color: #8b5a2b;
+  color: #2c2416;
+}
+
+/* ========== 博古架 ========== */
+
+.curioShelf {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-auto-rows: 150px;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid #b8860b;
+  background:
+    linear-gradient(180deg, rgba(184, 134, 11, 0.08), transparent 12%),
+    url("/xuanzhi-bg.webp");
+  background-size: auto, 500px 500px;
+  box-shadow:
+    inset 0 0 0 4px rgba(240, 230, 208, 0.6),
+    inset 0 0 0 5px rgba(184, 134, 11, 0.4),
+    0 12px 32px rgba(44, 36, 22, 0.12);
+}
+
+.curioCell {
+  position: relative;
+  border: 1px solid rgba(184, 134, 11, 0.5);
+  background:
+    linear-gradient(135deg, rgba(255, 250, 230, 0.4), rgba(229, 216, 184, 0.25));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  overflow: hidden;
+}
+
+/* 格子角落的金线装饰 */
+.curioCell::before,
+.curioCell::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: #b8860b;
+  border-style: solid;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.curioCell::before {
+  top: 3px;
+  left: 3px;
+  border-width: 1px 0 0 1px;
+}
+
+.curioCell::after {
+  bottom: 3px;
+  right: 3px;
+  border-width: 0 1px 1px 0;
+}
+
+/* 装饰格子（无书，放文房小物件） */
+.curioCellDecor {
+  background:
+    linear-gradient(135deg, rgba(229, 216, 184, 0.35), rgba(210, 190, 150, 0.2));
+}
+
+/* 文房装饰元素 */
+.decorItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  opacity: 0.75;
+}
+
+/* 印章 */
+.seal {
+  width: 46px;
+  height: 46px;
+  border: 2px solid #a63232;
+  color: #a63232;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0;
+  transform: rotate(-4deg);
+  background: rgba(166, 50, 50, 0.06);
+  writing-mode: horizontal-tb;
+  line-height: 1;
+}
+
+/* 毛笔 + 镇纸（简化为几何图形） */
+.brush {
+  width: 8px;
+  height: 70px;
+  background: linear-gradient(180deg, #8b5a2b 0%, #6b4423 60%, #3d2817 100%);
+  border-radius: 2px 2px 50% 50%;
+  position: relative;
+}
+
+.brush::after {
+  content: "";
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 20px;
+  background: linear-gradient(180deg, #2c2416 0%, #1a140e 100%);
+  border-radius: 50% 50% 60% 60%;
+  filter: blur(0.5px);
+}
+
+/* 小卷轴装饰 */
+.miniScroll {
+  width: 60px;
+  height: 18px;
+  background: #f7efdc;
+  border: 1px solid #b8860b;
+  position: relative;
+  border-radius: 2px;
+}
+
+.miniScroll::before,
+.miniScroll::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 26px;
+  background: linear-gradient(90deg, #8b5a2b, #6b4423);
+  border-radius: 3px;
+  transform: translateY(-50%);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+.miniScroll::before { left: -4px; }
+.miniScroll::after { right: -4px; }
+
+/* ========== 线装书 通用 ========== */
+
+.book {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s ease;
+  color: inherit;
+  text-decoration: none;
+}
+
+.book:hover {
+  transform: translateY(-4px);
+}
+
+.book:hover .inkGlow {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
+.inkGlow {
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translate(-50%, 8px) scale(0.7);
+  width: 80%;
+  height: 12px;
+  background: radial-gradient(ellipse at center, rgba(44, 36, 22, 0.2), transparent 70%);
+  opacity: 0;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 竖排线装书 */
+.bookVertical {
+  width: 64px;
+  height: 100%;
+  min-height: 130px;
+  max-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  padding: 12px 0 10px;
+  background: var(--book-color, #2c4a6b);
+  border: 1px solid rgba(44, 36, 22, 0.5);
+  box-shadow:
+    inset 4px 0 0 rgba(255, 255, 255, 0.06),
+    inset -2px 0 0 rgba(0, 0, 0, 0.2),
+    2px 3px 6px rgba(44, 36, 22, 0.2);
+}
+
+/* 书脊缝线（白色线装效果） */
+.bookVertical::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 12px;
+  bottom: 10px;
+  width: 1px;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 250, 230, 0.85) 0px,
+    rgba(255, 250, 230, 0.85) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+}
+
+.bookVertical::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 250, 230, 0.9) 0px,
+      rgba(255, 250, 230, 0.9) 1px,
+      rgba(200, 190, 160, 0.7) 1px,
+      rgba(200, 190, 160, 0.7) 2px
+    );
+  opacity: 0.7;
+}
+
+.bookVertical .bookTitle {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: 0.3em;
+  font-size: 13.5px;
+  color: #f7efdc;
+  text-align: center;
+  margin: 0 auto;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.bookVertical .bookLabel {
+  text-align: center;
+  font-size: 10px;
+  color: rgba(247, 239, 220, 0.7);
+  letter-spacing: 0.1em;
+  padding: 0 4px 6px;
+}
+
+/* 平放线装书 */
+.bookHorizontal {
+  width: 100%;
+  max-width: 160px;
+  height: 72px;
+  display: flex;
+  align-items: stretch;
+  background: var(--book-color, #2c4a6b);
+  border: 1px solid rgba(44, 36, 22, 0.5);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+    2px 4px 8px rgba(44, 36, 22, 0.2);
+  padding: 8px 12px;
+  gap: 10px;
+}
+
+.bookHorizontal .bookTitle {
+  flex: 1;
+  font-size: 13.5px;
+  color: #f7efdc;
+  letter-spacing: 0.15em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.4;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  writing-mode: horizontal-tb;
+}
+
+.bookHorizontal .bookSpine {
+  width: 8px;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 250, 230, 0.85) 0px,
+      rgba(255, 250, 230, 0.85) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  opacity: 0.7;
+}
+
+/* 卷轴形态 */
+.bookScroll {
+  width: 100%;
+  max-width: 180px;
+  height: 76px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f7efdc;
+  border-top: 1px solid #d4c4a0;
+  border-bottom: 1px solid #d4c4a0;
+  box-shadow: 2px 4px 8px rgba(44, 36, 22, 0.18);
+  overflow: hidden;
+}
+
+.scrollRoll {
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 88px;
+  background: linear-gradient(90deg, #8b5a2b, #c49a6c 50%, #8b5a2b);
+  border-radius: 4px;
+  transform: translateY(-50%);
+  box-shadow:
+    inset 0 0 0 1px rgba(44, 36, 22, 0.3),
+    0 2px 4px rgba(44, 36, 22, 0.3);
+}
+
+.scrollRollLeft { left: -6px; }
+.scrollRollRight { right: -6px; }
+
+.scrollRoll::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 3px;
+  right: 3px;
+  border: 1px solid rgba(44, 36, 22, 0.25);
+  border-radius: 2px;
+}
+
+.bookScroll .bookTitle {
+  font-size: 14px;
+  color: #2c2416;
+  letter-spacing: 0.2em;
+  position: relative;
+  z-index: 2;
+  padding: 0 24px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bookScroll .scrollTag {
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 10px;
+  background: #a63232;
+  border-radius: 0 0 3px 3px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* 可用书效果 */
+.bookReady {
+  /* 已通过 book-color 体现，不需要额外描边 */
+}
+
+/* 锁定书 */
+.bookLocked {
+  cursor: not-allowed;
+  filter: grayscale(0.5) brightness(0.85);
+  opacity: 0.7;
+}
+
+.bookLocked::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.06) 0px,
+      rgba(255, 255, 255, 0.06) 4px,
+      transparent 4px,
+      transparent 8px
+    );
+  pointer-events: none;
+  z-index: 5;
+}
+
+.bookLocked .lockBadge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(44, 36, 22, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f7efdc;
+  font-size: 11px;
+  z-index: 6;
+}
+
+/* ========== 版本切换 ========== */
+
+.bookWrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+}
+
+.packSwitcher {
+  position: relative;
+  z-index: 10;
+}
+
+.packSwitcherBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border: 1px solid #b8860b;
+  background: rgba(255, 250, 230, 0.9);
+  color: #5a4a32;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.packSwitcherBtn:hover {
+  background: #f7efdc;
+  border-color: #8b5a2b;
+}
+
+.packSwitcherLabel {
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.packMenuBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.packMenu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 130px;
+  padding: 4px;
+  border: 1px solid #b8860b;
+  background: #fffaed;
+  box-shadow: 0 6px 20px rgba(44, 36, 22, 0.18);
+  list-style: none;
+  z-index: 50;
+}
+
+.packMenuItem {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  font-size: 12.5px;
+  color: #4a3c28;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  letter-spacing: 0.05em;
+  transition: background 0.15s ease;
+}
+
+.packMenuItem:hover {
+  background: #efe4c8;
+}
+
+.packMenuItemActive {
+  background: #e8d7b0;
+  color: #2c2416;
+  font-weight: 600;
+}
+
+.packMenuItemVersion {
+  font-size: 10.5px;
+  color: #8a7b62;
+  flex-shrink: 0;
+  font-family: monospace;
+}
+
+/* 响应式 */
+@media (max-width: 900px) {
+  .curioShelf {
+    grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows: 140px;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .bookVertical {
+    width: 56px;
+    min-height: 110px;
+  }
+
+  .bookVertical .bookTitle {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .shelfPage {
+    padding: 20px 14px 40px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .curioShelf {
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 130px;
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .bookVertical {
+    width: 48px;
+    min-height: 100px;
+  }
+
+  .bookVertical .bookTitle {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+  }
+}

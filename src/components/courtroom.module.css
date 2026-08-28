@@ -1,0 +1,288 @@
+.shell {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: clip;
+  background: #1d2430;
+  color: #f4ead5;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 8% 8% 28%;
+  opacity: 0.16;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.8;
+  pointer-events: none;
+  text-align: center;
+}
+
+.header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px 0;
+}
+
+.header h1 {
+  font-size: clamp(18px, 5.4cqw, 24px);
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+.back,
+.primary,
+.secondary {
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid #f4ead5;
+  background: transparent;
+  color: inherit;
+  padding: 8px 14px;
+  min-height: 44px;
+}
+
+.primary {
+  background: #f4ead5;
+  color: #1d2430;
+}
+
+.stage {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 0;
+  overflow: clip;
+}
+
+.sprites {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 12px;
+  min-height: 240px;
+  padding: 0 16px;
+  flex: 0 1 36%;
+}
+
+.sprite {
+  width: 92px;
+  opacity: 0.45;
+  transform: translateY(18px) scale(0.92);
+  transition: transform 240ms ease, opacity 240ms ease, width 240ms ease;
+}
+
+.sprite img {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.28));
+}
+
+.spriteActive {
+  width: min(42vw, 220px);
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.dialogue {
+  margin: 0 16px 20px;
+  padding: 18px 20px 20px;
+  border: 2px solid #f4ead5;
+  background: rgba(16, 20, 28, 0.92);
+  position: relative;
+  max-height: 58%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.dialogue::before {
+  content: "";
+  position: absolute;
+  top: -14px;
+  border: 8px solid transparent;
+  border-bottom-color: #f4ead5;
+}
+
+.dialogue[data-speaker="teacher"]::before {
+  left: 16%;
+}
+
+.dialogue[data-speaker="classmate"]::before {
+  left: 48%;
+}
+
+.dialogue[data-speaker="student"]::before {
+  left: 78%;
+}
+
+.speaker {
+  letter-spacing: 0.16em;
+  font-size: var(--type-kicker, 13px);
+  margin-bottom: 8px;
+}
+
+.speakerTeacher {
+  color: #e2c48a;
+}
+
+.speakerClassmate {
+  color: #9fd4c2;
+}
+
+.speakerStudent {
+  color: #f0c4a8;
+}
+
+.bodyText {
+  font-size: var(--type-body, clamp(16px, 2.3vw, 20px));
+  line-height: 1.7;
+}
+
+.input {
+  width: 100%;
+  min-height: 88px;
+  margin-top: 12px;
+  font: inherit;
+  padding: 12px;
+  border: 1px solid #f4ead5;
+  background: #10141c;
+  color: inherit;
+  resize: vertical;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.kicker {
+  letter-spacing: 0.16em;
+  font-size: var(--type-kicker, 13px);
+}
+
+.feedback p {
+  margin-top: 8px;
+  line-height: 1.7;
+}
+
+.muted {
+  opacity: 0.72;
+  font-size: 14px;
+}
+
+.caret {
+  display: inline-block;
+  margin-left: 2px;
+  animation: blink 0.9s steps(1) infinite;
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.choice {
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  border: 1px solid #f4ead5;
+  background: transparent;
+  color: inherit;
+  padding: 10px 14px;
+  min-height: 44px;
+}
+
+.spriteThinking img {
+  animation: thinkBob 900ms ease-in-out infinite;
+}
+
+.thinking span {
+  animation: bounceDot 1.2s infinite;
+}
+
+.thinking span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.thinking span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes thinkBob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+
+@keyframes bounceDot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+@container game (max-width: 800px) {
+  .header {
+    padding: max(8px, env(safe-area-inset-top)) 14px 0;
+  }
+
+  .header h1 {
+    max-width: 260px;
+    font-size: var(--type-title, clamp(17px, 4.6cqw, 19px));
+  }
+
+  .back {
+    padding: 4px 10px;
+    font-size: var(--type-caption, 13px);
+    min-height: 32px;
+  }
+
+  .sprites {
+    min-height: 144px;
+    padding: 0 10px;
+  }
+
+  .sprite {
+    width: 64px;
+  }
+
+  .spriteActive {
+    width: min(48vw, 180px);
+  }
+
+  .dialogue {
+    margin: 0 12px max(12px, env(safe-area-inset-bottom));
+    padding: 16px 16px 18px;
+    max-height: 60%;
+  }
+
+  .bodyText {
+    font-size: var(--type-body, clamp(16px, 4.8cqw, 19px));
+  }
+}

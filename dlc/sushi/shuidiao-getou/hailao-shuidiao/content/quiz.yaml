@@ -1,0 +1,40 @@
+schemaVersion: 1
+gradingPrompt: |
+  本课围绕苏轼《水调歌头》的写作时间和主题。
+  填空优先看学生是否理解离合难全，以及最后仍有祝福。
+  不要因为剧情选择不同而改变评价。用适合 10 到 12 岁的话解释，不要嘲讽。
+summaryPrompt: |
+  请根据本课作答，写一段给 10 到 12 岁学生的总评。
+  先肯定他认真读词、走进苏轼的故事；再点出还不清楚的地方；最后用“但愿人长久，千里共婵娟”收束鼓励。
+questions:
+  - id: q_year_place
+    type: choice
+    prompt: 苏轼写这首《水调歌头》时，大约是在哪一年、哪个地方？
+    options:
+      - id: hangzhou_yuanfeng
+        label: 元丰二年在杭州
+      - id: mizhou_xining
+        label: 熙宁九年在密州
+      - id: huangzhou_yuanfeng
+        label: 元丰三年在黄州
+    correctOptionId: mizhou_xining
+    classmateOptionId: hangzhou_yuanfeng
+    explanation: 苏轼写《水调歌头》是在熙宁九年（1076）中秋，当时他在密州做官。元丰二年在杭州、元丰三年在黄州，都是常见的记混。
+    contextRefs:
+      - ch3_open
+      - ch3_b
+  - id: q_theme
+    type: open
+    prompt: “人有悲欢离合，月有阴晴圆缺，此事古难全。但愿人长久，千里共婵娟。”这两句想告诉读者什么？
+    classmateAnswer: 意思是月亮有时圆有时缺，所以人也不必团聚，分开就分开吧。
+    classmateIsCorrect: false
+    referenceAnswer: 人生离合和月亮圆缺都难以完美；即使相隔千里，也希望彼此长久安康，共同望着同一轮明月。
+    misconceptions:
+      - 把“古难全”理解成“分开也没关系，不必祝福”
+      - 忽略“但愿人长久”里的祝福和希望
+    scoringPoints:
+      - 理解“难全”是说难以事事圆满
+      - 理解最后仍有祝福：长久、共明月
+    contextRefs:
+      - line_07
+      - line_08
