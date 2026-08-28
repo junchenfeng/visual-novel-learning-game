@@ -7,8 +7,9 @@
  *
  * Rewrites:
  *  1) Buffer HTML and strip `async` from /_next chunk scripts
- *  2) Patch Flight parser `hasReadable` so hydrate does not wait for
- *     binary WebSocket debug frames dropped by some edge proxies
+ *  2) Patch Flight `hasReadable` and skip debug-channel HTTP-cache restore
+ *     so hydrate does not wait for binary WebSocket frames / IndexedDB
+ *     reloads dropped or misdetected by some edge proxies
  *  3) Bridge HMR WebSocket including binary frames
  *  4) Short-TTL cache + prefetch of /_next/static assets
  */
@@ -31,8 +32,21 @@ const INTERNAL_PORT = PUBLIC_PORT + 1;
 const HOST = "127.0.0.1";
 const CACHE_TTL_MS = 8_000;
 
-const FLIGHT_PATCH_FROM = "hasReadable: void 0 !== options.debugChannel.readable";
-const FLIGHT_PATCH_TO = "hasReadable: !1";
+const JS_PATCHES = [
+  {
+    label: "flight hydration",
+    from: "hasReadable: void 0 !== options.debugChannel.readable",
+    to: "hasReadable: !1",
+  },
+  // Coze CDN / iframe often reports responseStart=0, which Next treats as
+  // HTTP-cache restore. Missing IndexedDB debug chunks then call location.reload()
+  // and leave a never-closing stream, so hydrate never attaches click handlers.
+  {
+    label: "debug channel cache restore",
+    from: "if (!requestHeaders) {\n        switch(wasServedFromCacheKnownAtExec(getNavigationEntry())){",
+    to: "if (!1) {\n        switch(wasServedFromCacheKnownAtExec(getNavigationEntry())){",
+  },
+];
 
 const HOP_BY_HOP = new Set([
   "connection",
@@ -58,14 +72,20 @@ function log(...args) {
   console.log("[dev-preview]", ...args);
 }
 
-function applyFlightPatch(body) {
-  const text = body.toString("utf-8");
-  if (!text.includes(FLIGHT_PATCH_FROM)) {
-    return { body, patched: false };
+function applyJsPatches(body) {
+  let text = body.toString("utf-8");
+  /** @type {string[]} */
+  const applied = [];
+  for (const patch of JS_PATCHES) {
+    if (!text.includes(patch.from)) {
+      continue;
+    }
+    text = text.split(patch.from).join(patch.to);
+    applied.push(patch.label);
   }
   return {
-    body: Buffer.from(text.split(FLIGHT_PATCH_FROM).join(FLIGHT_PATCH_TO)),
-    patched: true,
+    body: applied.length > 0 ? Buffer.from(text) : body,
+    applied,
   };
 }
 
@@ -225,11 +245,11 @@ function serveCached(res, entry) {
 }
 
 async function prepareJs(path, headers, body) {
-  const { body: patchedBody, patched } = applyFlightPatch(body);
-  if (patched) {
-    log("applied flight hydration patch to", path);
+  const { body: patchedBody, applied } = applyJsPatches(body);
+  if (applied.length > 0) {
+    log("applied", applied.join(", "), "patch to", path);
   }
-  const extraDrop = patched ? ["etag", "last-modified"] : [];
+  const extraDrop = applied.length > 0 ? ["etag", "last-modified"] : [];
   cacheStatic(path, 200, headers, patchedBody, extraDrop);
   return { body: patchedBody, extraDrop };
 }
