@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { buildCatalogPoets } from "../src/dlc/catalog";
 import { loadCompiledCatalog } from "../src/dlc/loadCompiled";
 import styles from "./page.module.css";
@@ -11,9 +10,10 @@ export default function HomePage() {
       <section className={styles.hero}>
         <h1>选择穿越对象</h1>
       </section>
+      {/* 普通 <a>：沙盒里 Next <Link> 的客户端 RSC 可能一直停在 Rendering */}
       <section className={styles.grid}>
         {poets.map((poet) => (
-          <Link
+          <a
             key={poet.poetId}
             className={`${styles.poetCard} ${poet.available ? styles.poetCardReady : styles.poetCardLocked}`}
             href={`/poet/${poet.poetId}`}
@@ -25,7 +25,7 @@ export default function HomePage() {
             </div>
             <p className={styles.poetName}>{poet.poet}</p>
             <p className={styles.poetStatus}>{poet.available ? "可游玩" : "即将到来"}</p>
-          </Link>
+          </a>
         ))}
       </section>
     </main>
