@@ -6,12 +6,14 @@ type SummaryPhaseProps = {
   context: GameContext;
   status: "generating" | "ready" | "error";
   teacher: { src?: string; name: string };
+  onFinish: () => void;
 };
 
 export function SummaryPhase({
   context,
   status,
   teacher,
+  onFinish,
 }: SummaryPhaseProps) {
   const poet = context.dlc.manifest.poet;
   const title = context.dlc.manifest.title;
@@ -67,6 +69,15 @@ export function SummaryPhase({
         <p className={styles.credit}>
           — 本课由 <span className={styles.authorName}>{context.dlc.manifest.author}</span> 制作 —
         </p>
+        {status !== "generating" ? (
+          <button
+            className={styles.resume}
+            data-testid="back-to-classroom"
+            onClick={onFinish}
+          >
+            回到课堂
+          </button>
+        ) : null}
       </div>
     </div>
   );

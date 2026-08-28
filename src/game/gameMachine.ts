@@ -46,7 +46,8 @@ export type GameEvent =
   | { type: "RETRY" }
   | { type: "NEXT_QUESTION" }
   | { type: "SUMMARY_SUCCESS"; remark: string }
-  | { type: "SUMMARY_ERROR"; message: string };
+  | { type: "SUMMARY_ERROR"; message: string }
+  | { type: "FINISH" };
 
 export function getCurrentNode(context: GameContext): StoryNode {
   const node = context.dlc.story.nodes[context.currentNodeId];
@@ -357,13 +358,19 @@ export const gameMachine = setup({
             SUMMARY_ERROR: { target: "error", actions: "saveSummaryError" },
           },
         },
-        ready: {},
+        ready: {
+          on: {
+            FINISH: { target: "#poemGame.outro" },
+          },
+        },
         error: {
           on: {
             RETRY: "generating",
+            FINISH: { target: "#poemGame.outro" },
           },
         },
       },
     },
+    outro: {},
   },
 });

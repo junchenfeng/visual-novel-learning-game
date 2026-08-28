@@ -11,6 +11,7 @@ import { gameMachine, getCurrentNode } from "../game/gameMachine";
 import { LocalStorageAdapter } from "../storage/LocalStorageAdapter";
 import { createId } from "../ui/uuid";
 import { BookFrame, type ChapterTab } from "./BookFrame";
+import { ClassroomInterlude } from "./ClassroomInterlude";
 import { ClassroomFrame, type ClassroomPortraits } from "./ClassroomFrame";
 import { GameOverModal } from "./GameOverModal";
 import { GameViewport } from "./GameViewport";
@@ -312,10 +313,19 @@ export function GamePlayer({ dlc }: GamePlayerProps) {
 
   if (snapshot.matches("intro")) {
     screen = (
-      <NarrativeGate
+      <ClassroomInterlude
         kind="intro"
-        title={dlc.manifest.title}
+        portraits={classroom}
+        workTitle={dlc.manifest.workTitle}
         onContinue={() => send({ type: "BEGIN_STORY" })}
+      />
+    );
+  } else if (snapshot.matches("outro")) {
+    screen = (
+      <ClassroomInterlude
+        kind="outro"
+        portraits={classroom}
+        workTitle={dlc.manifest.workTitle}
       />
     );
   } else if (snapshot.matches("lessonTransition")) {
@@ -343,6 +353,7 @@ export function GamePlayer({ dlc }: GamePlayerProps) {
         context={context}
         status={summaryStatus}
         teacher={classroom.teacher}
+        onFinish={() => send({ type: "FINISH" })}
       />
     );
   } else if (showQuiz) {
