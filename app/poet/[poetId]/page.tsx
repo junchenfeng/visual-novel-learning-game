@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { findCatalogPoet } from "../../../src/dlc/catalog";
 import { loadCompiledCatalog } from "../../../src/dlc/loadCompiled";
@@ -26,9 +25,9 @@ export default async function PoetShelfPage({ params }: PoetPageProps) {
             蓝布函套 · 线装精刊 · 选取可阅读的篇目开启穿越
           </p>
         </div>
-        <Link className={styles.backLink} href="/" data-testid="back-poets">
+        <a className={styles.backLink} href="/" data-testid="back-poets">
           ← 返回诗人
-        </Link>
+        </a>
       </header>
 
       <CurioShelf works={shelf.works} />

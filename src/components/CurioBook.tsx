@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import type { CatalogWork } from "../dlc/catalog";
 import styles from "./curio-shelf.module.css";
@@ -86,7 +85,7 @@ export function CurioBook({ work, layout }: CurioBookProps) {
 
   return (
     <div className={styles.bookWrap}>
-      <Link
+      <a
         className={styles.bookHit}
         href={`/play/${selectedDlc.id}`}
         title={`${work.title} — ${selectedDlc.displayAuthor} 版本`}
@@ -111,7 +110,7 @@ export function CurioBook({ work, layout }: CurioBookProps) {
           <span className={styles.inkGlow} aria-hidden="true" />
         </span>
         <span className={styles.readyCaption}>可阅读</span>
-      </Link>
+      </a>
       {hasMultiple && (
         <div className={styles.packSwitcher}>
           <button
