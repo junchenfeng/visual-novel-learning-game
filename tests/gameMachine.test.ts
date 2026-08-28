@@ -208,8 +208,11 @@ describe("game machine", () => {
     actor.send({ type: "SUBMIT_CHOICE", optionId: question.correctOptionId });
     expect(actor.getSnapshot().matches({ quiz: "success" })).toBe(true);
     expect(actor.getSnapshot().context.teacherFeedback?.assessment).toBe("correct");
-    expect(actor.getSnapshot().context.answers).toHaveLength(1);
-    expect(actor.getSnapshot().context.answers[0]?.assessment).toBe("correct");
+    expect(actor.getSnapshot().context.answers).toHaveLength(2);
+    expect(actor.getSnapshot().context.answers.map((item) => item.assessment)).toEqual([
+      "incorrect",
+      "correct",
+    ]);
 
     actor.send({ type: "NEXT_QUESTION" });
     expect(actor.getSnapshot().matches({ quiz: "idle" })).toBe(true);

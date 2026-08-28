@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import type { Poem, QuizQuestion } from "../dlc/schema";
 import { classmateLine, hasQuizHint, isChoiceQuestion } from "../dlc/quizHelpers";
+import { nextQuizDialogueBeat, type QuizDialogueBeat } from "../game/quizBeat";
 import type { TeacherFeedback } from "../server/ai/AIProvider";
 import { playSfx } from "../audio/playSfx";
 import { computeQuizProgress } from "../ui/lessonProgress";
@@ -13,7 +14,7 @@ import { LessonProgress } from "./LessonProgress";
 import styles from "./classroom.module.css";
 
 type Speaker = "teacher" | "classmate" | "student";
-type Beat = "teacher" | "classmate" | "student";
+type Beat = QuizDialogueBeat;
 
 export type ClassroomPortraits = Record<Speaker, { src?: string; name: string }>;
 
@@ -110,16 +111,24 @@ export function ClassroomFrame({
   onRetry,
   onNext,
 }: ClassroomFrameProps) {
-  const [beat, setBeat] = useState<Beat>("teacher");
-  const prevStatus = useRef(status);
-  useEffect(() => {
-    if (prevStatus.current === "success" && status === "idle") {
-      setBeat("teacher");
-    }
-    prevStatus.current = status;
-  }, [status]);
   const choiceQuestion = isChoiceQuestion(question) ? question : null;
   const showHint = hasQuizHint(question);
+  const [beat, setBeat] = useState<Beat>("teacher");
+  const prevTurn = useRef({ questionId: question.id, status });
+  useEffect(() => {
+    const prev = prevTurn.current;
+    setBeat((current) =>
+      nextQuizDialogueBeat({
+        beat: current,
+        prevQuestionId: prev.questionId,
+        questionId: question.id,
+        prevStatus: prev.status,
+        status,
+        hasHint: showHint,
+      }),
+    );
+    prevTurn.current = { questionId: question.id, status };
+  }, [question.id, status, showHint]);
   const feedbackRole: Speaker =
     status === "success" && choiceQuestion
       ? choiceQuestion.feedbackSpeaker
@@ -182,6 +191,7 @@ export function ClassroomFrame({
         <motion.section
           className={styles.dialogue}
           data-speaker={speaker}
+          data-testid={`quiz-beat-${status === "idle" ? beat : status}`}
           key={`${question.id}-${speaker}-${status}`}
         >
           <p className={`${styles.speaker} ${speakerColor[speaker]}`}>{portraits[speaker].name}</p>

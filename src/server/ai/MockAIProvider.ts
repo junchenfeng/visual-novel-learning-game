@@ -45,11 +45,9 @@ export class MockAIProvider implements AIProvider {
     });
   }
 
-  async summarize(request: SummaryRequest): Promise<TeacherSummary> {
-    const correct = request.answers.filter((item) => item.assessment === "correct").length;
-    const total = request.answers.length;
+  async summarize(_request: SummaryRequest): Promise<TeacherSummary> {
     return teacherSummarySchema.parse({
-      remark: `你认真读完了${request.poet}的《${request.workTitle}》。${total} 题里有 ${correct} 题理解准确。继续把词句和故事连起来想，就会越读越清楚。`,
+      remark: "待完成",
     });
   }
 }

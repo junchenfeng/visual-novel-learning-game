@@ -69,7 +69,7 @@ pnpm test        # 运行 Jest 测试
 ```
 
 ## 测试
-- 运行 `pnpm test` 执行所有单元测试（catalog / dlc-schema / eventSchema / gameMachine / compiler）
+- 运行 `pnpm test` 执行所有单元测试（catalog / dlc-schema / eventSchema / gameMachine / compiler / quizBeat）
 - 书架页接口：`GET /poet/[poetId]`
 
 ## 注意事项
@@ -77,6 +77,8 @@ pnpm test        # 运行 Jest 测试
 - `predev` / `prebuild` 钩子已自动触发编译
 - Next.js 16 有破坏性变更，写代码前查阅 `node_modules/next/dist/docs/`
 - 故事结束到读词之间可在 `manifest.yaml` 配可选 `easterEgg`；不配则最后一页只有「开始读词」，不会出现「这是什么？」。字段见 `docs/dlc-spec.md`。
+- 试评轨迹 YAML 放 `docs/teaching/prompt-lab/cases/`（进 git，quiz-only）。开发环境进总结前会把完整对局（故事+课堂，不含读诗/彩蛋）写到 `assets/sessions/<dlcId>/`。总评 LLM 目前返回「待完成」，作业见 `docs/teaching/README.md`。
+- 改 DLC 故事或题目时请升高 `manifest.yaml` 的 `version`。分析本机对局时丢掉 `dlcVersion` 对不上的文件。
 
 ## 新增 DLC（带练创作）
 
@@ -92,7 +94,7 @@ pnpm test        # 运行 Jest 测试
 | 剧情设计 | `02_story-beats.md` 故事线与关卡 | `content/story.yaml` |
 | 读诗教学 | `03_poem-notes.md` 诗词解析 | `content/poem.yaml` |
 | 课堂教学 | `04_quiz-design.md` 考题设计 | `content/quiz.yaml` |
-| 课堂教学·试评 | `06_answer-samples.md` 答卷样例 | 试评用，不转 YAML |
+| 课堂教学·试评 | 轨迹案例不写 assets，写 `docs/teaching/prompt-lab/cases/<pack-id>/` | 试评用，进 git |
 | 生图准备 | `05_storyboard.md` 分镜表 | 生成图进 DLC 包 `assets/` |
 
 开始前：查该目录下已有工作单，据已落内容判断当前进度，接着往下走，不重复劳动。再对照 `dlc/`、`src/dlc/roster.ts`、`generated/dlc/`，确认诗人与篇目是否已登记、命名与目录规范是否一致。

@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { HeaderUtils } from "coze-coding-dev-sdk";
 import { loadCompiledDlc } from "../../../src/dlc/loadCompiled";
-import { createAIProvider } from "../../../src/server/ai/createProvider";
 import { teacherSummarySchema } from "../../../src/server/ai/AIProvider";
+
+const attemptSchema = z.object({
+  answer: z.string().min(1).max(400),
+  assessment: z.enum(["correct", "partial", "incorrect"]).optional(),
+  optionId: z.string().min(1).max(80).optional(),
+});
 
 const requestSchema = z.object({
   dlcId: z.string().min(1).max(80),
@@ -11,9 +15,8 @@ const requestSchema = z.object({
     .array(
       z.object({
         questionId: z.string().min(1).max(80),
-        answer: z.string().min(1).max(400),
-        assessment: z.enum(["correct", "partial", "incorrect"]).optional(),
         questionType: z.enum(["open", "choice"]),
+        attempts: z.array(attemptSchema).min(1).max(20),
       }),
     )
     .min(1)
@@ -32,30 +35,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "找不到对应的 DLC" }, { status: 404 });
   }
 
-  const answers = parsed.data.answers.map((item) => {
-    const question = dlc.quiz.questions.find((entry) => entry.id === item.questionId);
-    return {
-      questionId: item.questionId,
-      prompt: question?.prompt ?? item.questionId,
-      answer: item.answer,
-      assessment: item.assessment,
-      questionType: item.questionType,
-    };
-  });
-
-  try {
-    const customHeaders = HeaderUtils.extractForwardHeaders(request.headers);
-    const summary = await createAIProvider(customHeaders).summarize({
-      poet: dlc.manifest.poet,
-      workTitle: dlc.manifest.workTitle,
-      summaryPrompt: dlc.quiz.summaryPrompt,
-      answers,
-    });
-    return NextResponse.json(teacherSummarySchema.parse(summary));
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "老师暂时无法写总评" },
-      { status: 502 },
-    );
+  for (const item of parsed.data.answers) {
+    if (!dlc.quiz.questions.some((question) => question.id === item.questionId)) {
+      return NextResponse.json({ error: `找不到题目：${item.questionId}` }, { status: 400 });
+    }
   }
+
+  // 作业：接回 createAIProvider().summarize()，把作答轨迹 attempts 交给总评 LLM。
+  // 现在先去掉总结 LLM，固定返回「待完成」。
+  return NextResponse.json(teacherSummarySchema.parse({ remark: "待完成" }));
 }

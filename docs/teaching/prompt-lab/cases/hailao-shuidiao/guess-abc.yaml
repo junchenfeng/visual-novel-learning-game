@@ -1,0 +1,19 @@
+schemaVersion: 1
+id: guess-abc
+label: 挨个点选项
+questions:
+  - questionId: q_separate
+    type: choice
+    optionIds:
+      - wutai_huangzhou
+      - reform_exile
+  - questionId: q_chanjuan
+    type: choice
+    optionIds:
+      - beauty
+      - chang_e
+      - moon
+  - questionId: q_theme
+    type: choice
+    optionIds:
+      - hard_but_bless

@@ -1,0 +1,16 @@
+schemaVersion: 1
+id: all-correct
+label: 全对
+questions:
+  - questionId: q_separate
+    type: choice
+    optionIds:
+      - reform_exile
+  - questionId: q_chanjuan
+    type: choice
+    optionIds:
+      - moon
+  - questionId: q_theme
+    type: choice
+    optionIds:
+      - hard_but_bless

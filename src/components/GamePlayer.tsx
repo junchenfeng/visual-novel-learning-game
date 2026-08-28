@@ -8,6 +8,8 @@ import { useOptionalHowl, usePageTurnSound } from "../audio/useHowler";
 import type { CompiledDlc } from "../dlc/schema";
 import { isChoiceQuestion } from "../dlc/quizHelpers";
 import { gameMachine, getCurrentNode } from "../game/gameMachine";
+import { groupAnswerAttempts } from "../game/answerAttempts";
+import { buildRecordedSession } from "../sessions/recordedSession";
 import { LocalStorageAdapter } from "../storage/LocalStorageAdapter";
 import { createId } from "../ui/uuid";
 import { computeStoryProgress } from "../ui/lessonProgress";
@@ -66,9 +68,10 @@ export function GamePlayer({ dlc }: GamePlayerProps) {
   const [draftAnswer, setDraftAnswer] = useState("");
   const lastPhase = useRef<string>("");
   const started = useRef(false);
-  const lastPoemIndex = useRef<number>(-1);
   const lastGameOver = useRef("");
+  const lastStoryNodeId = useRef("");
   const summaryStarted = useRef(false);
+  const sessionSaved = useRef(false);
 
   const context = snapshot.context;
   const node = getCurrentNode(context);
@@ -141,9 +144,6 @@ export function GamePlayer({ dlc }: GamePlayerProps) {
     if (
       phase === "intro" ||
       phase === "story" ||
-      phase === "easterEgg" ||
-      phase === "lessonTransition" ||
-      phase === "poem" ||
       phase === "quiz" ||
       phase === "summary"
     ) {
@@ -168,20 +168,19 @@ export function GamePlayer({ dlc }: GamePlayerProps) {
   }, [snapshot.value, node.id, node.type]);
 
   useEffect(() => {
-    if (!snapshot.matches("poem")) {
+    if (!snapshot.matches("story")) {
       return;
     }
-    if (lastPoemIndex.current === context.lineIndex) {
+    if (lastStoryNodeId.current === node.id) {
       return;
     }
-    lastPoemIndex.current = context.lineIndex;
-    const line = dlc.poem.lines[context.lineIndex];
-    appendEvent("poem.line_revealed", {
-      lineId: line.id,
-      index: context.lineIndex,
+    lastStoryNodeId.current = node.id;
+    appendEvent("story.node_entered", {
+      nodeId: node.id,
+      nodeType: node.type,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [context.lineIndex, snapshot.value]);
+  }, [snapshot.value, node.id, node.type]);
 
   useEffect(() => {
     if (!isTurning) {
@@ -204,17 +203,26 @@ export function GamePlayer({ dlc }: GamePlayerProps) {
     summaryStarted.current = true;
     void (async () => {
       try {
+        if (!sessionSaved.current) {
+          sessionSaved.current = true;
+          const session = buildRecordedSession({
+            dlc,
+            sessionId,
+            events: storage.readAll().events,
+            answers: context.answers,
+          });
+          await fetch("/api/sessions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(session),
+          }).catch(() => undefined);
+        }
         const response = await fetch("/api/summary", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             dlcId: dlc.manifest.id,
-            answers: context.answers.map((item) => ({
-              questionId: item.questionId,
-              answer: item.answer,
-              assessment: item.assessment,
-              questionType: item.questionType,
-            })),
+            answers: groupAnswerAttempts(context.answers),
           }),
         });
         const data = await response.json();

@@ -64,7 +64,7 @@ flowchart TD
 - `pageTransition`：翻页动画进行中
 - `easterEgg`：可选彩蛋小游戏（仅当 manifest 配置了 `easterEgg`）
 - `poem`：逐句揭示
-- `quiz.idle | submitting | success | error`
+- `quiz.idle | submitting | success | error`（选择题答错后 `RETRY` 回到同一题的 `idle`；有 HINT 的题，课堂 UI 应停在作答拍，不重播老师提问和何解，见 `src/game/quizBeat.ts`）
 - `summary.generating | ready | error
 
 ### 其他库
@@ -136,6 +136,6 @@ flowchart TB
 2. **编译层**：`npm run compile:dlc` 调用 parser + 剧情图检查，输出 `generated/dlc/*.json`，并把 `assets/` 复制到 `public/dlc/`。
 3. **运行层**：`GamePlayer` 根据状态机当前状态，切换三套完全不同的界面。
 4. **服务器 AI 层**：master prompt 只放在服务器。DLC 只提供 `gradingPrompt` / `summaryPrompt` 作为「本课补充说明」，不能改写老师身份。
-5. **存储层**：游戏数据是文件；学习行为是 JSON 事件，存在 `localStorage`，可以导出。
+5. **存储层**：游戏数据是文件；学习行为事件在 `localStorage`。开发环境进入总结前会把本局（故事+课堂，不含读诗/彩蛋）写到 `assets/sessions/`，带上 `dlcVersion`。
 
-选择题在浏览器里本地判分；填空题走 `/api/teacher`。全部答完后走 `/api/summary` 写总评。
+选择题在浏览器里本地判分；填空题走 `/api/teacher`。全部答完后走 `/api/summary`；目前总评固定返回「待完成」，请求体带每题作答轨迹 `attempts`。作业见 [`docs/teaching/README.md`](teaching/README.md)。

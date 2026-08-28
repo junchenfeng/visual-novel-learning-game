@@ -217,7 +217,7 @@ export const gameMachine = setup({
         teacherFeedback: graded.feedback,
         teacherError: null,
         answers: [
-          ...context.answers.filter((item) => item.questionId !== question.id),
+          ...context.answers,
           {
             questionId: question.id,
             answer: graded.answer,

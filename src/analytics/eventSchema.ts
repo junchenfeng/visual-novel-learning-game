@@ -7,10 +7,11 @@ export const BEHAVIOR_STORAGE_KEY = "poem-rpg:behavior-events:v1";
 export const behaviorEventTypeSchema = z.enum([
   "session.started",
   "phase.entered",
+  "story.node_entered",
   "story.choice_selected",
   "story.game_over",
   "story.replayed",
-  "poem.line_revealed",
+  "poem.line_revealed", // 旧日志可能还有；新对局不再打点，存档会丢掉
   "quiz.answer_submitted",
   "teacher.feedback_received",
   "summary.received",

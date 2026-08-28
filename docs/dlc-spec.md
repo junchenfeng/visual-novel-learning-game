@@ -1,6 +1,6 @@
 # DLC 数据结构和要求
 
-YAML 字段、图规则和最小示例看下面。**先想清楚这一课教什么、故事怎么带、题目考什么**；带练中间产物放仓库根目录 `assets/<poetId>/<work-slug>/`（已 gitignore，见 `AGENTS.md`）。试评分/总评提示词的方法，见 [提示词试评台](teaching/prompt-lab/README.md)。
+YAML 字段、图规则和最小示例看下面。**先想清楚这一课教什么、故事怎么带、题目考什么**；带练中间产物放仓库根目录 `assets/<poetId>/<work-slug>/`（已 gitignore，见 `AGENTS.md`）。试评分/总评提示词的方法，见 [提示词试评台](teaching/prompt-lab/README.md)。作答轨迹案例见 [docs/teaching](teaching/README.md)。
 
 ## 这篇文档讲什么 / 适合谁看
 
@@ -60,7 +60,7 @@ flowchart LR
 
 | 字段 | 必填 | 含义 |
 | --- | --- | --- |
-| `id` / `version` / `title` | 是 | 包的 short id（全局唯一）、版本号、显示名 |
+| `id` / `version` / `title` | 是 | 包的 short id（全局唯一）、版本号、显示名。改故事或题目时请升 `version`，本机对局靠它判断能不能对照当前包 |
 | `author` | 是 | DLC 作者名，会显示在总结页"由xxx制作" |
 | `poet` / `poetId` | 是 | 诗人中文名、诗人 id（用于目录分组，必须与第一层目录名一致） |
 | `workTitle` / `summary` | 是 | 词牌或篇名、一句话简介 |
@@ -203,7 +203,7 @@ lines:
 | `summaryPrompt` | 给老师的「本课总评怎么写」 |
 | `questions` | 至少 1 题，选择题和填空题可以混排 |
 
-**选择题 `type: choice`**（浏览器对照 `correctOptionId` 打分，答后由 `feedbackSpeaker` 朗读该选项的 `feedback`。填空架构仍保留，本课 DEMO 可以只用选择。）
+**选择题 `type: choice`**（浏览器对照 `correctOptionId` 打分，答后由 `feedbackSpeaker` 朗读该选项的 `feedback`。）
 
 每题可自由组合两个开关，一共四种：
 
@@ -211,6 +211,8 @@ lines:
 | --- | --- | --- |
 | `feedbackSpeaker: teacher` | 老师问 → 老师讲 | 老师问 → 何解 HINT → 老师讲 |
 | `feedbackSpeaker: classmate` | 老师问 → 何解讲 | 老师问 → 何解 HINT → 何解讲 |
+
+**第一次进入**才走上面这条开场。选择题答错后点「再答一次」，直接回到作答页（选项还在），**不要**重播老师提问，也**不要**再听一遍何解 HINT。没有 `hint` 的题，老师提问页本身就是作答页，答错后仍停在那里。
 
 ```yaml
 - id: q_separate

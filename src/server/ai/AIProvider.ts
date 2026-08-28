@@ -34,9 +34,12 @@ export type SummaryRequest = {
   answers: Array<{
     questionId: string;
     prompt: string;
-    answer: string;
-    assessment?: TeacherFeedback["assessment"];
     questionType: "open" | "choice";
+    attempts: Array<{
+      answer: string;
+      assessment?: TeacherFeedback["assessment"];
+      optionId?: string;
+    }>;
   }>;
 };
 

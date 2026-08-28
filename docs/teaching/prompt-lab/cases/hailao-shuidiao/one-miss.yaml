@@ -1,0 +1,17 @@
+schemaVersion: 1
+id: one-miss
+label: 错了 1 道再答对
+questions:
+  - questionId: q_separate
+    type: choice
+    optionIds:
+      - reform_exile
+  - questionId: q_chanjuan
+    type: choice
+    optionIds:
+      - beauty
+      - moon
+  - questionId: q_theme
+    type: choice
+    optionIds:
+      - hard_but_bless
