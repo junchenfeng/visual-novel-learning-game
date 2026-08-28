@@ -47,12 +47,15 @@
 }
 
 .poetStatus {
+  font-family: var(--font-sans);
   font-size: 13px;
   letter-spacing: 0.12em;
+  font-weight: 500;
 }
 
 .shelfHint {
   margin-top: 8px;
+  font-family: var(--font-sans);
   font-size: 14px;
   opacity: 0.78;
 }
@@ -91,6 +94,9 @@
   border: 1px solid #2c2416;
   background: #f7efdc;
   padding: 8px 14px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  cursor: pointer;
 }
 
 .shelf {
@@ -167,6 +173,7 @@
   border: 1px solid #c7b299;
   background: #fff8e7;
   color: #5a4a32;
+  font-family: var(--font-sans);
   font-size: 12px;
   cursor: pointer;
   transition: background 0.15s ease;
@@ -214,6 +221,7 @@
   border-radius: 6px;
   background: transparent;
   border: none;
+  font-family: var(--font-sans);
   font-size: 13px;
   color: #4a3c28;
   cursor: pointer;

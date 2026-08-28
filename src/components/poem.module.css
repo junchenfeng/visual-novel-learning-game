@@ -51,13 +51,16 @@
 
 .back,
 .primary {
-  font: inherit;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
   cursor: pointer;
   border: 1px solid #2c2416;
   background: #fffaf0;
   color: inherit;
   padding: 8px 14px;
   min-height: 44px;
+  letter-spacing: 0.02em;
 }
 
 .primary {
@@ -113,6 +116,7 @@
   border: 1px dashed rgba(44, 36, 22, 0.22);
   background: rgba(255, 252, 246, 0.8);
   color: #4a3c28;
+  font-family: var(--font-sans);
   font-size: var(--type-caption, 13px);
   line-height: 1.45;
 }
@@ -143,8 +147,10 @@
 .noteKicker {
   margin-bottom: 6px;
   color: #6f3030;
+  font-family: var(--font-sans);
   font-size: var(--type-kicker, 11px);
   letter-spacing: 0.2em;
+  font-weight: 500;
 }
 
 .noteBody {
@@ -168,6 +174,8 @@
   letter-spacing: 0.16em;
   font-size: var(--type-kicker, 13px);
   margin-bottom: 6px;
+  font-family: var(--font-sans);
+  font-weight: 500;
 }
 
 @container game (max-width: 800px) {

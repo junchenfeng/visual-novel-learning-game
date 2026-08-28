@@ -13,6 +13,8 @@
   background-blend-mode: normal, normal, multiply;
   color: #2c2416;
   font-family: "Songti SC", "SimSun", "STSong", "Noto Serif SC", serif;
+  --font-sans-ui: "Noto Sans SC", "Source Han Sans SC", "PingFang SC",
+    "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
 }
 
 .header {
@@ -30,10 +32,12 @@
 }
 
 .titleKicker {
+  font-family: var(--font-sans-ui);
   font-size: 13px;
   letter-spacing: 0.32em;
   color: #8b5a2b;
   text-indent: 0.32em;
+  font-weight: 500;
 }
 
 .title {
@@ -71,6 +75,7 @@
   border: 1px solid #b8860b;
   background: rgba(255, 250, 230, 0.6);
   color: #5a4a32;
+  font-family: var(--font-sans-ui);
   font-size: 13.5px;
   letter-spacing: 0.12em;
   cursor: pointer;
@@ -331,6 +336,7 @@
 
 .bookVertical .bookLabel {
   text-align: center;
+  font-family: var(--font-sans-ui);
   font-size: 10px;
   color: rgba(247, 239, 220, 0.7);
   letter-spacing: 0.1em;
@@ -519,10 +525,10 @@
   border: 1px solid #b8860b;
   background: rgba(255, 250, 230, 0.9);
   color: #5a4a32;
+  font-family: var(--font-sans-ui);
   font-size: 11px;
   letter-spacing: 0.08em;
   cursor: pointer;
-  font-family: inherit;
   transition: all 0.2s ease;
   white-space: nowrap;
 }
@@ -568,11 +574,11 @@
   padding: 6px 10px;
   background: transparent;
   border: none;
+  font-family: var(--font-sans-ui);
   font-size: 12.5px;
   color: #4a3c28;
   cursor: pointer;
   text-align: left;
-  font-family: inherit;
   letter-spacing: 0.05em;
   transition: background 0.15s ease;
 }
@@ -588,10 +594,10 @@
 }
 
 .packMenuItemVersion {
+  font-family: var(--font-sans-ui);
   font-size: 10.5px;
   color: #8a7b62;
   flex-shrink: 0;
-  font-family: monospace;
 }
 
 /* 响应式 */

@@ -28,9 +28,17 @@
 | --locked-gray | #9a9080 | 锁定书灰色 |
 
 ## 字体排版
-- 中文字体：使用系统衬线字体栈 `'Songti SC', 'SimSun', 'STSong', serif`，呼应古籍阅读感
+- 中文字体采用双轨制：
+  - **古籍/正文**：衬线字体栈 `'Songti SC', 'SimSun', 'STSong', 'Noto Serif SC', serif`（思源宋体），用于故事叙述、诗词原文、书名等需要古籍气质的场景
+  - **UI 控件/标签**：无衬线字体栈 `'Noto Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif`（**思源黑体 / Noto Sans SC**，SIL 开源可商用），用于按钮、选项、输入框、眉题、徽章、章节标签、版本号等功能性文字
+- 书法点缀：马善政体（`Ma Shan Zheng`）仅用于诗词原文题字等手写感场景
 - 书名用较大字号 + 字间距，仿雕版印刷气质
 - 小字（版本号、作者）用仿宋/楷体感，缩小字号
+
+## 字体许可
+- Noto Sans SC（思源黑体）：SIL Open Font License 1.1，可免费商用
+- Noto Serif SC（思源宋体）：SIL Open Font License 1.1，可免费商用
+- Ma Shan Zheng：SIL Open Font License 1.1，可免费商用
 
 ## 动效与交互
 - 悬停：书本微微抬起（translateY），底部出现淡墨晕染圆形扩散
