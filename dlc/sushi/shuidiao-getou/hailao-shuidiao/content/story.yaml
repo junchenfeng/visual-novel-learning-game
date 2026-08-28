@@ -19,7 +19,7 @@ nodes:
     chapterTitle: 苏轼与苏辙
     portrait: suzhe
     convergesTo: ch1_join
-    text: 今晚月亮很圆。如果你是苏轼，最想怎样想念弟弟？
+    text: 今晚月亮很圆。如果你是苏轼，想念弟弟的时候会做什么？
     choices:
       - id: write_letter
         label: 先给弟弟写信，告诉他今晚的月亮

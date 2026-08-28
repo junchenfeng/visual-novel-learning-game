@@ -87,7 +87,7 @@
         "type": "choice",
         "chapter": 1,
         "chapterTitle": "苏轼与苏辙",
-        "text": "今晚月亮很圆。如果你是苏轼，最想怎样想念弟弟？",
+        "text": "今晚月亮很圆。如果你是苏轼，想念弟弟的时候会做什么？",
         "portrait": "suzhe",
         "convergesTo": "ch1_join",
         "choices": [
