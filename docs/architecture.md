@@ -107,7 +107,7 @@ flowchart TB
     player[src/components/GamePlayer.tsx]
     book[BookFrame 故事]
     scroll[PoemScrollFrame 读词]
-    court[CourtroomFrame 问答]
+    classroom[ClassroomFrame 问答]
   end
   subgraph server [服务器 AI 层]
     teacherApi[app/api/teacher]

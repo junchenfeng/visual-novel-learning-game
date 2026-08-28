@@ -11,7 +11,7 @@ import { gameMachine, getCurrentNode } from "../game/gameMachine";
 import { LocalStorageAdapter } from "../storage/LocalStorageAdapter";
 import { createId } from "../ui/uuid";
 import { BookFrame, type ChapterTab } from "./BookFrame";
-import { CourtroomFrame, type ClassroomPortraits } from "./CourtroomFrame";
+import { ClassroomFrame, type ClassroomPortraits } from "./ClassroomFrame";
 import { GameOverModal } from "./GameOverModal";
 import { GameViewport } from "./GameViewport";
 import { NarrativeGate } from "./NarrativeGate";
@@ -347,7 +347,7 @@ export function GamePlayer({ dlc }: GamePlayerProps) {
     );
   } else if (showQuiz) {
     screen = (
-      <CourtroomFrame
+      <ClassroomFrame
         key={dlc.quiz.questions[context.questionIndex].id}
         poet={dlc.manifest.poet}
         workTitle={dlc.manifest.workTitle}

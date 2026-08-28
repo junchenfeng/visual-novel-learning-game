@@ -10,7 +10,7 @@
 
 **目录。** 首页诗人头像墙，`/poet/[poetId]` 书架。`poetId` 在 `manifest.yaml`。课表上未做的诗人/书脊标灰。
 
-**三套界面。** `GamePlayer` 按状态机切换：故事 [`BookFrame`](../src/components/BookFrame.tsx)、读词 [`PoemScrollFrame`](../src/components/PoemScrollFrame.tsx)、问答 [`CourtroomFrame`](../src/components/CourtroomFrame.tsx)。PC 为 390:844 手机舞台（按可用高度缩放，容器查询）；Mobile 铺满。DOM/文字不用 `transform: scale()`。
+**三套界面。** `GamePlayer` 按状态机切换：故事 [`BookFrame`](../src/components/BookFrame.tsx)、读词 [`PoemScrollFrame`](../src/components/PoemScrollFrame.tsx)、问答 [`ClassroomFrame`](../src/components/ClassroomFrame.tsx)。PC 为 390:844 手机舞台（按可用高度缩放，容器查询）；Mobile 铺满。DOM/文字不用 `transform: scale()`。
 
 **故事节点。** `narration` 代入；`fact` 史实标签 + 虚线框，直线、不能进 Game Over。`choice` 正路汇合到 `convergesTo`。`gameOver` 只有「重新选择」，用 `lastChoiceNodeId` 回到刚才的选择。旁白/史实不写 `speaker`、`portrait`。
 

@@ -70,7 +70,7 @@ style="opacity:0;transform:translateY(24px)"
 - `forwards` 不能省，否则播完会跳回 `opacity: 0`。
 - keyframes 里的 `transform` 会覆盖元素原有 transform；云的循环必须写成 `rotate(-8deg) translateX(...)`。
 - 同步写 `@media (prefers-reduced-motion: reduce)`。
-- `CourtroomFrame` / `PoemScrollFrame` 的 motion 可以保留：它们只在用户已经点进关卡之后出现。
+- `ClassroomFrame` / `PoemScrollFrame` 的 motion 可以保留：它们只在用户已经点进关卡之后出现。
 
 SSR 验收：
 

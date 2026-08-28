@@ -9,14 +9,14 @@ import { classmateLine, isChoiceQuestion } from "../dlc/quizHelpers";
 import type { TeacherFeedback } from "../server/ai/AIProvider";
 import { playSfx } from "../audio/playSfx";
 import { useTypewriter } from "../ui/useTypewriter";
-import styles from "./courtroom.module.css";
+import styles from "./classroom.module.css";
 
 type Speaker = "teacher" | "classmate" | "student";
 type Beat = "teacher" | "classmate" | "student";
 
 export type ClassroomPortraits = Record<Speaker, { src?: string; name: string }>;
 
-type CourtroomFrameProps = {
+type ClassroomFrameProps = {
   poet: string;
   workTitle: string;
   poem: Poem;
@@ -72,7 +72,7 @@ function TypeLine({
   );
 }
 
-export function CourtroomFrame({
+export function ClassroomFrame({
   poet,
   workTitle,
   poem,
@@ -90,7 +90,7 @@ export function CourtroomFrame({
   onSubmitChoice,
   onRetry,
   onNext,
-}: CourtroomFrameProps) {
+}: ClassroomFrameProps) {
   const [beat, setBeat] = useState<Beat>("teacher");
   const speaker: Speaker =
     status === "success" || status === "submitting" || status === "error" ? "teacher" : beat;
