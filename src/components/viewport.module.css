@@ -32,10 +32,10 @@
 .canvas {
   height: 100%;
   min-height: 0;
-  --type-kicker: clamp(11px, 2.6cqi, 12px);
-  --type-title: clamp(15px, 4.2cqi, 18px);
-  --type-body: clamp(15px, 4cqi, 17px);
-  --type-caption: clamp(11px, 2.8cqi, 13px);
+  --type-kicker: clamp(12px, 2.8cqi, 14px);
+  --type-title: clamp(17px, 4.4cqi, 20px);
+  --type-body: clamp(17px, 4.4cqi, 20px);
+  --type-caption: clamp(12px, 3cqi, 14px);
 }
 
 .sideOrnament {

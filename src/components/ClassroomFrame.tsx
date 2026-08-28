@@ -40,7 +40,7 @@ const assessmentLabel = {
   correct: "理解准确",
   partial: "部分正确",
   incorrect: "还要再想想",
-};
+} as const;
 
 const speakerColor: Record<Speaker, string> = {
   teacher: styles.speakerTeacher,
@@ -63,12 +63,30 @@ function TypeLine({
   testId?: string;
   className?: string;
 }) {
-  const { displayed, done, skip } = useTypewriter(text);
   return (
-    <p className={className ?? styles.bodyText} data-testid={testId} onClick={skip}>
-      {displayed}
-      {done ? null : <span className={styles.caret}>▍</span>}
+    <p className={className ?? styles.bodyText} data-testid={testId}>
+      {text}
     </p>
+  );
+}
+
+function FeedbackSection({
+  label,
+  text,
+  blockClass,
+}: {
+  label: string;
+  text: string;
+  blockClass?: string;
+}) {
+  if (!text) return null;
+  return (
+    <div className={`${styles.feedbackBlock} ${blockClass ?? ""}`}>
+      <p className={styles.feedbackLabel}>{label}</p>
+      <p className={styles.feedbackContent} style={{ whiteSpace: "pre-wrap" }}>
+        {text}
+      </p>
+    </div>
   );
 }
 
@@ -96,13 +114,6 @@ export function ClassroomFrame({
     status === "success" || status === "submitting" || status === "error" ? "teacher" : beat;
   const backdrop = poem.lines.map((line) => line.original).join("　");
   const choiceQuestion = isChoiceQuestion(question) ? question : null;
-  const { displayed: feedbackText, done: feedbackDone, skip: skipFeedback } = useTypewriter(
-    feedback
-      ? [feedback.classmateAnalysis, feedback.studentFeedback, feedback.explanation, feedback.encouragement].join(
-          "\n",
-        )
-      : "",
-  );
 
   return (
     <div className={styles.shell} data-testid="quiz-stage">
@@ -135,8 +146,8 @@ export function ClassroomFrame({
               initial={spriteEnter[role]}
               animate={
                 speaker === role
-                  ? { x: 0, y: 0, scale: 1.08, opacity: 1 }
-                  : { x: 0, y: 18, scale: 0.9, opacity: 0.38 }
+                  ? { x: 0, y: 0, scale: 1.05, opacity: 1 }
+                  : { x: 0, y: 20, scale: 0.9, opacity: 0.35 }
               }
               transition={{ duration: 0.28 }}
             >
@@ -155,9 +166,13 @@ export function ClassroomFrame({
           key={`${question.id}-${speaker}-${status}`}
         >
           <p className={`${styles.speaker} ${speakerColor[speaker]}`}>{portraits[speaker].name}</p>
+
+          {/* === 老师出题 === */}
           {status === "idle" && beat === "teacher" ? (
             <>
-              <TypeLine text={question.prompt} testId="quiz-prompt" />
+              <p className={styles.promptText} data-testid="quiz-prompt">
+                {question.prompt}
+              </p>
               <div className={styles.actions}>
                 <button
                   className={styles.primary}
@@ -172,9 +187,15 @@ export function ClassroomFrame({
               </div>
             </>
           ) : null}
+
+          {/* === 同学回答 === */}
           {status === "idle" && beat === "classmate" ? (
             <>
-              <TypeLine text={classmateLine(question)} testId="classmate-answer" />
+              <TypeLine
+                text={classmateLine(question)}
+                testId="classmate-answer"
+                className={styles.bodyText}
+              />
               <div className={styles.actions}>
                 <button
                   className={styles.primary}
@@ -189,6 +210,8 @@ export function ClassroomFrame({
               </div>
             </>
           ) : null}
+
+          {/* === 学生作答 === */}
           {(status === "idle" && beat === "student") || status === "error" ? (
             <>
               <p className={styles.bodyText}>把你的理解写下来，不必和同学一样。</p>
@@ -214,6 +237,7 @@ export function ClassroomFrame({
                     className={styles.input}
                     data-testid="answer-input"
                     maxLength={200}
+                    placeholder="在这里写下你的想法…"
                     value={answer}
                     onChange={(event) => onAnswerChange(event.target.value)}
                     onKeyDown={(event) => {
@@ -246,6 +270,8 @@ export function ClassroomFrame({
               )}
             </>
           ) : null}
+
+          {/* === 老师思考中 === */}
           {status === "submitting" ? (
             <p className={styles.thinking} data-testid="teacher-thinking">
               老师正在思考<span>.</span>
@@ -253,28 +279,61 @@ export function ClassroomFrame({
               <span>.</span>
             </p>
           ) : null}
+
+          {/* === 老师点评（分四块独立排版） === */}
           {status === "success" && feedback ? (
             <div className={styles.feedback} data-testid="teacher-feedback">
-              <p>点评：{assessmentLabel[feedback.assessment]}</p>
-              <p className={styles.bodyText} onClick={skipFeedback} style={{ whiteSpace: "pre-wrap" }}>
-                {feedbackText}
-                {feedbackDone ? null : <span className={styles.caret}>▍</span>}
+              <p
+                className={`${styles.assessmentBadge} ${
+                  feedback.assessment === "correct"
+                    ? styles.assessmentCorrect
+                    : feedback.assessment === "incorrect"
+                      ? styles.assessmentIncorrect
+                      : styles.assessmentPartial
+                }`}
+              >
+                点评 · {assessmentLabel[feedback.assessment]}
               </p>
-              {feedbackDone ? <p className={styles.muted}>{feedback.evidence}</p> : null}
-              {feedbackDone ? (
-                <div className={styles.actions}>
-                  <button
-                    className={styles.primary}
-                    data-testid="next-question"
-                    onClick={() => {
-                      playSfx("click");
-                      onNext();
-                    }}
-                  >
-                    {index + 1 === total ? "查看总结" : "下一题"}
-                  </button>
-                </div>
+
+              <FeedbackSection
+                label={`${portraits.classmate.name}的回答`}
+                text={feedback.classmateAnalysis}
+                blockClass={styles.feedbackClassmate}
+              />
+
+              <FeedbackSection
+                label="你的回答"
+                text={feedback.studentFeedback}
+                blockClass={styles.feedbackStudent}
+              />
+
+              <FeedbackSection
+                label="老师讲解"
+                text={feedback.explanation}
+                blockClass={styles.feedbackExplain}
+              />
+
+              <FeedbackSection
+                label="老师鼓励"
+                text={feedback.encouragement}
+                blockClass={styles.feedbackEncourage}
+              />
+
+              {feedback.evidence ? (
+                <p className={styles.evidence}>{feedback.evidence}</p>
               ) : null}
+              <div className={styles.actions}>
+                <button
+                  className={styles.primary}
+                  data-testid="next-question"
+                  onClick={() => {
+                    playSfx("click");
+                    onNext();
+                  }}
+                >
+                  {index + 1 === total ? "查看总结" : "下一题"}
+                </button>
+              </div>
             </div>
           ) : null}
         </motion.section>

@@ -127,9 +127,11 @@
 }
 
 .slipBody {
-  font-size: clamp(16px, 4.4cqi, 19px);
-  line-height: 1.8;
+  font-size: clamp(17px, 4.6cqi, 20px);
+  line-height: 2;
+  letter-spacing: 0.03em;
   white-space: pre-wrap;
+  text-indent: 2em;
 }
 
 .credit {

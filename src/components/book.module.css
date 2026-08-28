@@ -25,9 +25,22 @@
 
 .kicker {
   font-size: var(--type-kicker, 13px);
-  letter-spacing: 0.18em;
+  letter-spacing: 0.22em;
   font-family: var(--font-sans);
-  font-weight: 500;
+  font-weight: 600;
+  color: #6f3030;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kicker::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: #a63232;
+  transform: rotate(45deg);
+  flex-shrink: 0;
 }
 
 .back {
@@ -215,21 +228,48 @@
 
 .speaker {
   font-size: var(--type-kicker, 13px);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.2em;
   font-family: var(--font-sans);
-  font-weight: 500;
+  font-weight: 600;
+  color: #6f3030;
+  padding-left: 14px;
+  position: relative;
+  margin-bottom: 6px;
+}
+
+.speaker::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  background: #a63232;
+  box-shadow: inset 0 0 0 1px rgba(44, 36, 22, 0.3);
 }
 
 .bodyText {
-  font-size: var(--type-body, clamp(18px, 2.4vw, 22px));
-  line-height: 1.8;
+  font-size: var(--type-body, clamp(18px, 2.6vw, 22px));
+  line-height: 2;
+  letter-spacing: 0.03em;
   white-space: pre-wrap;
+  text-indent: 2em;
+}
+
+/* 说话人场景的正文不缩进 */
+.speaker + .bodyText {
+  text-indent: 0;
 }
 
 .factText {
-  padding: 16px 18px;
+  padding: 18px 20px 18px 22px;
   border: 1px dashed #2c2416;
-  background: rgba(255, 250, 240, 0.72);
+  border-left: 3px solid #a63232;
+  background: rgba(255, 250, 240, 0.78);
+  text-indent: 0;
+  position: relative;
+  margin-top: 4px;
 }
 
 .choices,
@@ -237,7 +277,8 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
+  margin-top: 6px;
 }
 
 .authorCredit {
@@ -261,12 +302,13 @@
   border: 1px solid #2c2416;
   background: #fffaf0;
   color: inherit;
-  padding: 10px 14px;
-  min-height: 44px;
+  padding: 12px 18px;
+  min-height: 48px;
   text-align: left;
-  font-size: 15px;
-  line-height: 1.6;
-  letter-spacing: 0.02em;
+  font-size: 16px;
+  line-height: 1.7;
+  letter-spacing: 0.03em;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s;
 }
 
 .primary {
@@ -312,11 +354,12 @@
 
 .input {
   width: 100%;
-  min-height: 96px;
+  min-height: 110px;
   font-family: var(--font-sans);
-  font-size: 15px;
-  line-height: 1.7;
-  padding: 12px;
+  font-size: 16px;
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+  padding: 14px 16px;
   border: 1px solid #2c2416;
   background: #fffaf0;
   color: inherit;
@@ -325,7 +368,9 @@
 
 .muted {
   opacity: 0.72;
-  font-size: 14px;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  letter-spacing: 0.04em;
 }
 
 .caret {

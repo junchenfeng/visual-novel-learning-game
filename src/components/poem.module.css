@@ -131,14 +131,16 @@
 }
 
 .translation {
-  margin-top: 10px;
-  font-size: var(--type-body, 16px);
-  line-height: 1.75;
+  margin-top: 14px;
+  font-size: var(--type-body, 17px);
+  line-height: 2;
+  letter-spacing: 0.03em;
+  text-indent: 2em;
 }
 
 .note {
-  margin-top: 14px;
-  padding: 12px 14px 14px 16px;
+  margin-top: 16px;
+  padding: 14px 16px 16px 18px;
   border: 1px solid rgba(111, 48, 48, 0.22);
   border-left: 3px solid #6f3030;
   background: #f7efe3;
@@ -154,8 +156,10 @@
 }
 
 .noteBody {
-  font-size: clamp(16px, 4.4cqi, 19px);
-  line-height: 1.75;
+  font-size: clamp(17px, 4.6cqi, 20px);
+  line-height: 2;
+  letter-spacing: 0.03em;
+  text-indent: 2em;
 }
 
 .current {
@@ -219,10 +223,12 @@
   }
 
   .translation {
-    font-size: var(--type-body, 16px);
+    font-size: var(--type-body, 17px);
+    line-height: 1.95;
   }
 
   .noteBody {
-    font-size: clamp(16px, 4.4cqi, 19px);
+    font-size: clamp(17px, 4.8cqi, 20px);
+    line-height: 1.95;
   }
 }

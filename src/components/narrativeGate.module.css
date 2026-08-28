@@ -86,24 +86,39 @@
 }
 
 .eyebrow {
-  margin-bottom: 10px;
-  font-size: var(--type-kicker, 12px);
-  letter-spacing: 0.24em;
-  opacity: 0.72;
+  margin-bottom: 12px;
   font-family: var(--font-sans);
-  font-weight: 500;
+  font-size: var(--type-kicker, 13px);
+  letter-spacing: 0.28em;
+  opacity: 0.72;
+  font-weight: 600;
+  color: #d4a84b;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 24px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
 }
 
 .narrative {
-  font-size: var(--type-title, clamp(20px, 6cqw, 25px));
-  line-height: 1.8;
+  font-size: var(--type-title, clamp(22px, 6.2cqw, 27px));
+  line-height: 2;
+  letter-spacing: 0.05em;
+  white-space: pre-wrap;
+  text-indent: 2em;
 }
 
 .continue {
   width: 100%;
-  min-height: 48px;
-  margin-top: 22px;
-  padding: 10px 14px;
+  min-height: 52px;
+  margin-top: 26px;
+  padding: 12px 18px;
   border: 1px solid currentColor;
   display: flex;
   align-items: center;
@@ -111,8 +126,9 @@
   color: inherit;
   background: transparent;
   font-family: var(--font-sans);
-  font-size: 15px;
-  letter-spacing: 0.04em;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -127,12 +143,12 @@
 .hint {
   position: relative;
   z-index: 1;
-  margin-top: 14px;
+  margin-top: 16px;
   text-align: center;
-  font-size: var(--type-caption, 12px);
-  letter-spacing: 0.08em;
-  opacity: 0.62;
   font-family: var(--font-sans);
+  font-size: var(--type-caption, 13px);
+  letter-spacing: 0.1em;
+  opacity: 0.6;
 }
 
 @keyframes gate-moon-in {
