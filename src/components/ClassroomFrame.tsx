@@ -10,6 +10,7 @@ import { nextQuizDialogueBeat, type QuizDialogueBeat } from "../game/quizBeat";
 import type { TeacherFeedback } from "../server/ai/AIProvider";
 import { playSfx } from "../audio/playSfx";
 import { computeQuizProgress } from "../ui/lessonProgress";
+import { useTypewriter, type TypewriterResult } from "../ui/useTypewriter";
 import { LessonProgress } from "./LessonProgress";
 import styles from "./classroom.module.css";
 
@@ -56,22 +57,27 @@ const spriteEnter = {
   student: { x: 48, opacity: 0 },
 };
 
-function TypeLine({
-  text,
-  testId,
+/** 逐字显示的正文段落：打完前点击可跳过。 */
+export function TypedParagraph({
+  tw,
   className,
+  testId,
 }: {
-  text: string;
-  testId?: string;
+  tw: TypewriterResult;
   className?: string;
+  testId?: string;
 }) {
   return (
-    <p className={className ?? styles.bodyText} data-testid={testId}>
-      {text}
+    <p className={className ?? styles.bodyText} data-testid={testId} onClick={tw.done ? undefined : tw.skip}>
+      {tw.displayed}
+      {tw.done ? null : <span className={styles.caret}>▍</span>}
     </p>
   );
 }
 
+const FEEDBACK_SPEED_MS = 20;
+
+/** 点评区块：四段并行逐字输出，速度略快；点击段落可立即看全。 */
 function FeedbackSection({
   label,
   text,
@@ -81,12 +87,18 @@ function FeedbackSection({
   text: string;
   blockClass?: string;
 }) {
+  const { displayed, done, skip } = useTypewriter(text, FEEDBACK_SPEED_MS);
   if (!text) return null;
   return (
     <div className={`${styles.feedbackBlock} ${blockClass ?? ""}`}>
       <p className={styles.feedbackLabel}>{label}</p>
-      <p className={styles.feedbackContent} style={{ whiteSpace: "pre-wrap" }}>
-        {text}
+      <p
+        className={styles.feedbackContent}
+        style={{ whiteSpace: "pre-wrap" }}
+        onClick={done ? undefined : skip}
+      >
+        {displayed}
+        {done ? null : <span className={styles.caret}>▍</span>}
       </p>
     </div>
   );
@@ -141,6 +153,12 @@ export function ClassroomFrame({
         : beat;
   const backdrop = poem.lines.map((line) => line.original).join("　");
   const spokenLine = feedback?.explanation ?? "";
+  // 非选项文案的打字机输出：仅在对应台词出现时给内容，其余时刻为空串（立即视为完成）。
+  const promptTw = useTypewriter(status === "idle" && beat === "teacher" ? question.prompt : "");
+  const classmateTw = useTypewriter(
+    status === "idle" && beat === "classmate" ? classmateLine(question) : "",
+  );
+  const spokenTw = useTypewriter(status === "success" && choiceQuestion ? spokenLine : "");
 
   return (
     <div className={styles.shell} data-testid="quiz-stage">
@@ -197,17 +215,11 @@ export function ClassroomFrame({
           <p className={`${styles.speaker} ${speakerColor[speaker]}`}>{portraits[speaker].name}</p>
           <div className={styles.dialogueBody}>
             {status === "idle" && beat === "teacher" ? (
-              <p className={styles.promptText} data-testid="quiz-prompt">
-                {question.prompt}
-              </p>
+              <TypedParagraph tw={promptTw} className={styles.promptText} testId="quiz-prompt" />
             ) : null}
 
             {status === "idle" && beat === "classmate" ? (
-              <TypeLine
-                text={classmateLine(question)}
-                testId="classmate-answer"
-                className={styles.bodyText}
-              />
+              <TypedParagraph tw={classmateTw} testId="classmate-answer" />
             ) : null}
 
             {(status === "idle" && beat === "student") || status === "error" ? (
@@ -265,9 +277,7 @@ export function ClassroomFrame({
                   {" · "}
                   {assessmentLabel[feedback.assessment]}
                 </p>
-                <p className={styles.bodyText} data-testid="choice-feedback-text">
-                  {spokenLine}
-                </p>
+                <TypedParagraph tw={spokenTw} testId="choice-feedback-text" />
               </div>
             ) : null}
 
@@ -316,7 +326,7 @@ export function ClassroomFrame({
             ) : null}
           </div>
 
-          {status === "idle" && beat === "teacher" && showHint ? (
+          {status === "idle" && beat === "teacher" && showHint && promptTw.done ? (
             <div className={styles.actions}>
               <button
                 className={styles.primary}
@@ -331,7 +341,7 @@ export function ClassroomFrame({
             </div>
           ) : null}
 
-          {status === "idle" && beat === "teacher" && !showHint && choiceQuestion ? (
+          {status === "idle" && beat === "teacher" && !showHint && choiceQuestion && promptTw.done ? (
             <div className={styles.choices}>
               {choiceQuestion.options.map((option, optionIndex) => (
                 <button
@@ -349,7 +359,7 @@ export function ClassroomFrame({
             </div>
           ) : null}
 
-          {status === "idle" && beat === "classmate" ? (
+          {status === "idle" && beat === "classmate" && classmateTw.done ? (
             <div className={styles.actions}>
               <button
                 className={styles.primary}
@@ -402,7 +412,11 @@ export function ClassroomFrame({
             )
           ) : null}
 
-          {status === "success" && feedback && choiceQuestion && feedback.assessment !== "correct" ? (
+          {status === "success" &&
+          feedback &&
+          choiceQuestion &&
+          feedback.assessment !== "correct" &&
+          spokenTw.done ? (
             <div className={styles.actions}>
               <button
                 className={styles.primary}
@@ -417,7 +431,10 @@ export function ClassroomFrame({
             </div>
           ) : null}
 
-          {status === "success" && feedback && (!choiceQuestion || feedback.assessment === "correct") ? (
+          {status === "success" &&
+          feedback &&
+          (!choiceQuestion || feedback.assessment === "correct") &&
+          spokenTw.done ? (
             <div className={styles.actions}>
               <button
                 className={styles.primary}

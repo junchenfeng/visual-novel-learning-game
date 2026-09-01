@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { playSfx } from "../audio/playSfx";
+import { useTypewriter } from "../ui/useTypewriter";
 import type { ClassroomPortraits } from "./ClassroomFrame";
+import { TypedParagraph } from "./ClassroomFrame";
 import styles from "./classroom.module.css";
 
 type Speaker = "teacher" | "classmate" | "student";
@@ -38,6 +40,8 @@ export function ClassroomInterlude({
       : kind === "wake"
         ? "你模糊中听到老师喊你的名字，你猛然回过神来..."
         : null;
+  const bodyTw = useTypewriter(body ?? "");
+  const bodyDone = !body || bodyTw.done;
 
   return (
     <div className={styles.shell} data-testid={`classroom-${kind}`}>
@@ -67,9 +71,9 @@ export function ClassroomInterlude({
             {portraits.teacher.name}
           </p>
           {kind === "intro" ? <p className={styles.kicker}>上课时</p> : null}
-          {body ? <p className={styles.bodyText}>{body}</p> : null}
+          {body ? <TypedParagraph tw={bodyTw} /> : null}
           <div className={styles.actions}>
-            {kind === "intro" ? (
+            {kind === "intro" && bodyDone ? (
               <button
                 className={styles.primary}
                 data-testid="begin-story"
@@ -81,7 +85,7 @@ export function ClassroomInterlude({
                 进入故事
               </button>
             ) : null}
-            {kind === "wake" ? (
+            {kind === "wake" && bodyDone ? (
               <button
                 className={styles.primary}
                 data-testid="enter-lesson"

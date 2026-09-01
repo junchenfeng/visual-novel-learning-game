@@ -183,6 +183,28 @@
   background: #4a3a20;
 }
 
+.muted {
+  margin-top: 6px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: #8a7b5c;
+  text-indent: 0;
+}
+
+.caret {
+  display: inline-block;
+  margin-left: 2px;
+  animation: blink 0.9s steps(1) infinite;
+  color: #a63232;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
 @container game (max-width: 800px) {
   .header {
     padding: max(8px, env(safe-area-inset-top)) 14px 0;
