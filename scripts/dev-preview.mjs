@@ -421,7 +421,7 @@ async function main() {
     throw new Error(`internal next port ${INTERNAL_PORT} is already in use`);
   }
 
-  const child = spawn(process.execPath, [nextBin, "dev", "-H", HOST, "-p", String(INTERNAL_PORT)], {
+  const child = spawn(process.execPath, [nextBin, "dev", "--webpack", "-H", HOST, "-p", String(INTERNAL_PORT)], {
     stdio: "inherit",
     env: process.env,
     cwd: process.cwd(),
