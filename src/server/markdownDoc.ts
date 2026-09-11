@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-export function readRepoMarkdown(relativeFromRoot: string): string {
-  return readFileSync(path.join(process.cwd(), relativeFromRoot), "utf8");
+export function readRepoMarkdown(filename: string): string {
+  return readFileSync(path.join(process.cwd(), "docs", filename), "utf8");
 }
 
 export function markdownHttpResponse(markdown: string, request: Request): Response {

@@ -4,5 +4,5 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export function GET(request: Request) {
-  return markdownHttpResponse(readRepoMarkdown("docs/mcp-how-to.md"), request);
+  return markdownHttpResponse(readRepoMarkdown("mcp-how-to.md"), request);
 }
