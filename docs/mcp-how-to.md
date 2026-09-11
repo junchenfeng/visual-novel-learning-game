@@ -11,28 +11,23 @@ YAML 规范：https://poem.aibeaver.cn/dlc-spec
 1. **userId**：`hh` + 学号，或 `hh_` + 学号，例如 `hh_11016863` / `hh11016863`
 2. **DLC 目录**：本机文件夹路径（里面应有 `manifest.yaml`）
 
-不要让用户自己打 zip。不要问 poetId、诗人中文名、篇名——从 `manifest.yaml` 读。不要向用户要 MCP token。
+不要让用户自己打 zip。不要问 poetId、诗人中文名、篇名——从 `manifest.yaml` 读。不要向用户要 token。
 
 ## 连接 MCP
 
-远程 Streamable HTTP：
+远程不用 token，用学员 `userId` 开门。Cursor 配置：
 
 ```json
 {
   "mcpServers": {
     "poem-dlc-ingest": {
-      "url": "https://poem.aibeaver.cn/mcp",
-      "headers": {
-        "Authorization": "Bearer <老师提供的 POEM_INGEST_TOKEN>"
-      }
+      "url": "https://poem.aibeaver.cn/mcp"
     }
   }
 }
 ```
 
-token 由老师预先配进 MCP，或单独发给你。不要写进 DLC，不要发给别人。未配置时接口会 401/503，停下来问老师，不要猜 token。
-
-每个工具调用都必须带学员 `userId`。token 只证明连上了服务，身份看 `userId`。
+每个工具调用都必须带学员 `userId`。格式不对或不在 L2 在读名单，工具会返回「user id不正确，需要咨询老师」。
 
 ## 标准流程
 
@@ -137,6 +132,5 @@ rm -f "$OUT"
 
 - 向用户只要 zip、poetId、篇名（除非 manifest 缺失）
 - 伪造或借用别人的 userId
-- 把 MCP token 写进仓库、DLC 或聊天记录给无关的人
 - 忽略 blocking issue 反复硬传
 - 把诗人头像塞进 DLC zip

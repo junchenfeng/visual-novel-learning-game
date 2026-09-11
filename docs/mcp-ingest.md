@@ -15,9 +15,7 @@
 - 写入课包与 OSS 时统一成 `hh_<学号>`
 - 格式不对或不在名单里：返回 **「user id不正确，需要咨询老师」**，不入库
 
-远程 MCP 仍要带服务端 `POEM_INGEST_TOKEN`；token 只证明调用方能连上本服务，学员身份看 `userId`。
-
-管理台人工上传不走这套 hh 校验。
+远程 MCP **不用 token**，只靠每个工具里的 `userId` 开门。管理台人工上传不走这套 hh 校验。
 
 ## 连接
 
@@ -27,15 +25,7 @@
 | 同源 multipart / JSON | `POST https://poem.aibeaver.cn/api/ingest` |
 | 本机 stdio | `pnpm mcp:ingest` |
 
-远程请求必须带：
-
-```
-Authorization: Bearer <POEM_INGEST_TOKEN>
-```
-
-token 只写在 ECS `.env.production` 的 `POEM_INGEST_TOKEN`，不要进 git。未配置时接口返回 503。
-
-本机 Cursor 示例（stdio，不走 token）：
+本机 Cursor 示例（stdio）：
 
 ```json
 {
@@ -55,10 +45,7 @@ token 只写在 ECS `.env.production` 的 `POEM_INGEST_TOKEN`，不要进 git。
 {
   "mcpServers": {
     "poem-dlc-ingest": {
-      "url": "https://poem.aibeaver.cn/mcp",
-      "headers": {
-        "Authorization": "Bearer <POEM_INGEST_TOKEN>"
-      }
+      "url": "https://poem.aibeaver.cn/mcp"
     }
   }
 }
@@ -133,7 +120,6 @@ poem-rpg/ingest-audit/hh_11016863_20260911T102648Z/
 
 ```bash
 curl -sS -X POST https://poem.aibeaver.cn/api/ingest \
-  -H "Authorization: Bearer $POEM_INGEST_TOKEN" \
   -F userId=hh_11016863 \
   -F poetId=sushi \
   -F workTitle='水调歌头・明月几时有' \

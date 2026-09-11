@@ -2,31 +2,11 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import JSZip from "jszip";
-import { ingestTokenMatches } from "../src/ingest/auth";
 import { hasBlocking } from "../src/ingest/issues";
 import { writeCodexWorkspace } from "../src/ingest/codexReview";
 import { disposeMachineReview, machineReviewZip } from "../src/ingest/machineReview";
 import { reviewAndIngestDlc } from "../src/ingest/reviewIngest";
 import { SEED_ROSTER } from "../src/dlc/roster";
-
-describe("ingest auth", () => {
-  const previous = process.env.POEM_INGEST_TOKEN;
-
-  afterEach(() => {
-    if (previous === undefined) {
-      delete process.env.POEM_INGEST_TOKEN;
-    } else {
-      process.env.POEM_INGEST_TOKEN = previous;
-    }
-  });
-
-  it("accepts the configured bearer token", () => {
-    process.env.POEM_INGEST_TOKEN = "secret-token";
-    expect(ingestTokenMatches("Bearer secret-token")).toBe(true);
-    expect(ingestTokenMatches("Bearer other")).toBe(false);
-    expect(ingestTokenMatches(null)).toBe(false);
-  });
-});
 
 describe("machine review", () => {
   it("rejects an empty zip with structured issues", async () => {

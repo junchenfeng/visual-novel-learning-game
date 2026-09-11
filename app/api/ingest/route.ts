@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MAX_ZIP_BYTES } from "../../../src/dlc/uploadPack";
-import { getIngestToken, ingestTokenHint, ingestTokenMatches } from "../../../src/ingest/auth";
 import { INGEST_USER_ID_HINT } from "../../../src/ingest/l2Students";
 import { isIngestUserIdReject } from "../../../src/ingest/userId";
 import { ingestDlcTool } from "../../../src/mcp/tools";
@@ -11,13 +10,6 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 export async function POST(request: NextRequest) {
-  if (!getIngestToken()) {
-    return NextResponse.json({ error: "未配置 POEM_INGEST_TOKEN" }, { status: 503 });
-  }
-  if (!ingestTokenMatches(request.headers.get("authorization"))) {
-    return NextResponse.json({ error: ingestTokenHint() }, { status: 401 });
-  }
-
   const contentType = request.headers.get("content-type") ?? "";
   const origin = requestOrigin(request.headers);
   let userIdRaw = "";
