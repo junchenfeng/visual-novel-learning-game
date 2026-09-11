@@ -1,9 +1,9 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import JSZip from "jszip";
 import { hasBlocking } from "../src/ingest/issues";
-import { writeCodexWorkspace } from "../src/ingest/codexReview";
+import { ingestCodexWorkspace, writeCodexWorkspace } from "../src/ingest/codexReview";
 import { disposeMachineReview, machineReviewZip } from "../src/ingest/machineReview";
 import { reviewAndIngestDlc } from "../src/ingest/reviewIngest";
 import { SEED_ROSTER } from "../src/dlc/roster";
@@ -43,6 +43,24 @@ describe("codex workspace", () => {
     expect(readFileSync(path.join(workspace, "SPEC.md"), "utf8")).toMatch(/DLC 数据结构/);
     expect(readFileSync(path.join(workspace, "TASK.md"), "utf8")).toMatch(/review.json/);
     rmSync(workspace, { recursive: true, force: true });
+  });
+
+  it("keeps the job directory inside the unpack folder", () => {
+    const unpack = mkdtempSync(path.join(tmpdir(), "poem-dlc-ingest-"));
+    expect(ingestCodexWorkspace(unpack)).toBe(path.join(unpack, "codex-job"));
+    expect(path.resolve(ingestCodexWorkspace(unpack))).not.toBe(path.resolve(path.join(tmpdir(), "codex-job")));
+    rmSync(unpack, { recursive: true, force: true });
+  });
+
+  it("copies pack files without nesting the job directory", () => {
+    const unpack = mkdtempSync(path.join(tmpdir(), "poem-dlc-ingest-"));
+    writeFileSync(path.join(unpack, "manifest.yaml"), "id: demo\n");
+    const workspace = ingestCodexWorkspace(unpack);
+    mkdirSync(workspace, { recursive: true });
+    writeCodexWorkspace({ workspace, packRoot: unpack, machineIssues: [] });
+    expect(readFileSync(path.join(workspace, "pack", "manifest.yaml"), "utf8")).toMatch(/demo/);
+    expect(existsSync(path.join(workspace, "pack", "codex-job"))).toBe(false);
+    rmSync(unpack, { recursive: true, force: true });
   });
 });
 

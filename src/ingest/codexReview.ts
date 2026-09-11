@@ -1,4 +1,4 @@
-import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import type { ReviewIssue } from "./issues";
@@ -89,6 +89,20 @@ function asIssues(value: unknown): ReviewIssue[] {
   return result;
 }
 
+export function ingestCodexWorkspace(tempRoot: string): string {
+  return path.join(tempRoot, "codex-job");
+}
+
+function copyPackIntoWorkspace(packRoot: string, dest: string): void {
+  mkdirSync(dest, { recursive: true });
+  for (const name of readdirSync(packRoot)) {
+    if (name === "codex-job") {
+      continue;
+    }
+    cpSync(path.join(packRoot, name), path.join(dest, name), { recursive: true });
+  }
+}
+
 export function writeCodexWorkspace(options: {
   workspace: string;
   packRoot?: string;
@@ -102,7 +116,7 @@ export function writeCodexWorkspace(options: {
     `${JSON.stringify(options.machineIssues, null, 2)}\n`,
   );
   if (options.packRoot && existsSync(options.packRoot)) {
-    cpSync(options.packRoot, path.join(options.workspace, "pack"), { recursive: true });
+    copyPackIntoWorkspace(options.packRoot, path.join(options.workspace, "pack"));
   }
 }
 
@@ -114,7 +128,7 @@ export async function runCodexSpecReview(options: {
   if (!options.packRoot || !existsSync(options.packRoot)) {
     return { issues: [] };
   }
-  const workspace = options.workspace ?? path.join(options.packRoot, "..", "codex-job");
+  const workspace = options.workspace ?? ingestCodexWorkspace(options.packRoot);
   writeCodexWorkspace({
     workspace,
     packRoot: options.packRoot,
@@ -135,8 +149,11 @@ export async function runCodexSpecReview(options: {
 
   let stdout = "";
   try {
-    stdout = (await spawnCodex(workspace)).stdout;
+    const spawned = await spawnCodex(workspace);
+    stdout = spawned.stdout;
   } catch (error) {
+    const spawned = error as { stdout?: string; stderr?: string };
+    stdout = spawned.stdout ?? stdout;
     return {
       issues: [
         {
@@ -229,16 +246,34 @@ function spawnCodex(workspace: string): Promise<{ stdout: string; stderr: string
         "workspace-write",
         "-o",
         path.join(workspace, "last-message.txt"),
-        readFileSync(path.join(workspace, "TASK.md"), "utf8"),
+        "-",
       ],
       {
         cwd: repoRoot(),
         env: process.env,
-        stdio: ["ignore", "pipe", "pipe"],
+        stdio: ["pipe", "pipe", "pipe"],
       },
     );
     let stdout = "";
     let stderr = "";
+    let settled = false;
+    const fail = (message: string) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      const error = new Error(message) as Error & { stdout?: string; stderr?: string };
+      error.stdout = stdout;
+      error.stderr = stderr;
+      reject(error);
+    };
+    const succeed = (value: { stdout: string; stderr: string }) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      resolve(value);
+    };
     child.stdout.on("data", (chunk) => {
       stdout += String(chunk);
       if (stdout.length > STDOUT_CAP) {
@@ -248,21 +283,25 @@ function spawnCodex(workspace: string): Promise<{ stdout: string; stderr: string
     child.stderr.on("data", (chunk) => {
       stderr += String(chunk);
     });
+    child.stdin.on("error", () => {
+      // 进程可能已退出，忽略 EPIPE
+    });
+    child.stdin.end(readFileSync(path.join(workspace, "TASK.md"), "utf8"));
     const timer = setTimeout(() => {
       child.kill("SIGTERM");
-      reject(new Error(`codex exec 超时 ${CODEX_TIMEOUT_MS}ms`));
+      fail(`codex exec 超时 ${CODEX_TIMEOUT_MS}ms: ${stderr.slice(-400)}`);
     }, CODEX_TIMEOUT_MS);
     child.on("error", (error) => {
       clearTimeout(timer);
-      reject(error);
+      fail(error.message);
     });
     child.on("close", (code) => {
       clearTimeout(timer);
       if (code !== 0) {
-        reject(new Error(`codex exec 退出码 ${code}: ${stderr.slice(-400)}`));
+        fail(`codex exec 退出码 ${code}: ${stderr.slice(-400)}`);
         return;
       }
-      resolve({ stdout, stderr });
+      succeed({ stdout, stderr });
     });
   });
 }

@@ -3,6 +3,7 @@ import type { UploadFormInput } from "../dlc/uploadPack";
 import { publishUploadedDlc } from "../dlc/publishUpload";
 import { upsertWork } from "../roster/store";
 import {
+  ingestCodexWorkspace,
   runCodexSpecReview,
   type CodexTranscript,
   type SpecReviewOutcome,
@@ -13,6 +14,7 @@ import { disposeMachineReview, machineReviewZip } from "./machineReview";
 export type SpecReviewer = (options: {
   packRoot?: string;
   machineIssues: ReviewIssue[];
+  workspace?: string;
 }) => Promise<ReviewIssue[] | SpecReviewOutcome>;
 
 function normalizeSpecReview(output: ReviewIssue[] | SpecReviewOutcome): SpecReviewOutcome {
@@ -46,6 +48,7 @@ export async function reviewAndIngestDlc(options: {
         await reviewer({
           packRoot: machine.packRoot,
           machineIssues: machine.issues,
+          workspace: ingestCodexWorkspace(machine.tempRoot),
         }),
       );
       specIssues = spec.issues;
