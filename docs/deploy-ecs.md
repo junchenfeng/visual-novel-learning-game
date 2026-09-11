@@ -17,6 +17,7 @@ AI_GALLERY_CONFIG=/root/ai-gallery/config.json
 SAVE_SESSIONS=1
 CDN_BASE_URL=https://cdn.aibeaver.cn
 POEM_ADMIN_PASSWORD=（只写在服务器上，不要进 git）
+POEM_INGEST_TOKEN=（MCP 与 /api/ingest 用，不要进 git）
 ```
 
 `AI_API_KEY` 可省略：生产会从 `config.json` 的 `llm` 里取 DeepSeek 密钥。若要覆盖，再写 `AI_API_KEY` / `AI_BASE_URL` / `AI_MODEL`。
@@ -102,4 +103,14 @@ pm2 restart poem-rpg
 
 用户数据写在 OSS：`poem-rpg/{用户名}/...` 与 `poem-rpg/likes/{dlcId}/{用户名}.json`，与作业文件隔离。本机无 OSS 时落到仓库 `assets/poem-rpg/`（已 gitignore）。
 
-静态资源前缀：`poem-rpg/static/`（CDN `https://cdn.aibeaver.cn/poem-rpg/static/...`）。学生上传的 DLC 索引在 `poem-rpg/uploads/`。仓库课包 `hailao-shuidiao`（海狸老师）不进线上目录。
+静态资源前缀：`poem-rpg/static/`（CDN `https://cdn.aibeaver.cn/poem-rpg/static/...`）。学生上传的 DLC 索引在 `poem-rpg/uploads/`。诗人名册在 `poem-rpg/roster.json`（首次从仓库 seed）。仓库课包 `hailao-shuidiao`（海狸老师）不进线上目录。
+
+对方 agent 先读公开说明，再连 MCP：
+
+- 操作说明（用户只给 userId + DLC 目录，zip 由 agent 打）：https://poem.aibeaver.cn/mcp-how-to
+- YAML 规范：https://poem.aibeaver.cn/dlc-spec
+- MCP：`https://poem.aibeaver.cn/mcp`（Bearer `POEM_INGEST_TOKEN`）
+- 服务端细节见 [mcp-ingest.md](mcp-ingest.md)
+
+ECS 上 `codex` 需要在 `poem-rpg` 进程 PATH 里可执行（与 grading-agent 同一份 CLI）。
+

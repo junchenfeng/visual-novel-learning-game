@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { normalizeUsername, usernameHint } from "../../../../src/auth/username";
-import { POET_ROSTER } from "../../../../src/dlc/roster";
 import { MAX_ZIP_BYTES, publishUploadedDlc } from "../../../../src/dlc/publishUpload";
+import { loadRoster } from "../../../../src/roster/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,7 +18,8 @@ export async function POST(request: NextRequest) {
   }
   const poetId = String(form.get("poetId") ?? "").trim();
   const workTitle = String(form.get("workTitle") ?? "").trim();
-  if (!POET_ROSTER.some((poet) => poet.poetId === poetId)) {
+  const roster = await loadRoster();
+  if (!roster.some((poet) => poet.poetId === poetId)) {
     return NextResponse.json({ error: "请选择名册中的诗人" }, { status: 400 });
   }
   if (!workTitle) {

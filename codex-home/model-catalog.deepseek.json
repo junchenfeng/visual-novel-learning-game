@@ -1,0 +1,33 @@
+{
+  "models": [
+    {
+      "slug": "deepseek-flash",
+      "display_name": "DeepSeek V4.1 Flash",
+      "description": "poem-dlc-ingest spec review. API id for DeepSeek-V4.1-Flash.",
+      "name": "deepseek-flash",
+      "model": "deepseek-flash",
+      "provider": "deepseek",
+      "context_window": 1000000,
+      "max_output_tokens": 384000,
+      "truncation_policy": {
+        "mode": "tokens",
+        "limit": 900000
+      },
+      "shell_type": "shell_command",
+      "visibility": "list",
+      "supported_in_api": true,
+      "priority": 10,
+      "base_instructions": "You are the poem-dlc-ingest reviewer. Follow TASK.md and SPEC.md only. Write review.json exactly. Do not invent gameplay rules.",
+      "supports_tools": true,
+      "supports_parallel_tool_calls": false,
+      "experimental_supported_tools": [],
+      "supports_reasoning_summaries": true,
+      "support_verbosity": false,
+      "supported_reasoning_levels": [
+        { "effort": "low", "description": "Low reasoning effort" },
+        { "effort": "medium", "description": "Medium reasoning effort" },
+        { "effort": "high", "description": "High reasoning effort" }
+      ]
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { findCatalogPoet } from "../../../src/dlc/catalog";
 import { loadCompiledCatalog } from "../../../src/dlc/loadCompiled";
+import { loadRoster } from "../../../src/roster/store";
 import { CurioShelf } from "../../../src/components/CurioShelf";
 import styles from "../../../src/components/curio-shelf.module.css";
 
@@ -13,7 +14,8 @@ export const dynamic = "force-dynamic";
 
 export default async function PoetShelfPage({ params }: PoetPageProps) {
   const { poetId } = await params;
-  const shelf = findCatalogPoet(await loadCompiledCatalog(), poetId);
+  const [catalog, roster] = await Promise.all([loadCompiledCatalog(), loadRoster()]);
+  const shelf = findCatalogPoet(catalog, poetId, roster);
   if (!shelf) {
     notFound();
   }

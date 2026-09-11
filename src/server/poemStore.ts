@@ -175,3 +175,7 @@ export function uploadsIndexKey() {
 export function uploadedCompiledKey(dlcId: string) {
   return `${OSS_PREFIX}/uploads/${dlcId}/compiled.json`;
 }
+
+export function rosterKey() {
+  return `${OSS_PREFIX}/roster.json`;
+}

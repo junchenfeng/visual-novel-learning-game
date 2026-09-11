@@ -5,6 +5,7 @@ import { isAdminUsername } from "../src/auth/admin";
 import { USERNAME_COOKIE, decodeCookieUsername, normalizeUsername } from "../src/auth/username";
 import { buildCatalogPoets } from "../src/dlc/catalog";
 import { loadCompiledCatalog } from "../src/dlc/loadCompiled";
+import { loadRoster } from "../src/roster/store";
 import { UserBar } from "./UserBar";
 import { UsernameGate } from "./UsernameGate";
 import styles from "./page.module.css";
@@ -26,7 +27,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     redirect("/admin");
   }
 
-  const poets = buildCatalogPoets(await loadCompiledCatalog());
+  const catalog = await loadCompiledCatalog();
+  const roster = await loadRoster();
+  const poets = buildCatalogPoets(catalog, roster);
 
   return (
     <main className={styles.catalog}>

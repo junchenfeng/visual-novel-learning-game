@@ -5,7 +5,7 @@ import { convertImageToWebp, isRasterImagePath, replaceExtWithWebp } from "../as
 import { findAuthorVersionMatch, titlesMatch } from "./catalogShared";
 import type { CompileResult } from "./compiler";
 import { parseDlcDirectory } from "./parser";
-import { POET_ROSTER } from "./roster";
+import { POET_ROSTER, type RosterPoet } from "./roster";
 import { DlcValidationError, type CompiledDlc, type Manifest } from "./schema";
 import { UNPUBLISHED_DLC_IDS } from "./unpublished";
 import type { UploadedPack } from "./uploadIndex";
@@ -172,12 +172,15 @@ export function validateUploadManifest(options: {
   reservedGitIds: Set<string>;
   existing?: UploadedPack;
   overwriteByAuthorVersion?: boolean;
+  roster?: RosterPoet[];
+  allowUnknownWork?: boolean;
 }): string[] {
   const issues: string[] = [];
   const { form, manifest, reservedGitIds, existing, overwriteByAuthorVersion } = options;
-  const poet = POET_ROSTER.find((item) => item.poetId === form.poetId);
+  const roster = options.roster ?? POET_ROSTER;
+  const poet = roster.find((item) => item.poetId === form.poetId);
   if (!poet) {
-    issues.push(`诗人不在名册中：${form.poetId}`);
+    issues.push(`诗人不在名册中：${form.poetId}。请先调用 upsert_poet 并上传正方形头像`);
   }
   if (manifest.poetId !== form.poetId) {
     issues.push(`manifest.poetId（${manifest.poetId}）与表单选择的诗人（${form.poetId}）不一致`);
@@ -188,7 +191,11 @@ export function validateUploadManifest(options: {
   if (!titlesMatch(manifest.workTitle, form.workTitle)) {
     issues.push(`manifest.workTitle（${manifest.workTitle}）与表单篇目（${form.workTitle}）对不上`);
   }
-  if (poet && !poet.works.some((work) => titlesMatch(work.title, manifest.workTitle))) {
+  if (
+    poet &&
+    !options.allowUnknownWork &&
+    !poet.works.some((work) => titlesMatch(work.title, manifest.workTitle))
+  ) {
     issues.push(`篇目「${manifest.workTitle}」不在诗人「${poet.poet}」的名册中`);
   }
   if (!overwriteByAuthorVersion && (reservedGitIds.has(manifest.id) || UNPUBLISHED_DLC_IDS.has(manifest.id))) {

@@ -25,6 +25,7 @@ import {
   saveUploadIndex,
   type UploadedPack,
 } from "./uploadIndex";
+import { loadRoster } from "../roster/store";
 import { DlcValidationError } from "./schema";
 
 export { MAX_ZIP_BYTES };
@@ -55,12 +56,14 @@ export async function publishUploadedDlc(options: {
       reservedGitIds: reserved,
     });
     const existing = findUploadedPack(index, targetId);
+    const roster = await loadRoster();
     const preIssues = validateUploadManifest({
       form: options.form,
       manifest: firstPass.manifest,
       reservedGitIds: reserved,
       existing,
       overwriteByAuthorVersion,
+      roster,
     });
     if (preIssues.length > 0) {
       return { issues: preIssues };
