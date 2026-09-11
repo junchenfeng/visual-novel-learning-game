@@ -6,14 +6,14 @@ describe("behavior events", () => {
       sessionId: "session-1",
       dlcId: "shuidiao-getou",
       dlcVersion: "1.0.0",
-      type: "story.choice_selected",
-      payload: { choiceId: "write_letter" },
+      type: "story.explore_tap",
+      payload: { objectId: "moon" },
     });
     const log = behaviorLogSchema.parse({
       schemaVersion: 1,
       events: [event],
     });
-    expect(log.events[0]?.type).toBe("story.choice_selected");
+    expect(log.events[0]?.type).toBe("story.explore_tap");
     expect(JSON.parse(JSON.stringify(log)).events).toHaveLength(1);
   });
 });

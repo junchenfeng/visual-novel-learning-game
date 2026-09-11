@@ -1,6 +1,6 @@
 import { parseDlcDirectory } from "../src/dlc/parser";
 import { isChoiceQuestion } from "../src/dlc/quizHelpers";
-import { DlcValidationError, easterEggSchema } from "../src/dlc/schema";
+import { DlcValidationError, easterEggSchema, exploreNodeSchema } from "../src/dlc/schema";
 import { validateStoryGraph } from "../src/dlc/graphValidator";
 import type { StoryNode } from "../src/dlc/schema";
 
@@ -46,7 +46,44 @@ describe("DLC schema and story graph", () => {
     const dlc = parseDlcDirectory("dlc/sushi/shuidiao-getou/hailao-shuidiao");
     expect(dlc.manifest.easterEgg).toBeUndefined();
     expect(easterEggSchema.safeParse({ kind: "placeholder" }).success).toBe(true);
+    expect(easterEggSchema.safeParse({ kind: "fill-in" }).success).toBe(true);
     expect(easterEggSchema.safeParse({ kind: "not-a-game" }).success).toBe(false);
+  });
+
+  it("accepts explore objects with mixed valid flags", () => {
+    const parsed = exploreNodeSchema.safeParse({
+      id: "look",
+      type: "explore",
+      chapter: 1,
+      chapterTitle: "测",
+      text: "找找看",
+      nextNodeId: "next",
+      objects: [
+        { id: "moon", name: "月", memory: "圆", valid: true },
+        { id: "wine", name: "酒", memory: "醉", valid: false },
+        { id: "letter", name: "信", memory: "家书", valid: true },
+      ],
+    });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.objects.filter((item) => item.valid).map((item) => item.id)).toEqual([
+        "moon",
+        "letter",
+      ]);
+    }
+  });
+
+  it("rejects explore nodes that have no valid clues", () => {
+    const result = exploreNodeSchema.safeParse({
+      id: "look",
+      type: "explore",
+      chapter: 1,
+      chapterTitle: "测",
+      text: "找找看",
+      nextNodeId: "next",
+      objects: [{ id: "decoy", name: "假", memory: "不是", valid: false }],
+    });
+    expect(result.success).toBe(false);
   });
 
   it("rejects a choice that does not converge", () => {
@@ -113,6 +150,83 @@ describe("DLC schema and story graph", () => {
       }),
     ];
     expect(validateStoryGraph("start", nodes).ok).toBe(true);
+  });
+
+  it("rejects explore as the start node", () => {
+    const result = validateStoryGraph("look", [
+      node({
+        id: "look",
+        type: "explore",
+        chapter: 1,
+        chapterTitle: "测",
+        text: "找找看",
+        nextNodeId: "end",
+        objects: [{ id: "moon", name: "月", memory: "圆", valid: true }],
+      }),
+      node({
+        id: "end",
+        type: "narration",
+        chapter: 1,
+        chapterTitle: "测",
+        text: "结束",
+      }),
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.errors.some((item) => item.includes("起始节点不能是 explore"))).toBe(true);
+  });
+
+  it("allows narration to enter a true ending", () => {
+    const result = validateStoryGraph("start", [
+      node({
+        id: "start",
+        type: "narration",
+        chapter: 1,
+        chapterTitle: "测",
+        text: "旁白",
+        nextNodeId: "end",
+      }),
+      node({
+        id: "end",
+        type: "gameOver",
+        chapter: 1,
+        chapterTitle: "测",
+        text: "终章",
+        endingId: "ending_home",
+      }),
+    ]);
+    expect(result.ok).toBe(true);
+  });
+
+  it("rejects a diverging choice that never reaches a true ending", () => {
+    const result = validateStoryGraph("start", [
+      node({
+        id: "start",
+        type: "choice",
+        chapter: 1,
+        chapterTitle: "测",
+        text: "选",
+        choices: [
+          { id: "a", label: "A", nextNodeId: "dead" },
+          { id: "b", label: "B", nextNodeId: "also_dead" },
+        ],
+      }),
+      node({
+        id: "dead",
+        type: "narration",
+        chapter: 1,
+        chapterTitle: "测",
+        text: "走丢了",
+      }),
+      node({
+        id: "also_dead",
+        type: "narration",
+        chapter: 1,
+        chapterTitle: "测",
+        text: "也走丢了",
+      }),
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.errors.some((item) => item.includes("无法到达任何结局节点"))).toBe(true);
   });
 
   it("rejects narration that jumps to gameOver", () => {

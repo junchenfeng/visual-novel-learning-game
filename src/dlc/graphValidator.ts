@@ -9,6 +9,9 @@ function outgoingIds(node: StoryNode): string[] {
   if (node.type === "narration" || node.type === "fact") {
     return node.nextNodeId ? [node.nextNodeId] : [];
   }
+  if (node.type === "explore") {
+    return [node.nextNodeId];
+  }
   if (node.type === "gameOver") {
     return [];
   }
@@ -37,6 +40,25 @@ function reaches(
   );
 }
 
+function reachesEnding(
+  nodes: Map<string, StoryNode>,
+  fromId: string,
+  visiting: Set<string>,
+): boolean {
+  const node = nodes.get(fromId);
+  if (!node) {
+    return false;
+  }
+  if (node.type === "gameOver") {
+    return Boolean(node.endingId);
+  }
+  if (visiting.has(fromId)) {
+    return false;
+  }
+  visiting.add(fromId);
+  return outgoingIds(node).some((nextId) => reachesEnding(nodes, nextId, visiting));
+}
+
 export function validateStoryGraph(
   startNodeId: string,
   nodes: StoryNode[],
@@ -57,6 +79,8 @@ export function validateStoryGraph(
     errors.push(`起始节点不存在：${startNodeId}`);
   } else if (byId.get(startNodeId)?.type === "gameOver") {
     errors.push("起始节点不能是 gameOver");
+  } else if (byId.get(startNodeId)?.type === "explore") {
+    errors.push("起始节点不能是 explore");
   }
 
   for (const node of nodes) {
@@ -67,13 +91,13 @@ export function validateStoryGraph(
     }
     if ((node.type === "narration" || node.type === "fact") && node.nextNodeId) {
       const next = byId.get(node.nextNodeId);
-      if (next?.type === "gameOver") {
+      if (next?.type === "gameOver" && !next.endingId) {
         errors.push(
           `${node.type === "fact" ? "史实" : "旁白"}节点 ${node.id} 不能直接进入结局，gameOver 只能由选项进入`,
         );
       }
     }
-    if (node.type === "choice") {
+    if (node.type === "choice" && node.convergesTo) {
       if (!byId.has(node.convergesTo)) {
         errors.push(`选择节点 ${node.id} 的 convergesTo 不存在：${node.convergesTo}`);
       }
@@ -95,6 +119,26 @@ export function validateStoryGraph(
             `选择节点 ${node.id} 的选项 ${choice.id} 无法汇流到 ${node.convergesTo}`,
           );
         }
+      }
+    }
+    if (node.type === "choice" && !node.convergesTo) {
+      const choiceIds = new Set<string>();
+      for (const choice of node.choices) {
+        if (choiceIds.has(choice.id)) {
+          errors.push(`选择节点 ${node.id} 有重复选项 id：${choice.id}`);
+        }
+        choiceIds.add(choice.id);
+        if (!reachesEnding(byId, choice.nextNodeId, new Set())) {
+          errors.push(
+            `选择节点 ${node.id} 未设置 convergesTo 且选项 ${choice.id} 无法到达任何结局节点`,
+          );
+        }
+      }
+    }
+    if (node.type === "explore") {
+      const next = byId.get(node.nextNodeId);
+      if (next?.type === "gameOver" && !next.endingId) {
+        errors.push(`探索节点 ${node.id} 不能直接进入 gameOver`);
       }
     }
   }

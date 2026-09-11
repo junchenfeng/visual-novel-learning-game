@@ -9,8 +9,11 @@ export const behaviorEventTypeSchema = z.enum([
   "phase.entered",
   "story.node_entered",
   "story.choice_selected",
+  "story.explore_tap",
+  "story.explore_done",
   "story.game_over",
   "story.replayed",
+  "story.ending_continue",
   "poem.line_revealed", // 旧日志可能还有；新对局不再打点，存档会丢掉
   "quiz.answer_submitted",
   "teacher.feedback_received",

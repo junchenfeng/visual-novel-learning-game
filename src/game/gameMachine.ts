@@ -6,7 +6,7 @@ import {
   optionFeedback,
   optionLabel,
 } from "../dlc/quizHelpers";
-import type { CompiledDlc, StoryNode } from "../dlc/schema";
+import { hasFoundAllValidClues, type CompiledDlc, type StoryNode } from "../dlc/schema";
 
 export type PendingPhase = "story" | "poem" | "easterEgg" | "lessonTransition" | "summary";
 
@@ -34,6 +34,8 @@ export type GameContext = {
   finalRemark: string | null;
   summaryError: string | null;
   answers: AnswerRecord[];
+  exploredObjectIds: string[];
+  exploreHiddenUnlocked: boolean;
 };
 
 export type GameEvent =
@@ -43,6 +45,9 @@ export type GameEvent =
   | { type: "EASTER_EGG_DONE" }
   | { type: "CHOOSE"; choiceId: string }
   | { type: "REPLAY_CHOICE" }
+  | { type: "EXPLORE_TAP"; objectId: string }
+  | { type: "EXPLORE_CONTINUE" }
+  | { type: "ENDING_CONTINUE" }
   | { type: "TRANSITION_DONE" }
   | { type: "ENTER_LESSON" }
   | { type: "NEXT_LINE" }
@@ -117,6 +122,19 @@ export const gameMachine = setup({
     hasEasterEgg: ({ context }) => Boolean(context.dlc.manifest.easterEgg),
     isChoice: ({ context }) => getCurrentNode(context).type === "choice",
     isGameOver: ({ context }) => getCurrentNode(context).type === "gameOver",
+    isExplore: ({ context }) => getCurrentNode(context).type === "explore",
+    canFinishExplore: ({ context }) => {
+      const node = getCurrentNode(context);
+      return node.type === "explore" && hasFoundAllValidClues(node, context.exploredObjectIds);
+    },
+    isEndingNode: ({ context }) => {
+      const node = getCurrentNode(context);
+      return node.type === "gameOver" && Boolean(node.endingId);
+    },
+    isFailGameOver: ({ context }) => {
+      const node = getCurrentNode(context);
+      return node.type === "gameOver" && !node.endingId;
+    },
     isOpenQuestion: ({ context }) => isOpenQuestion(currentQuestion(context)),
     isChoiceQuestion: ({ context }) => isChoiceQuestion(currentQuestion(context)),
     hasMoreLines: ({ context }) =>
@@ -185,6 +203,43 @@ export const gameMachine = setup({
         pendingPhase: "story" as PendingPhase,
       };
     }),
+    tapExploreObject: assign(({ context, event }) => {
+      if (event.type !== "EXPLORE_TAP") {
+        return {};
+      }
+      const node = getCurrentNode(context);
+      if (node.type !== "explore") {
+        return {};
+      }
+      if (context.exploredObjectIds.includes(event.objectId)) {
+        return {};
+      }
+      const obj = node.objects.find((item) => item.id === event.objectId);
+      if (!obj) {
+        return {};
+      }
+      const nextTapped = [...context.exploredObjectIds, event.objectId];
+      return {
+        exploredObjectIds: nextTapped,
+        exploreHiddenUnlocked: hasFoundAllValidClues(node, nextTapped),
+      };
+    }),
+    queueExploreNext: assign(({ context }) => {
+      const node = getCurrentNode(context);
+      if (node.type !== "explore") {
+        return {};
+      }
+      return {
+        pendingNodeId: node.nextNodeId,
+        pendingPhase: "story" as PendingPhase,
+        exploredObjectIds: [],
+        exploreHiddenUnlocked: false,
+      };
+    }),
+    queueEndingContinue: assign(({ context }) => ({
+      pendingNodeId: null,
+      pendingPhase: (context.dlc.manifest.easterEgg ? "easterEgg" : "poem") as PendingPhase,
+    })),
     applyPendingNode: assign(({ context }) => ({
       currentNodeId: context.pendingNodeId ?? context.currentNodeId,
       pendingNodeId: null,
@@ -292,6 +347,8 @@ export const gameMachine = setup({
     finalRemark: null,
     summaryError: null,
     answers: [],
+    exploredObjectIds: [],
+    exploreHiddenUnlocked: false,
   }),
   states: {
     intro: {
@@ -317,9 +374,23 @@ export const gameMachine = setup({
           actions: "queueChoice",
         },
         REPLAY_CHOICE: {
-          guard: "isGameOver",
+          guard: "isFailGameOver",
           target: "pageTransition",
           actions: "queueReplayChoice",
+        },
+        EXPLORE_TAP: {
+          guard: "isExplore",
+          actions: "tapExploreObject",
+        },
+        EXPLORE_CONTINUE: {
+          guard: "canFinishExplore",
+          target: "pageTransition",
+          actions: "queueExploreNext",
+        },
+        ENDING_CONTINUE: {
+          guard: "isEndingNode",
+          target: "pageTransition",
+          actions: "queueEndingContinue",
         },
       },
     },
