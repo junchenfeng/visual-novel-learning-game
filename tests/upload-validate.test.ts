@@ -3,12 +3,14 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import JSZip from "jszip";
 import sharp from "sharp";
-import type { Manifest } from "../src/dlc/schema";
+import type { CompiledDlc, Manifest } from "../src/dlc/schema";
 import {
   convertPackRastersToWebp,
   extractZipBuffer,
   findPackRoot,
   resolveSafeZipTarget,
+  resolveUploadTarget,
+  retargetCompiledDlc,
   validateUploadManifest,
 } from "../src/dlc/uploadPack";
 
@@ -119,6 +121,39 @@ describe("upload manifest checks", () => {
       }),
     ).toEqual([]);
   });
+
+  it("overwrites the existing pack when author and version match", () => {
+    expect(
+      validateUploadManifest({
+        form,
+        manifest: baseManifest({ id: "sushi-shuidiao-11016863" }),
+        reservedGitIds: new Set(["sushi-shuidiao-hailao-v2"]),
+        existing: undefined,
+        overwriteByAuthorVersion: true,
+      }),
+    ).toEqual([]);
+
+    expect(
+      validateUploadManifest({
+        form: { ...form, userId: "11016863" },
+        manifest: baseManifest({ id: "student-shuidiao", author: "海棠海棠", version: "2.3.0" }),
+        reservedGitIds: new Set(["sushi-shuidiao-hailao-v2"]),
+        existing: {
+          userId: "other",
+          dlcId: "sushi-shuidiao-hailao-v2",
+          poetId: "sushi",
+          poet: "苏轼",
+          workTitle: "水调歌头",
+          title: "水调歌头",
+          author: "海棠海棠",
+          version: "2.3.0",
+          summary: "x",
+          uploadedAt: "2026-01-01T00:00:00.000Z",
+        },
+        overwriteByAuthorVersion: true,
+      }),
+    ).toEqual([]);
+  });
 });
 
 describe("pack raster conversion", () => {
@@ -136,5 +171,104 @@ describe("pack raster conversion", () => {
     expect(replacements.get("assets/bg.png")).toBe("assets/bg.webp");
     expect(readFileSync(path.join(root, "content-story.yaml"), "utf8")).toContain("assets/bg.webp");
     rmSync(root, { recursive: true, force: true });
+  });
+});
+
+describe("upload author+version overwrite", () => {
+  it("remaps a new id onto the git pack with the same author and version", () => {
+    expect(
+      resolveUploadTarget({
+        manifest: {
+          id: "sushi-shuidiao-11016863",
+          author: "海棠海棠",
+          version: "2.3.0",
+          poetId: "sushi",
+          workTitle: "水调歌头·明月几时有",
+        },
+        shipped: [
+          {
+            id: "sushi-shuidiao-hailao-v2",
+            version: "2.3.0",
+            title: "水调歌头",
+            author: "海棠海棠",
+            poet: "苏轼",
+            poetId: "sushi",
+            workTitle: "水调歌头",
+            summary: "git",
+          },
+        ],
+        uploads: [
+          {
+            userId: "11016863",
+            dlcId: "sushi-shuidiao-11016863",
+            poetId: "sushi",
+            poet: "苏轼",
+            workTitle: "水调歌头",
+            title: "水调歌头",
+            author: "海棠海棠",
+            version: "2.3.0",
+            summary: "upload",
+            uploadedAt: "2026-01-01T00:00:00.000Z",
+          },
+        ],
+        reservedGitIds: new Set(["sushi-shuidiao-hailao-v2"]),
+      }),
+    ).toEqual({
+      targetId: "sushi-shuidiao-hailao-v2",
+      overwriteByAuthorVersion: true,
+    });
+  });
+
+  it("keeps a new id when author or version differs", () => {
+    expect(
+      resolveUploadTarget({
+        manifest: {
+          id: "student-shuidiao",
+          author: "学生甲",
+          version: "1.0.0",
+          poetId: "sushi",
+          workTitle: "水调歌头",
+        },
+        shipped: [
+          {
+            id: "sushi-shuidiao-hailao-v2",
+            version: "2.3.0",
+            title: "水调歌头",
+            author: "海棠海棠",
+            poet: "苏轼",
+            poetId: "sushi",
+            workTitle: "水调歌头",
+            summary: "git",
+          },
+        ],
+        uploads: [],
+        reservedGitIds: new Set(["sushi-shuidiao-hailao-v2"]),
+      }),
+    ).toEqual({
+      targetId: "student-shuidiao",
+      overwriteByAuthorVersion: false,
+    });
+  });
+
+  it("rewrites compiled asset urls onto the target id", () => {
+    const compiled = {
+      publicBasePath: "/dlc/old-id",
+      manifest: {
+        id: "old-id",
+        characters: [
+          { id: "sushi", name: "苏轼", portraitUrl: "/dlc/old-id/assets/p.webp" },
+          { id: "teacher", name: "老师", portraitUrl: "/portraits/teacher-cutout.webp" },
+        ],
+      },
+      story: {
+        chapters: [{ chapter: 1, backgroundUrl: "/dlc/old-id/assets/bg.webp" }],
+      },
+    } as CompiledDlc;
+    const retargeted = retargetCompiledDlc(compiled, "git-id");
+    expect(retargeted.manifest.id).toBe("git-id");
+    expect(retargeted.publicBasePath).toBe("/dlc/git-id");
+    expect(retargeted.manifest.characters[0]?.portraitUrl).toBe("/dlc/git-id/assets/p.webp");
+    expect(retargeted.manifest.characters[1]?.portraitUrl).toBe("/portraits/teacher-cutout.webp");
+    expect(retargeted.story.chapters[0]?.backgroundUrl).toBe("/dlc/git-id/assets/bg.webp");
   });
 });

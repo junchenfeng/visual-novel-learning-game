@@ -2,7 +2,8 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, unlinkSync, w
 import path from "node:path";
 import JSZip from "jszip";
 import { convertImageToWebp, isRasterImagePath, replaceExtWithWebp } from "../assets/webp";
-import { titlesMatch } from "./catalogShared";
+import { findAuthorVersionMatch, titlesMatch } from "./catalogShared";
+import type { CompileResult } from "./compiler";
 import { parseDlcDirectory } from "./parser";
 import { POET_ROSTER } from "./roster";
 import { DlcValidationError, type CompiledDlc, type Manifest } from "./schema";
@@ -136,14 +137,44 @@ export function collectPackAssetFiles(rootDir: string): string[] {
   return walkFiles(assetsDir);
 }
 
+export function resolveUploadTarget(options: {
+  manifest: Pick<Manifest, "id" | "author" | "version" | "poetId" | "workTitle">;
+  shipped: CompileResult[];
+  uploads: UploadedPack[];
+  reservedGitIds: Set<string>;
+}): { targetId: string; overwriteByAuthorVersion: boolean } {
+  const candidates = [
+    ...options.shipped.map((item) => ({
+      id: item.id,
+      author: item.author,
+      version: item.version,
+      poetId: item.poetId,
+      workTitle: item.workTitle,
+    })),
+    ...options.uploads.map((item) => ({
+      id: item.dlcId,
+      author: item.author,
+      version: item.version,
+      poetId: item.poetId,
+      workTitle: item.workTitle,
+    })),
+  ];
+  const match = findAuthorVersionMatch(candidates, options.manifest, options.reservedGitIds);
+  if (!match) {
+    return { targetId: options.manifest.id, overwriteByAuthorVersion: false };
+  }
+  return { targetId: match.id, overwriteByAuthorVersion: true };
+}
+
 export function validateUploadManifest(options: {
   form: UploadFormInput;
   manifest: Manifest;
   reservedGitIds: Set<string>;
   existing?: UploadedPack;
+  overwriteByAuthorVersion?: boolean;
 }): string[] {
   const issues: string[] = [];
-  const { form, manifest, reservedGitIds, existing } = options;
+  const { form, manifest, reservedGitIds, existing, overwriteByAuthorVersion } = options;
   const poet = POET_ROSTER.find((item) => item.poetId === form.poetId);
   if (!poet) {
     issues.push(`诗人不在名册中：${form.poetId}`);
@@ -160,13 +191,48 @@ export function validateUploadManifest(options: {
   if (poet && !poet.works.some((work) => titlesMatch(work.title, manifest.workTitle))) {
     issues.push(`篇目「${manifest.workTitle}」不在诗人「${poet.poet}」的名册中`);
   }
-  if (reservedGitIds.has(manifest.id) || UNPUBLISHED_DLC_IDS.has(manifest.id)) {
+  if (!overwriteByAuthorVersion && (reservedGitIds.has(manifest.id) || UNPUBLISHED_DLC_IDS.has(manifest.id))) {
     issues.push(`DLC id「${manifest.id}」已被仓库课包占用，不能覆盖`);
   }
-  if (existing && existing.userId !== form.userId) {
+  if (!overwriteByAuthorVersion && existing && existing.userId !== form.userId) {
     issues.push(`DLC id「${manifest.id}」已由 ${existing.userId} 上传，不能被其他 user id 覆盖`);
   }
   return issues;
+}
+
+export function retargetCompiledDlc(compiled: CompiledDlc, targetId: string): CompiledDlc {
+  if (compiled.manifest.id === targetId) {
+    return compiled;
+  }
+  const from = `/dlc/${compiled.manifest.id}`;
+  const rewrite = (url?: string) => {
+    if (!url) {
+      return url;
+    }
+    if (url === from || url.startsWith(`${from}/`)) {
+      return `/dlc/${targetId}${url.slice(from.length)}`;
+    }
+    return url;
+  };
+  return {
+    ...compiled,
+    publicBasePath: rewrite(compiled.publicBasePath) ?? compiled.publicBasePath,
+    manifest: {
+      ...compiled.manifest,
+      id: targetId,
+      characters: compiled.manifest.characters.map((character) => ({
+        ...character,
+        portraitUrl: rewrite(character.portraitUrl),
+      })),
+    },
+    story: {
+      ...compiled.story,
+      chapters: compiled.story.chapters.map((chapter) => ({
+        ...chapter,
+        backgroundUrl: rewrite(chapter.backgroundUrl),
+      })),
+    },
+  };
 }
 
 export async function parseUploadedPack(rootDir: string): Promise<CompiledDlc> {

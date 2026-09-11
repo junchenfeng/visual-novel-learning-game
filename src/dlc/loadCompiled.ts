@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { publicAssetUrl } from "../assets/cdn";
+import { collapseSameAuthorVersion } from "./catalogShared";
 import { compiledDlcSchema, DlcValidationError, type CompiledDlc } from "./schema";
 import type { CompileResult } from "./compiler";
 import { loadUploadIndex, loadUploadedCompiled, publishedUploads, uploadedPackToCompileResult } from "./uploadIndex";
@@ -33,26 +34,28 @@ export async function loadCompiledCatalog(): Promise<CompileResult[]> {
     uploaded = [];
   }
   const extra = publishedUploads(uploaded, reserved).map(uploadedPackToCompileResult);
-  return [...published, ...extra];
+  return collapseSameAuthorVersion([...published, ...extra]);
 }
 
 export async function loadCompiledDlc(id: string): Promise<CompiledDlc | null> {
   if (!/^[a-z][a-z0-9_-]*$/i.test(id) || isUnpublishedDlc(id)) {
     return null;
   }
+  try {
+    const uploaded = await loadUploadedCompiled(id);
+    if (uploaded) {
+      return parseCompiledJson(id, uploaded);
+    }
+  } catch (error) {
+    if (error instanceof DlcValidationError) {
+      throw error;
+    }
+  }
   const filePath = path.join(generatedDir(), `${id}.json`);
   if (existsSync(filePath)) {
     return parseCompiledJson(id, JSON.parse(readFileSync(filePath, "utf8")));
   }
-  try {
-    const uploaded = await loadUploadedCompiled(id);
-    if (!uploaded) {
-      return null;
-    }
-    return parseCompiledJson(id, uploaded);
-  } catch {
-    return null;
-  }
+  return null;
 }
 
 function parseCompiledJson(id: string, raw: unknown): CompiledDlc {

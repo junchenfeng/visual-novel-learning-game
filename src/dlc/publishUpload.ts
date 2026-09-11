@@ -3,8 +3,9 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { STATIC_OSS_PREFIX } from "../assets/cdn";
 import { getPoemStore, uploadedCompiledKey } from "../server/poemStore";
-import { reservedGitDlcIds } from "./loadCompiled";
+import { loadShippedCatalog, reservedGitDlcIds } from "./loadCompiled";
 import { parseDlcDirectory } from "./parser";
+import { excludeUnpublished } from "./unpublished";
 import {
   collectPackAssetFiles,
   convertPackRastersToWebp,
@@ -12,6 +13,8 @@ import {
   findPackRoot,
   MAX_ZIP_BYTES,
   mimeForAsset,
+  resolveUploadTarget,
+  retargetCompiledDlc,
   syncPackAssetsToPublic,
   validateUploadManifest,
   type UploadFormInput,
@@ -45,38 +48,41 @@ export async function publishUploadedDlc(options: {
     const firstPass = parseDlcDirectory(packRoot);
     const reserved = reservedGitDlcIds();
     const index = await loadUploadIndex();
-    const existing = findUploadedPack(index, firstPass.manifest.id);
+    const { targetId, overwriteByAuthorVersion } = resolveUploadTarget({
+      manifest: firstPass.manifest,
+      shipped: excludeUnpublished(loadShippedCatalog()),
+      uploads: index,
+      reservedGitIds: reserved,
+    });
+    const existing = findUploadedPack(index, targetId);
     const preIssues = validateUploadManifest({
       form: options.form,
       manifest: firstPass.manifest,
       reservedGitIds: reserved,
       existing,
+      overwriteByAuthorVersion,
     });
     if (preIssues.length > 0) {
       return { issues: preIssues };
     }
 
     await convertPackRastersToWebp(packRoot);
-    const compiled = parseDlcDirectory(packRoot);
+    const compiled = retargetCompiledDlc(parseDlcDirectory(packRoot), targetId);
     const store = getPoemStore();
 
     for (const filePath of collectPackAssetFiles(packRoot)) {
       const relative = relativeFrom(packRoot, filePath);
-      await store.putObject(
-        `${STATIC_OSS_PREFIX}/dlc/${compiled.manifest.id}/${relative}`,
-        readFileSync(filePath),
-        {
-          mime: mimeForAsset(filePath),
-          cacheControl: "public, max-age=31536000, immutable",
-        },
-      );
+      await store.putObject(`${STATIC_OSS_PREFIX}/dlc/${targetId}/${relative}`, readFileSync(filePath), {
+        mime: mimeForAsset(filePath),
+        cacheControl: "public, max-age=31536000, immutable",
+      });
     }
-    await store.writeJson(uploadedCompiledKey(compiled.manifest.id), compiled);
-    syncPackAssetsToPublic(packRoot, compiled.manifest.id);
+    await store.writeJson(uploadedCompiledKey(targetId), compiled);
+    syncPackAssetsToPublic(packRoot, targetId);
 
     const pack: UploadedPack = {
       userId: options.form.userId,
-      dlcId: compiled.manifest.id,
+      dlcId: targetId,
       poetId: compiled.manifest.poetId,
       poet: compiled.manifest.poet,
       workTitle: compiled.manifest.workTitle,
@@ -86,9 +92,12 @@ export async function publishUploadedDlc(options: {
       summary: compiled.manifest.summary,
       uploadedAt: new Date().toISOString(),
     };
-    const nextIndex = existing
-      ? index.map((item) => (item.dlcId === pack.dlcId ? pack : item))
-      : [...index, pack];
+    const withoutSourceId = index.filter(
+      (item) => item.dlcId !== firstPass.manifest.id || item.dlcId === targetId,
+    );
+    const nextIndex = withoutSourceId.some((item) => item.dlcId === targetId)
+      ? withoutSourceId.map((item) => (item.dlcId === targetId ? pack : item))
+      : [...withoutSourceId, pack];
     await saveUploadIndex(nextIndex, store);
     return { pack };
   } catch (error) {

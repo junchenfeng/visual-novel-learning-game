@@ -24,6 +24,54 @@ export function titlesMatch(left: string, right: string) {
   return a === b || a.includes(b) || b.includes(a);
 }
 
+export type AuthorVersionIdentity = {
+  author: string;
+  version: string;
+  poetId: string;
+  workTitle: string;
+};
+
+export function sameAuthorVersion(left: AuthorVersionIdentity, right: AuthorVersionIdentity) {
+  return (
+    left.author.trim() === right.author.trim() &&
+    left.version.trim() === right.version.trim() &&
+    left.poetId === right.poetId &&
+    titlesMatch(left.workTitle, right.workTitle)
+  );
+}
+
+export function findAuthorVersionMatch<T extends AuthorVersionIdentity & { id: string }>(
+  packs: T[],
+  candidate: AuthorVersionIdentity,
+  preferIds?: Set<string>,
+): T | undefined {
+  const matches = packs.filter((pack) => sameAuthorVersion(pack, candidate));
+  if (matches.length === 0) {
+    return undefined;
+  }
+  if (preferIds && preferIds.size > 0) {
+    const preferred = matches.find((pack) => preferIds.has(pack.id));
+    if (preferred) {
+      return preferred;
+    }
+  }
+  return matches[0];
+}
+
+/** 同一篇目里作者+版本相同的课包只留一条；后出现的覆盖先出现的。 */
+export function collapseSameAuthorVersion<T extends AuthorVersionIdentity>(packs: T[]): T[] {
+  const groups: T[][] = [];
+  for (const pack of packs) {
+    const group = groups.find((items) => items[0] && sameAuthorVersion(items[0], pack));
+    if (group) {
+      group.push(pack);
+    } else {
+      groups.push([pack]);
+    }
+  }
+  return groups.map((group) => group[group.length - 1]!);
+}
+
 export function computeDisplayAuthors(packs: CatalogPack[]): CatalogPack[] {
   const authorCounts = new Map<string, number>();
   const sorted = [...packs].sort((a, b) => a.id.localeCompare(b.id));
