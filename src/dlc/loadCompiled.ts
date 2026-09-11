@@ -34,7 +34,7 @@ export async function loadCompiledCatalog(): Promise<CompileResult[]> {
     uploaded = [];
   }
   const extra = publishedUploads(uploaded, reserved).map(uploadedPackToCompileResult);
-  return collapseSameAuthorVersion([...published, ...extra]);
+  return [...collapseSameAuthorVersion(published), ...extra];
 }
 
 export async function loadCompiledDlc(id: string): Promise<CompiledDlc | null> {

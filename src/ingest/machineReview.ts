@@ -1,11 +1,10 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { loadShippedCatalog, reservedGitDlcIds } from "../dlc/loadCompiled";
+import { reservedGitDlcIds } from "../dlc/loadCompiled";
 import { parseDlcDirectory } from "../dlc/parser";
 import { DlcValidationError, type CompiledDlc, type Manifest } from "../dlc/schema";
 import type { RosterPoet } from "../dlc/roster";
-import { excludeUnpublished } from "../dlc/unpublished";
 import {
   extractZipBuffer,
   findPackRoot,
@@ -87,11 +86,9 @@ export async function machineReviewZip(options: {
     const poetMissing = !roster.some((item) => item.poetId === options.form.poetId);
     const reserved = reservedGitDlcIds();
     const index = await loadUploadIndex();
-    const { targetId, overwriteByAuthorVersion } = resolveUploadTarget({
-      manifest: compiled.manifest,
-      shipped: excludeUnpublished(loadShippedCatalog()),
-      uploads: index,
-      reservedGitIds: reserved,
+    const { targetId } = resolveUploadTarget({
+      userId: options.form.userId,
+      shortId: compiled.manifest.id,
     });
     const existing = findUploadedPack(index, targetId);
     const raw = validateUploadManifest({
@@ -99,7 +96,6 @@ export async function machineReviewZip(options: {
       manifest: compiled.manifest,
       reservedGitIds: reserved,
       existing,
-      overwriteByAuthorVersion,
       roster,
       allowUnknownWork: !poetMissing,
     });

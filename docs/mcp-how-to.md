@@ -126,7 +126,7 @@ rm -f "$OUT"
 - `verdict: reject`：按 `issues[].message` 和 `fixHint` 改 YAML（对照 https://poem.aibeaver.cn/dlc-spec），**你自己重新打包 zip** 再 `ingest_dlc`。不要让用户手动重压。
 - 用户 id 错误：停止，咨询老师。
 
-同作者同版本会覆盖旧包，不会长出 `.a`。
+同一 `userId` + 同一 short-id 会覆盖你上次的包。别人用同一个教学 short-id 互不影响；线上试玩地址是 `/play/{short-id}-{userId}`。
 
 ## 禁止
 

@@ -4,7 +4,7 @@
 
 对方 agent 提交 `userId`、诗人、篇目和 DLC zip。先按 [dlc-spec.md](dlc-spec.md) 做机器校验，再用隔离的 Codex（DeepSeek V4.1 Flash，API id `deepseek-flash`）按同一份 spec 写审核意见。**有 blocking 意见就不入库**；全部通过才上架，返回 `playUrl`。
 
-同作者同版本仍覆盖已有课包，不会长出 `.a`。
+线上课包 id 是 `{manifest.id}-{userId}`。同一学员同一 short-id 覆盖自己的包；教学模板 short-id 相同也不会互相覆盖，更不会盖掉仓库课包。
 
 ## 学员认证
 

@@ -3,14 +3,14 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { STATIC_OSS_PREFIX } from "../assets/cdn";
 import { getPoemStore, uploadedCompiledKey } from "../server/poemStore";
-import { loadShippedCatalog, reservedGitDlcIds } from "./loadCompiled";
+import { reservedGitDlcIds } from "./loadCompiled";
 import { parseDlcDirectory } from "./parser";
-import { excludeUnpublished } from "./unpublished";
 import {
   collectPackAssetFiles,
   convertPackRastersToWebp,
   extractZipBuffer,
   findPackRoot,
+  isSameUploadSlot,
   MAX_ZIP_BYTES,
   mimeForAsset,
   resolveUploadTarget,
@@ -49,11 +49,9 @@ export async function publishUploadedDlc(options: {
     const firstPass = parseDlcDirectory(packRoot);
     const reserved = reservedGitDlcIds();
     const index = await loadUploadIndex();
-    const { targetId, overwriteByAuthorVersion } = resolveUploadTarget({
-      manifest: firstPass.manifest,
-      shipped: excludeUnpublished(loadShippedCatalog()),
-      uploads: index,
-      reservedGitIds: reserved,
+    const { targetId } = resolveUploadTarget({
+      userId: options.form.userId,
+      shortId: firstPass.manifest.id,
     });
     const existing = findUploadedPack(index, targetId);
     const roster = await loadRoster();
@@ -62,7 +60,6 @@ export async function publishUploadedDlc(options: {
       manifest: firstPass.manifest,
       reservedGitIds: reserved,
       existing,
-      overwriteByAuthorVersion,
       roster,
     });
     if (preIssues.length > 0) {
@@ -95,12 +92,10 @@ export async function publishUploadedDlc(options: {
       summary: compiled.manifest.summary,
       uploadedAt: new Date().toISOString(),
     };
-    const withoutSourceId = index.filter(
-      (item) => item.dlcId !== firstPass.manifest.id || item.dlcId === targetId,
+    const withoutSlot = index.filter(
+      (item) => !isSameUploadSlot(item, options.form.userId, firstPass.manifest.id),
     );
-    const nextIndex = withoutSourceId.some((item) => item.dlcId === targetId)
-      ? withoutSourceId.map((item) => (item.dlcId === targetId ? pack : item))
-      : [...withoutSourceId, pack];
+    const nextIndex = [...withoutSlot, pack];
     await saveUploadIndex(nextIndex, store);
     return { pack };
   } catch (error) {

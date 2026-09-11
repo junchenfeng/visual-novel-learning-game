@@ -11,6 +11,7 @@ import {
   resolveSafeZipTarget,
   resolveUploadTarget,
   retargetCompiledDlc,
+  uploadedDlcId,
   validateUploadManifest,
 } from "../src/dlc/uploadPack";
 
@@ -54,7 +55,7 @@ describe("upload zip unpack", () => {
 describe("upload manifest checks", () => {
   const form = { userId: "xiaoli", poetId: "sushi", workTitle: "水调歌头・明月几时有" };
 
-  it("rejects poet/work mismatch, git ids, and another owner's id", () => {
+  it("rejects poet/work mismatch and another owner's composed id", () => {
     expect(
       validateUploadManifest({
         form,
@@ -74,19 +75,11 @@ describe("upload manifest checks", () => {
     expect(
       validateUploadManifest({
         form,
-        manifest: baseManifest({ id: "hailao-shuidiao" }),
-        reservedGitIds: new Set(["hailao-shuidiao"]),
-      }),
-    ).toEqual(expect.arrayContaining([expect.stringMatching(/仓库课包/)]));
-
-    expect(
-      validateUploadManifest({
-        form,
         manifest: baseManifest(),
         reservedGitIds: new Set(),
         existing: {
           userId: "other",
-          dlcId: "student-shuidiao",
+          dlcId: "student-shuidiao-xiaoli",
           poetId: "sushi",
           poet: "苏轼",
           workTitle: "水调歌头",
@@ -100,6 +93,16 @@ describe("upload manifest checks", () => {
     ).toEqual(expect.arrayContaining([expect.stringMatching(/已由 other 上传/)]));
   });
 
+  it("allows copying a teaching short-id because the published id includes userId", () => {
+    expect(
+      validateUploadManifest({
+        form,
+        manifest: baseManifest({ id: "hailao-shuidiao" }),
+        reservedGitIds: new Set(["hailao-shuidiao"]),
+      }),
+    ).toEqual([]);
+  });
+
   it("allows the same user id to overwrite their pack", () => {
     expect(
       validateUploadManifest({
@@ -108,7 +111,7 @@ describe("upload manifest checks", () => {
         reservedGitIds: new Set(["hailao-shuidiao"]),
         existing: {
           userId: "xiaoli",
-          dlcId: "student-shuidiao",
+          dlcId: "student-shuidiao-xiaoli",
           poetId: "sushi",
           poet: "苏轼",
           workTitle: "水调歌头",
@@ -118,39 +121,6 @@ describe("upload manifest checks", () => {
           summary: "x",
           uploadedAt: "2026-01-01T00:00:00.000Z",
         },
-      }),
-    ).toEqual([]);
-  });
-
-  it("overwrites the existing pack when author and version match", () => {
-    expect(
-      validateUploadManifest({
-        form,
-        manifest: baseManifest({ id: "sushi-shuidiao-11016863" }),
-        reservedGitIds: new Set(["sushi-shuidiao-hailao-v2"]),
-        existing: undefined,
-        overwriteByAuthorVersion: true,
-      }),
-    ).toEqual([]);
-
-    expect(
-      validateUploadManifest({
-        form: { ...form, userId: "11016863" },
-        manifest: baseManifest({ id: "student-shuidiao", author: "海棠海棠", version: "2.3.0" }),
-        reservedGitIds: new Set(["sushi-shuidiao-hailao-v2"]),
-        existing: {
-          userId: "other",
-          dlcId: "sushi-shuidiao-hailao-v2",
-          poetId: "sushi",
-          poet: "苏轼",
-          workTitle: "水调歌头",
-          title: "水调歌头",
-          author: "海棠海棠",
-          version: "2.3.0",
-          summary: "x",
-          uploadedAt: "2026-01-01T00:00:00.000Z",
-        },
-        overwriteByAuthorVersion: true,
       }),
     ).toEqual([]);
   });
@@ -174,79 +144,24 @@ describe("pack raster conversion", () => {
   });
 });
 
-describe("upload author+version overwrite", () => {
-  it("remaps a new id onto the git pack with the same author and version", () => {
-    expect(
-      resolveUploadTarget({
-        manifest: {
-          id: "sushi-shuidiao-11016863",
-          author: "海棠海棠",
-          version: "2.3.0",
-          poetId: "sushi",
-          workTitle: "水调歌头·明月几时有",
-        },
-        shipped: [
-          {
-            id: "sushi-shuidiao-hailao-v2",
-            version: "2.3.0",
-            title: "水调歌头",
-            author: "海棠海棠",
-            poet: "苏轼",
-            poetId: "sushi",
-            workTitle: "水调歌头",
-            summary: "git",
-          },
-        ],
-        uploads: [
-          {
-            userId: "11016863",
-            dlcId: "sushi-shuidiao-11016863",
-            poetId: "sushi",
-            poet: "苏轼",
-            workTitle: "水调歌头",
-            title: "水调歌头",
-            author: "海棠海棠",
-            version: "2.3.0",
-            summary: "upload",
-            uploadedAt: "2026-01-01T00:00:00.000Z",
-          },
-        ],
-        reservedGitIds: new Set(["sushi-shuidiao-hailao-v2"]),
-      }),
-    ).toEqual({
-      targetId: "sushi-shuidiao-hailao-v2",
-      overwriteByAuthorVersion: true,
+describe("upload id is short-id plus user-id", () => {
+  it("gives two students different published ids for the same teaching short-id", () => {
+    expect(uploadedDlcId("hailao-shuidiao", "hh_11016863")).toBe("hailao-shuidiao-hh_11016863");
+    expect(resolveUploadTarget({ userId: "hh_11016863", shortId: "hailao-shuidiao" })).toEqual({
+      targetId: "hailao-shuidiao-hh_11016863",
+    });
+    expect(resolveUploadTarget({ userId: "hh_1578", shortId: "hailao-shuidiao" })).toEqual({
+      targetId: "hailao-shuidiao-hh_1578",
     });
   });
 
-  it("keeps a new id when author or version differs", () => {
-    expect(
-      resolveUploadTarget({
-        manifest: {
-          id: "student-shuidiao",
-          author: "学生甲",
-          version: "1.0.0",
-          poetId: "sushi",
-          workTitle: "水调歌头",
-        },
-        shipped: [
-          {
-            id: "sushi-shuidiao-hailao-v2",
-            version: "2.3.0",
-            title: "水调歌头",
-            author: "海棠海棠",
-            poet: "苏轼",
-            poetId: "sushi",
-            workTitle: "水调歌头",
-            summary: "git",
-          },
-        ],
-        uploads: [],
-        reservedGitIds: new Set(["sushi-shuidiao-hailao-v2"]),
-      }),
-    ).toEqual({
-      targetId: "student-shuidiao",
-      overwriteByAuthorVersion: false,
+  it("does not double-append when the short-id already includes the user id", () => {
+    expect(uploadedDlcId("hailao-shuidiao-hh_11016863", "hh_11016863")).toBe("hailao-shuidiao-hh_11016863");
+  });
+
+  it("does not remap onto the official git pack", () => {
+    expect(resolveUploadTarget({ userId: "hh_11016863", shortId: "sushi-shuidiao-hailao-v2" })).toEqual({
+      targetId: "sushi-shuidiao-hailao-v2-hh_11016863",
     });
   });
 

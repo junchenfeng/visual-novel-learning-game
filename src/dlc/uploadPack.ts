@@ -2,8 +2,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, unlinkSync, w
 import path from "node:path";
 import JSZip from "jszip";
 import { convertImageToWebp, isRasterImagePath, replaceExtWithWebp } from "../assets/webp";
-import { findAuthorVersionMatch, titlesMatch } from "./catalogShared";
-import type { CompileResult } from "./compiler";
+import { titlesMatch } from "./catalogShared";
 import { parseDlcDirectory } from "./parser";
 import { POET_ROSTER, type RosterPoet } from "./roster";
 import { DlcValidationError, type CompiledDlc, type Manifest } from "./schema";
@@ -137,33 +136,41 @@ export function collectPackAssetFiles(rootDir: string): string[] {
   return walkFiles(assetsDir);
 }
 
-export function resolveUploadTarget(options: {
-  manifest: Pick<Manifest, "id" | "author" | "version" | "poetId" | "workTitle">;
-  shipped: CompileResult[];
-  uploads: UploadedPack[];
-  reservedGitIds: Set<string>;
-}): { targetId: string; overwriteByAuthorVersion: boolean } {
-  const candidates = [
-    ...options.shipped.map((item) => ({
-      id: item.id,
-      author: item.author,
-      version: item.version,
-      poetId: item.poetId,
-      workTitle: item.workTitle,
-    })),
-    ...options.uploads.map((item) => ({
-      id: item.dlcId,
-      author: item.author,
-      version: item.version,
-      poetId: item.poetId,
-      workTitle: item.workTitle,
-    })),
-  ];
-  const match = findAuthorVersionMatch(candidates, options.manifest, options.reservedGitIds);
-  if (!match) {
-    return { targetId: options.manifest.id, overwriteByAuthorVersion: false };
+export function uploadedDlcId(shortId: string, userId: string): string {
+  const id = shortId.trim();
+  const user = userId.trim();
+  const suffix = `-${user}`;
+  if (!id || !user) {
+    return id;
   }
-  return { targetId: match.id, overwriteByAuthorVersion: true };
+  if (id.endsWith(suffix)) {
+    return id;
+  }
+  return `${id}${suffix}`;
+}
+
+export function packShortId(dlcId: string, userId: string): string {
+  const suffix = `-${userId.trim()}`;
+  if (suffix.length > 1 && dlcId.endsWith(suffix)) {
+    return dlcId.slice(0, -suffix.length);
+  }
+  return dlcId;
+}
+
+export function resolveUploadTarget(options: { userId: string; shortId: string }): { targetId: string } {
+  return { targetId: uploadedDlcId(options.shortId, options.userId) };
+}
+
+export function isSameUploadSlot(
+  item: Pick<UploadedPack, "dlcId" | "userId">,
+  userId: string,
+  shortId: string,
+): boolean {
+  const targetId = uploadedDlcId(shortId, userId);
+  if (item.dlcId === targetId) {
+    return true;
+  }
+  return item.userId === userId && packShortId(item.dlcId, userId) === shortId;
 }
 
 export function validateUploadManifest(options: {
@@ -171,12 +178,12 @@ export function validateUploadManifest(options: {
   manifest: Manifest;
   reservedGitIds: Set<string>;
   existing?: UploadedPack;
-  overwriteByAuthorVersion?: boolean;
   roster?: RosterPoet[];
   allowUnknownWork?: boolean;
 }): string[] {
   const issues: string[] = [];
-  const { form, manifest, reservedGitIds, existing, overwriteByAuthorVersion } = options;
+  const { form, manifest, reservedGitIds, existing } = options;
+  const targetId = uploadedDlcId(manifest.id, form.userId);
   const roster = options.roster ?? POET_ROSTER;
   const poet = roster.find((item) => item.poetId === form.poetId);
   if (!poet) {
@@ -198,11 +205,11 @@ export function validateUploadManifest(options: {
   ) {
     issues.push(`篇目「${manifest.workTitle}」不在诗人「${poet.poet}」的名册中`);
   }
-  if (!overwriteByAuthorVersion && (reservedGitIds.has(manifest.id) || UNPUBLISHED_DLC_IDS.has(manifest.id))) {
-    issues.push(`DLC id「${manifest.id}」已被仓库课包占用，不能覆盖`);
+  if (reservedGitIds.has(targetId) || UNPUBLISHED_DLC_IDS.has(targetId)) {
+    issues.push(`上架 id「${targetId}」与仓库课包冲突，请换一个 manifest.id`);
   }
-  if (!overwriteByAuthorVersion && existing && existing.userId !== form.userId) {
-    issues.push(`DLC id「${manifest.id}」已由 ${existing.userId} 上传，不能被其他 user id 覆盖`);
+  if (existing && existing.userId !== form.userId) {
+    issues.push(`DLC id「${targetId}」已由 ${existing.userId} 上传，不能被其他 user id 覆盖`);
   }
   return issues;
 }
