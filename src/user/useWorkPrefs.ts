@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { normalizeWorkTitle } from "../dlc/catalog";
+import { normalizeWorkTitle } from "../dlc/catalogShared";
 
 type UserPrefs = {
   selectedDlcByWork: Record<string, string>;

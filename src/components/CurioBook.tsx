@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { resolveSelectedDlcId, type CatalogWork } from "../dlc/catalog";
+import { resolveSelectedDlcId, type CatalogWork } from "../dlc/catalogShared";
 import styles from "./curio-shelf.module.css";
 
 export type BookLayout = "vertical" | "horizontal" | "scroll";

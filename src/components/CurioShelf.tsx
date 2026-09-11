@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import type { CatalogWork } from "../dlc/catalog";
-import { normalizeWorkTitle } from "../dlc/catalog";
+import type { CatalogWork } from "../dlc/catalogShared";
+import { normalizeWorkTitle } from "../dlc/catalogShared";
 import { useWorkPrefs } from "../user/useWorkPrefs";
 import { CurioBook, type BookLayout } from "./CurioBook";
 import styles from "./curio-shelf.module.css";

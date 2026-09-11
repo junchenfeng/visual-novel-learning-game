@@ -124,7 +124,7 @@ export function loadGalleryConfig(): GalleryConfig | null {
   if (!configPath) {
     return null;
   }
-  const raw = asRecord(JSON.parse(readFileSync(configPath, "utf8")));
+  const raw = asRecord(JSON.parse(readFileSync(/* turbopackIgnore: true */ configPath, "utf8")));
   if (!raw) {
     return null;
   }

@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, unlinkSync, w
 import path from "node:path";
 import JSZip from "jszip";
 import { convertImageToWebp, isRasterImagePath, replaceExtWithWebp } from "../assets/webp";
-import { titlesMatch } from "./catalog";
+import { titlesMatch } from "./catalogShared";
 import { parseDlcDirectory } from "./parser";
 import { POET_ROSTER } from "./roster";
 import { DlcValidationError, type CompiledDlc, type Manifest } from "./schema";

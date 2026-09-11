@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { readUsername } from "../../../src/auth/requestUser";
-import { normalizeWorkTitle } from "../../../src/dlc/catalog";
+import { normalizeWorkTitle } from "../../../src/dlc/catalogShared";
 import { emptyPrefs, getPoemStore, userPrefsKey, type UserPrefs } from "../../../src/server/poemStore";
 
 const putSchema = z.object({
