@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { isAdminUsername } from "../src/auth/admin";
 import { USERNAME_COOKIE, decodeCookieUsername, normalizeUsername } from "../src/auth/username";
 import { buildCatalogPoets } from "../src/dlc/catalog";
 import { loadCompiledCatalog } from "../src/dlc/loadCompiled";
@@ -20,8 +22,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   if (!username) {
     return <UsernameGate needLogin={params.needLogin === "1"} />;
   }
+  if (isAdminUsername(username)) {
+    redirect("/admin");
+  }
 
-  const poets = buildCatalogPoets(loadCompiledCatalog());
+  const poets = buildCatalogPoets(await loadCompiledCatalog());
 
   return (
     <main className={styles.catalog}>

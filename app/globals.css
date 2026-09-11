@@ -2,6 +2,7 @@
   --paper: #f4ead5;
   --ink: #2c2416;
   --bg: #d9c7a1;
+  --paper-texture: url("/xuanzhi-bg.webp");
   --font-sans: "Noto Sans SC", "Source Han Sans SC", "PingFang SC",
     "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
 }

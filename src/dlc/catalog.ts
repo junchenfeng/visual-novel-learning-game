@@ -1,5 +1,6 @@
 import type { CompileResult } from "./compiler";
 import { POET_ROSTER } from "./roster";
+import { publicAssetUrl } from "../assets/cdn";
 
 export type CatalogPack = {
   id: string;
@@ -93,7 +94,7 @@ export function groupCatalogByPoet(catalog: CompileResult[]): PoetShelf[] {
     shelves.set(work.poetId, {
       poetId: work.poetId,
       poet: work.poet,
-      poetPortraitUrl: rosterPoet?.poetPortraitUrl ?? `/poets/${work.poetId}.webp`,
+      poetPortraitUrl: publicAssetUrl(rosterPoet?.poetPortraitUrl ?? `/poets/${work.poetId}.webp`),
       works: [work],
     });
   }
@@ -167,7 +168,7 @@ export function buildCatalogPoets(catalog: CompileResult[]): CatalogPoet[] {
     return {
       poetId: poet.poetId,
       poet: poet.poet,
-      poetPortraitUrl: poet.poetPortraitUrl,
+      poetPortraitUrl: publicAssetUrl(poet.poetPortraitUrl),
       available: works.some((item) => item.available),
       works,
     };

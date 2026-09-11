@@ -6,9 +6,11 @@ type PlayPageProps = {
   params: Promise<{ dlcId: string }>;
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function PlayPage({ params }: PlayPageProps) {
   const { dlcId } = await params;
-  const dlc = loadCompiledDlc(dlcId);
+  const dlc = await loadCompiledDlc(dlcId);
   if (!dlc) {
     notFound();
   }

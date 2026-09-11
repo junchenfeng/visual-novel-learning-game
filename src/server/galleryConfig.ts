@@ -20,6 +20,7 @@ export type GalleryConfig = {
   path: string;
   oss: GalleryOssConfig | null;
   llm: GalleryLlmConfig | null;
+  cdnBaseUrl: string;
 };
 
 function candidatePaths(): string[] {
@@ -127,9 +128,11 @@ export function loadGalleryConfig(): GalleryConfig | null {
   if (!raw) {
     return null;
   }
+  const cdn = asRecord(raw.cdn);
   return {
     path: configPath,
     oss: readOss(raw),
     llm: readLlm(raw),
+    cdnBaseUrl: String(cdn?.baseUrl ?? "").replace(/\/+$/, ""),
   };
 }

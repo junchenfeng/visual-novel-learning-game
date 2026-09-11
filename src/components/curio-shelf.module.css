@@ -8,7 +8,7 @@
   background-image:
     radial-gradient(ellipse at top left, rgba(184, 134, 11, 0.08), transparent 55%),
     radial-gradient(ellipse at bottom right, rgba(139, 90, 43, 0.08), transparent 55%),
-    url("/xuanzhi-bg.webp");
+    var(--paper-texture);
   background-size: auto, auto, 600px 600px;
   background-blend-mode: normal, normal, multiply;
   color: #2c2416;
@@ -102,7 +102,7 @@
   border: 1px solid #b8860b;
   background:
     linear-gradient(180deg, rgba(184, 134, 11, 0.08), transparent 12%),
-    url("/xuanzhi-bg.webp");
+    var(--paper-texture);
   background-size: auto, 500px 500px;
   box-shadow:
     inset 0 0 0 4px rgba(240, 230, 208, 0.6),
@@ -120,6 +120,11 @@
   justify-content: center;
   padding: 10px;
   overflow: hidden;
+}
+
+.curioCell:has(.packMenu) {
+  overflow: visible;
+  z-index: 30;
 }
 
 /* 格子角落的金线装饰 */
@@ -636,6 +641,13 @@
   font-size: 10.5px;
   color: #8a7b62;
   flex-shrink: 0;
+}
+
+@media (max-width: 900px), (pointer: coarse) {
+  .packMenu {
+    top: auto;
+    bottom: calc(100% + 4px);
+  }
 }
 
 /* 响应式 */

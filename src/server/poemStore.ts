@@ -9,9 +9,16 @@ export type UserPrefs = {
   selectedDlcByWork: Record<string, string>;
 };
 
+export type PutObjectOptions = {
+  mime?: string;
+  cacheControl?: string;
+};
+
 export type PoemStore = {
   readJson<T>(key: string): Promise<T | null>;
   writeJson(key: string, value: unknown): Promise<void>;
+  getObject(key: string): Promise<Buffer | null>;
+  putObject(key: string, body: Buffer, options?: PutObjectOptions): Promise<void>;
 };
 
 function isNoSuchKey(error: unknown): boolean {
@@ -27,33 +34,53 @@ class LocalPoemStore implements PoemStore {
     return path.join(LOCAL_ROOT, key);
   }
 
-  async readJson<T>(key: string): Promise<T | null> {
+  async getObject(key: string): Promise<Buffer | null> {
     const filePath = this.filePath(key);
     if (!existsSync(filePath)) {
       return null;
     }
+    return readFileSync(filePath);
+  }
+
+  async putObject(key: string, body: Buffer): Promise<void> {
+    const filePath = this.filePath(key);
+    mkdirSync(path.dirname(filePath), { recursive: true });
+    writeFileSync(filePath, body);
+  }
+
+  async readJson<T>(key: string): Promise<T | null> {
+    const body = await this.getObject(key);
+    if (!body) {
+      return null;
+    }
     try {
-      return JSON.parse(readFileSync(filePath, "utf8")) as T;
+      return JSON.parse(body.toString("utf8")) as T;
     } catch {
       return null;
     }
   }
 
   async writeJson(key: string, value: unknown): Promise<void> {
-    const filePath = this.filePath(key);
-    mkdirSync(path.dirname(filePath), { recursive: true });
-    writeFileSync(filePath, `${JSON.stringify(value)}\n`, "utf8");
+    await this.putObject(key, Buffer.from(`${JSON.stringify(value)}\n`, "utf8"));
   }
 }
 
-class OssPoemStore implements PoemStore {
-  constructor(private readonly client: { get: (key: string) => Promise<{ content: Buffer | string }>; put: (key: string, data: Buffer | string) => Promise<unknown> }) {}
+type OssClient = {
+  get: (key: string) => Promise<{ content: Buffer | string }>;
+  put: (
+    key: string,
+    data: Buffer | string,
+    options?: { mime?: string; headers?: Record<string, string> },
+  ) => Promise<unknown>;
+};
 
-  async readJson<T>(key: string): Promise<T | null> {
+class OssPoemStore implements PoemStore {
+  constructor(private readonly client: OssClient) {}
+
+  async getObject(key: string): Promise<Buffer | null> {
     try {
       const result = await this.client.get(key);
-      const body = typeof result.content === "string" ? result.content : result.content.toString("utf8");
-      return JSON.parse(body) as T;
+      return typeof result.content === "string" ? Buffer.from(result.content, "utf8") : result.content;
     } catch (error) {
       if (isNoSuchKey(error)) {
         return null;
@@ -62,8 +89,34 @@ class OssPoemStore implements PoemStore {
     }
   }
 
+  async putObject(key: string, body: Buffer, options?: PutObjectOptions): Promise<void> {
+    const headers: Record<string, string> = {};
+    if (options?.cacheControl) {
+      headers["Cache-Control"] = options.cacheControl;
+    }
+    await this.client.put(key, body, {
+      mime: options?.mime,
+      headers: Object.keys(headers).length > 0 ? headers : undefined,
+    });
+  }
+
+  async readJson<T>(key: string): Promise<T | null> {
+    const body = await this.getObject(key);
+    if (!body) {
+      return null;
+    }
+    try {
+      return JSON.parse(body.toString("utf8")) as T;
+    } catch {
+      return null;
+    }
+  }
+
   async writeJson(key: string, value: unknown): Promise<void> {
-    await this.client.put(key, Buffer.from(`${JSON.stringify(value)}\n`, "utf8"));
+    await this.putObject(key, Buffer.from(`${JSON.stringify(value)}\n`, "utf8"), {
+      mime: "application/json; charset=utf-8",
+      cacheControl: "no-cache",
+    });
   }
 }
 
@@ -77,10 +130,7 @@ export function getPoemStore(): PoemStore {
   if (gallery?.oss) {
     // ali-oss 在生产构建里按 CJS 解析
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const OSS = require("ali-oss") as new (options: Record<string, unknown>) => {
-      get: (key: string) => Promise<{ content: Buffer | string }>;
-      put: (key: string, data: Buffer | string) => Promise<unknown>;
-    };
+    const OSS = require("ali-oss") as new (options: Record<string, unknown>) => OssClient;
     const oss = gallery.oss;
     cachedStore = new OssPoemStore(
       new OSS({
@@ -116,4 +166,12 @@ export function userSessionKey(username: string, sessionId: string) {
 
 export function likeKey(dlcId: string, username: string) {
   return `${OSS_PREFIX}/likes/${dlcId}/${username}.json`;
+}
+
+export function uploadsIndexKey() {
+  return `${OSS_PREFIX}/uploads/index.json`;
+}
+
+export function uploadedCompiledKey(dlcId: string) {
+  return `${OSS_PREFIX}/uploads/${dlcId}/compiled.json`;
 }

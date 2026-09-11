@@ -15,9 +15,19 @@
 AI_PROVIDER=deepseek
 AI_GALLERY_CONFIG=/root/ai-gallery/config.json
 SAVE_SESSIONS=1
+CDN_BASE_URL=https://cdn.aibeaver.cn
+POEM_ADMIN_PASSWORD=（只写在服务器上，不要进 git）
 ```
 
 `AI_API_KEY` 可省略：生产会从 `config.json` 的 `llm` 里取 DeepSeek 密钥。若要覆盖，再写 `AI_API_KEY` / `AI_BASE_URL` / `AI_MODEL`。
+
+静态图会在 `deploy:build` 里转成 webp 并同步到 OSS，页面走 `CDN_BASE_URL`。管理台上传 DLC 用 `POEM_ADMIN_PASSWORD`；首页用户名填 `nova-admin` 进入上传台。
+
+Nginx 需允许较大的 zip：
+
+```nginx
+client_max_body_size 32m;
+```
 
 ## 建议 Nginx
 
@@ -36,6 +46,7 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
+        client_max_body_size 32m;
     }
 }
 
@@ -90,3 +101,5 @@ pm2 restart poem-rpg
 ## 数据前缀
 
 用户数据写在 OSS：`poem-rpg/{用户名}/...` 与 `poem-rpg/likes/{dlcId}/{用户名}.json`，与作业文件隔离。本机无 OSS 时落到仓库 `assets/poem-rpg/`（已 gitignore）。
+
+静态资源前缀：`poem-rpg/static/`（CDN `https://cdn.aibeaver.cn/poem-rpg/static/...`）。学生上传的 DLC 索引在 `poem-rpg/uploads/`。仓库课包 `hailao-shuidiao`（海狸老师）不进线上目录。

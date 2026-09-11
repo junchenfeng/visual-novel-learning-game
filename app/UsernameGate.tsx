@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { usernameHint } from "../src/auth/username";
+import { isAdminUsername } from "../src/auth/admin";
 import styles from "./page.module.css";
 
 type UsernameGateProps = {
@@ -30,11 +31,12 @@ export function UsernameGate({ needLogin = false }: UsernameGateProps) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username }),
               });
-              const data = (await response.json()) as { error?: string };
+              const data = (await response.json()) as { error?: string; username?: string };
               if (!response.ok) {
                 throw new Error(data.error ?? usernameHint());
               }
-              window.location.assign("/");
+              const nextPath = isAdminUsername(data.username ?? username) ? "/admin" : "/";
+              window.location.assign(nextPath);
             } catch (submitError) {
               setError(submitError instanceof Error ? submitError.message : usernameHint());
               setPending(false);
