@@ -118,11 +118,6 @@ function playStoryToPoem(actor: ReturnType<typeof createActor<typeof gameMachine
       actor.send({ type: "CHOOSE", choiceId: (safe ?? node.choices[0]).id });
     } else if (node.type === "gameOver") {
       throw new Error("happy path 不应走到 gameOver");
-    } else if (node.type === "explore") {
-      for (const object of node.objects) {
-        actor.send({ type: "EXPLORE_TAP", objectId: object.id });
-      }
-      actor.send({ type: "EXPLORE_CONTINUE" });
     } else {
       actor.send({ type: "CONTINUE" });
     }
@@ -146,11 +141,6 @@ function playToLastStoryNode(actor: ReturnType<typeof createActor<typeof gameMac
       actor.send({ type: "CHOOSE", choiceId: (safe ?? node.choices[0]).id });
     } else if (node.type === "gameOver") {
       throw new Error("happy path 不应走到 gameOver");
-    } else if (node.type === "explore") {
-      for (const object of node.objects) {
-        actor.send({ type: "EXPLORE_TAP", objectId: object.id });
-      }
-      actor.send({ type: "EXPLORE_CONTINUE" });
     } else if (!node.nextNodeId) {
       return;
     } else {

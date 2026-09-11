@@ -25,7 +25,6 @@ questions:
     contextRefs:
       - ch2_open
       - ch2_fact_reform
-      - ch3_explore
       - ch3_open
   - id: q_chanjuan
     type: choice

@@ -58,12 +58,12 @@ nodes:
     type: choice
     chapter: 2
     chapterTitle: 变法与外放
-    convergesTo: ch3_preface
+    convergesTo: ch3_open
     text: 待你书写
     choices:
       - id: pick_this
         label: 选这个
-        nextNodeId: ch3_preface
+        nextNodeId: ch3_open
       - id: skip_this
         label: 别选这个
         nextNodeId: ch2_over
@@ -72,42 +72,6 @@ nodes:
     chapter: 2
     chapterTitle: 变法与外放
     text: 告诉你别选这个
-  - id: ch3_preface
-    type: narration
-    chapter: 3
-    chapterTitle: 密州官舍·中秋前
-    text: 中秋前一夜，你在官舍整理书箱。七年的来路，就摊在这里。
-    nextNodeId: ch3_explore
-  - id: ch3_explore
-    type: explore
-    chapter: 3
-    chapterTitle: 密州官舍·翻检来路
-    text: 月光落在摊开的书箱上。每一样东西，都藏着这几年走过的路。点开看看，哪些才是有用的线索。
-    nextNodeId: ch3_open
-    objects:
-      - id: ziyou_letter
-        name: 子由的信
-        hint: 压在案头最上面
-        memory: 弟弟从齐州来信，问哥哥密州的日子过得如何，信末又问：何时能见一面？你提笔回信，写了又停。
-      - id: transfer_warrant
-        name: 调任文书
-        hint: 从杭州带来的
-        memory: 熙宁七年，你自杭州改知密州。当初上书，只求调到京东、离弟弟任职的齐州近些；朝廷准了密州。可到任后蝗旱连年、公务缠身，连济南都没去成。
-      - id: yingzhou_draft
-        name: 颍州旧稿
-        hint: 收在书箱最底
-        memory: 熙宁四年路过颍州，兄弟同住了些时日，灯下联句的手稿还在。那是你们最后一次见面。
-      - id: qingmiao_ledger
-        name: 青苗账册
-        hint: 还没批完
-        valid: false
-        memory: 新法在密州推得吃力，账册上的数目还没批完。可这是公务——今晚你不想看它。
-      - id: almanac
-        name: 新皇历
-        hint: 翻到八月十五
-        valid: false
-        memory: 皇历上写着：八月十五，宜饮酒，宜怀远。日子是好的，可它不解释你们为什么分开。
-    hiddenReward: 近的文书、远的信、更旧的稿子——这些年的路，原来是这么走过来的。窗外月亮升起来了。你吩咐备酒：今晚，要把心里的话写下来。
   - id: ch3_open
     type: narration
     chapter: 3
