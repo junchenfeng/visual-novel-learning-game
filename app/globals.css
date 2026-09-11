@@ -40,3 +40,8 @@ input,
 select {
   font-family: var(--font-sans);
 }
+
+button,
+a {
+  touch-action: manipulation;
+}

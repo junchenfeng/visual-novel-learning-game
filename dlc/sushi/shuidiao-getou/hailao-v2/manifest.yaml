@@ -1,0 +1,71 @@
+schemaVersion: 1
+id: sushi-shuidiao-hailao-v2
+version: "2.3.0"
+title: 水调歌头·明月几时有
+author: 海棠海棠
+poet: 苏轼
+poetId: sushi
+workTitle: 水调歌头
+summary: 密州中秋夜，苏轼大醉，想起远方的弟弟苏辙，提笔写下这首千古中秋第一词。这次，你的选择将决定苏轼的人生走向——是仕途兼济，是归隐田园，还是千里共婵娟？
+chapters:
+  - chapter: 1
+    background: assets/backgrounds/chapter-1-brothers.webp
+  - chapter: 2
+    background: assets/backgrounds/chapter-2-reform-debate.webp
+  - chapter: 3
+    background: assets/backgrounds/chapter-3-mid-autumn.webp
+  - chapter: 4
+    background: assets/bg/chapter04-fields.jpg
+startStoryNodeId: s01_intro
+classroom:
+  teacher: teacher
+  classmate: classmate
+  student: student
+files:
+  story: content/story.yaml
+  poem: content/poem.yaml
+  quiz: content/quiz.yaml
+characters:
+  - id: sushi
+    name: 苏轼
+  - id: zhe
+    name: 苏辙
+  - id: teacher
+    name: 老师
+  - id: classmate
+    name: 同学
+  - id: student
+    name: 玩家
+easterEgg:
+  kind: fill-in
+  title: 补全苏轼心中那阕词
+  params:
+    blanks:
+      - prefix: "明月几时有，把酒问"
+        suffix: "。"
+        correct: 青天
+        options: [青天, 苍天, 长天, 远天]
+      - prefix: "不知天上宫阙，今夕是"
+        suffix: "。"
+        correct: 何年
+        options: [何年, 何夕, 几年, 几时]
+      - prefix: "人有悲欢离合，月有阴晴圆缺，此事古"
+        suffix: "全。"
+        correct: 难
+        options: [难, 不, 未, 莫]
+endings:
+  - endingId: ending_changjiu
+    title: 但愿人长久
+    subtitle: 千里共婵娟
+    triggerHint: 亲情权重最高
+    quote: 但愿人长久，千里共婵娟。
+  - endingId: ending_gaochu
+    title: 高处不胜寒
+    subtitle: 起舞弄清影，何似在人间
+    triggerHint: 仕途之心最高
+    quote: 高处不胜寒。起舞弄清影，何似在人间。
+  - endingId: ending_guiqu
+    title: 归去，也无风雨也无晴
+    subtitle: 早退田园，兄弟相守
+    triggerHint: 旷逸指数最高
+    quote: 归去，也无风雨也无晴。

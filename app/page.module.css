@@ -244,6 +244,88 @@
   flex-shrink: 0;
 }
 
+.userBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.userMeta {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: #5a4a32;
+}
+
+.switchUser {
+  border: 1px solid #2c2416;
+  background: #f7efdc;
+  color: inherit;
+  padding: 8px 14px;
+  min-height: 40px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.gate {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: 32px 20px;
+}
+
+.gate h1 {
+  font-size: clamp(28px, 5vw, 36px);
+}
+
+.gate p {
+  line-height: 1.7;
+  color: #5a4a32;
+}
+
+.gateForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gateLabel {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  letter-spacing: 0.08em;
+}
+
+.gateInput {
+  border: 2px solid #2c2416;
+  background: #fff8e7;
+  color: inherit;
+  font-size: 18px;
+  padding: 12px 14px;
+  min-height: 48px;
+}
+
+.gateSubmit {
+  border: 1px solid #2c2416;
+  background: #2c2416;
+  color: #f7efdc;
+  min-height: 48px;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.gateError {
+  color: #7a2e2e;
+  font-family: var(--font-sans);
+  font-size: 14px;
+}
+
 @media (max-width: 700px) {
   .shelf {
     overflow-x: auto;
@@ -251,5 +333,14 @@
 
   .book {
     flex: 0 0 auto;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+  }
+
+  .poetCard {
+    min-height: 44px;
   }
 }

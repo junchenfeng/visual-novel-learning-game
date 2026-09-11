@@ -62,10 +62,23 @@ function computeDisplayAuthors(packs: CatalogPack[]): CatalogPack[] {
   });
 }
 
-function randomPickId(packs: CatalogPack[]): string | undefined {
+export function randomPickId(packs: CatalogPack[]): string | undefined {
   if (packs.length === 0) return undefined;
   const index = Math.floor(Math.random() * packs.length);
   return packs[index]?.id;
+}
+
+export function resolveSelectedDlcId(
+  work: Pick<CatalogWork, "dlcs" | "primaryDlcId">,
+  savedId?: string,
+): string | undefined {
+  if (savedId && work.dlcs.some((pack) => pack.id === savedId)) {
+    return savedId;
+  }
+  if (work.primaryDlcId && work.dlcs.some((pack) => pack.id === work.primaryDlcId)) {
+    return work.primaryDlcId;
+  }
+  return randomPickId(work.dlcs);
 }
 
 export function groupCatalogByPoet(catalog: CompileResult[]): PoetShelf[] {

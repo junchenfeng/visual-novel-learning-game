@@ -557,7 +557,8 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 10px;
+  min-height: 36px;
+  padding: 6px 10px;
   border: 1px solid #b8860b;
   background: rgba(255, 250, 230, 0.9);
   color: #5a4a32;
@@ -565,6 +566,7 @@
   font-size: 11px;
   letter-spacing: 0.08em;
   cursor: pointer;
+  touch-action: manipulation;
   transition: all 0.2s ease;
   white-space: nowrap;
 }

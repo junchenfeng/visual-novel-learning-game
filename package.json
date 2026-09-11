@@ -10,12 +10,14 @@
     "build": "next build",
     "deploy:build": "pnpm install --frozen-lockfile && pnpm run build",
     "start": "next start -p ${DEPLOY_RUN_PORT:-3000}",
+    "start:ecs": "next start -p ${DEPLOY_RUN_PORT:-3010}",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "jest"
   },
   "dependencies": {
     "@xstate/react": "^6.1.0",
+    "ali-oss": "^6.23.0",
     "coze-coding-dev-sdk": "^0.7.24",
     "howler": "^2.2.4",
     "motion": "^13.1.1",
@@ -28,6 +30,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/ali-oss": "^6.23.3",
     "@types/howler": "^2.2.13",
     "@types/jest": "^30.0.0",
     "@types/node": "^20",

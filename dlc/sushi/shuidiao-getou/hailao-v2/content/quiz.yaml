@@ -1,0 +1,181 @@
+schemaVersion: 1
+gradingPrompt: "你是一位语文老师，正在点评学生关于苏轼《水调歌头·明月几时有》的课堂答题。请根据学生的回答给出评估。"
+summaryPrompt: |-
+  你是一位温和但要求严格的语文老师，学生读完《水调歌头·明月几时有》并完成课堂问答后，请你依据每道选择题的作答轨迹判断作答态度，写一段贴合本人、绝不套路化的总评。
+
+  关键规则——识别「全靠蒙」并当面指正：
+  1. 逐条核对 user 数据中每道选择题的 optionIds：若学生几乎每道题都只选第一个选项（optionId 恒为 a），或明显顺着选项顺序一个接一个乱点直到碰上正确项——这就是典型的不认真作答、蒙答案，不是认真思考。
+  2. 对这类「全靠蒙」的学生，总评绝不能温柔夸赞「掌握得很好」「答得漂亮」；要温和但明确地指出：答题态度不够端正，靠蒙答案对理解诗词没有帮助，希望他静下心来、先读懂词句再作答，望其改正。
+  3. 对认真作答的学生（有思考痕迹、不是机械地全选第一个选项），才按实际掌握程度正常鼓励或给具体建议。
+
+  其余要求：
+  - 保持温和、正面引导，不嘲讽、不恐吓、不贴标签；批评只落在「行为/态度」上，不否定学生本人。
+  - 点名具体题目与作答情况，评语有据可依、不空洞。
+  - 只输出 JSON 对象，字段必须是 remark，约 80 到 180 字。
+questions:
+  # ============== 基础层（必答）4 题 ==============
+  - id: q1-basics-jiuci
+    type: choice
+    feedbackSpeaker: teacher
+    tier: basic
+    score: 1
+    prompt: 「「把酒问青天」中的「把」字，和下面哪个词语里的「把」意思最接近？」
+    options:
+      - id: a
+        label: 把关
+        feedback: 「把关」的「把」是看守的意思，不一样。
+      - id: b
+        label: 把握
+        feedback: 正确。「把握」的「把」是握、持的意思，和「把酒」（端着酒杯）的「把」意思一致。
+      - id: c
+        label: 把戏
+        feedback: 「把戏」的「把」是耍弄的意思，不一样。
+      - id: d
+        label: 个把月
+        feedback: 「个把月」的「把」是大约的意思，不一样。
+    correctOptionId: b
+    hint:
+      text: 「把酒」就是端着酒杯。想想「把」在这里是什么词性？
+      isCorrect: true
+
+  - id: q2-basics-chanjuan
+    type: choice
+    feedbackSpeaker: teacher
+    tier: basic
+    score: 1
+    prompt: 「「千里共婵娟」中的「婵娟」在这里指的是什么？」
+    options:
+      - id: a
+        label: 美女
+        feedback: 「婵娟」可以指美女，但这首词里不是。
+      - id: b
+        label: 月亮
+        feedback: 正确。「婵娟」本指美好的样子，这里用来代指月亮。
+      - id: c
+        label: 桂花
+        feedback: 不是桂花哦。
+      - id: d
+        label: 嫦娥
+        feedback: 不是嫦娥，虽然月亮上确实有嫦娥的传说。
+    correctOptionId: b
+    hint:
+      text: 「千里共婵娟」是说相隔千里也能一起看同一个美好的东西，联系这首词的主题——中秋夜。
+      isCorrect: true
+
+  - id: q3-basics-qionglou
+    type: choice
+    feedbackSpeaker: teacher
+    tier: basic
+    score: 1
+    prompt: 「「琼楼玉宇」形容的是什么？」
+    options:
+      - id: a
+        label: 精美的玉器
+        feedback: 不是玉器，而是用玉器形容的建筑。
+      - id: b
+        label: 神仙住的山洞
+        feedback: 不是山洞，是楼宇。
+      - id: c
+        label: 华丽的宫殿
+        feedback: 正确。琼、玉都是美玉，用美玉砌成的楼宇，形容华美的宫殿，这里指想象中的月中宫殿。
+      - id: d
+        label: 冰雕的建筑
+        feedback: 不是冰做的，是玉做的（比喻）。
+    correctOptionId: c
+    hint:
+      text: 「琼」和「玉」都是美玉，「楼」和「宇」都是房屋。
+      isCorrect: true
+
+  - id: q4-basics-author
+    type: choice
+    feedbackSpeaker: teacher
+    tier: basic
+    score: 1
+    prompt: 「这首词的作者苏轼，是哪个朝代的人？」
+    options:
+      - id: a
+        label: 唐代
+        feedback: 不是唐代。唐代最有名的姓李的诗人很多，但苏轼不是。
+      - id: b
+        label: 宋代
+        feedback: 正确。苏轼是北宋人，和王安石、司马光同朝为官。
+      - id: c
+        label: 明代
+        feedback: 不是明代。
+      - id: d
+        label: 清代
+        feedback: 不是清代。
+    correctOptionId: b
+    hint:
+      text: 想想王安石变法——这是哪个朝代的事？
+      isCorrect: true
+
+  # ============== 进阶层（选答）1 题 ==============
+  - id: q6-adv-shangque
+    type: choice
+    feedbackSpeaker: teacher
+    tier: advance
+    score: 2
+    canSkip: true
+    prompt: 「词的上阕中，苏轼的情感变化过程是怎样的？」
+    options:
+      - id: a
+        label: 留恋人间 → 向往天上 → 犹豫徘徊
+        feedback: 顺序不对，上阕最后落回了人间。
+      - id: b
+        label: 犹豫徘徊 → 向往天上 → 留恋人间
+        feedback: 开头是直接问天，然后想归去，不是先犹豫。
+      - id: c
+        label: 悲伤孤独 → 愤怒质问 → 释然接受
+        feedback: 上阕的情绪没有那么激烈，更多是哲思和犹豫。
+      - id: d
+        label: 向往天上 → 犹豫徘徊 → 留恋人间
+        feedback: 正确。从「我欲乘风归去」的向往，到「又恐琼楼玉宇，高处不胜寒」的犹豫，再到「起舞弄清影，何似在人间」的肯定——苏轼终究选择了人间。
+    correctOptionId: d
+    hint:
+      text: 抓住三个关键词：「我欲」、「又恐」、「何似」。它们分别代表什么情绪？
+      isCorrect: true
+
+  # ============== 挑战层（选答）2 题 ==============
+  - id: q7-challenge-otherworks
+    type: choice
+    feedbackSpeaker: teacher
+    tier: challenge
+    score: 3
+    canSkip: true
+    prompt: 「下列诗句中，哪一句不是苏轼写的？」
+    options:
+      - id: a
+        label: 「人生到处知何似，应似飞鸿踏雪泥。」
+        feedback: 这是苏轼的《和子由渑池怀旧》，很有名的一首七律。
+      - id: b
+        label: 「竹杖芒鞋轻胜马，谁怕？一蓑烟雨任平生。」
+        feedback: 这是苏轼的《定风波》，写于被贬黄州期间。
+      - id: c
+        label: "「先天下之忧而忧，后天下之乐而乐。」"
+        feedback: 正确。这是范仲淹《岳阳楼记》里的名句，不是苏轼写的。
+      - id: d
+        label: 「不识庐山真面目，只缘身在此山中。」
+        feedback: 这是苏轼的《题西林壁》，小学课本里就有。
+    correctOptionId: c
+    hint:
+      text: 有一句，是写岳阳楼的那位大文豪写的——他和苏轼是同一朝代，但比苏轼大几十岁。
+      isCorrect: false
+
+  - id: q8-challenge-compare
+    type: open
+    tier: challenge
+    score: 3
+    canSkip: true
+    prompt: 「同样是写月亮、写思念，张九龄的「海上生明月，天涯共此时」和苏轼的「但愿人长久，千里共婵娟」在意境上有什么不同？请谈谈你的理解。」
+    classmateAnswer: 「我觉得张九龄的更宏大，苏轼的更温柔。」
+    classmateIsCorrect: false
+    referenceAnswer: 「两首都是咏月怀人的千古名句，但意境各有侧重：\n1. 视角不同：张九龄从景入情，先写「海上生明月」的壮阔景象，再自然地带出「天涯共此时」的思念；苏轼则从哲思入情，先问天、问月，最后落到「共婵娟」的祝愿。\n2. 情感浓度不同：张九龄的思念是克制、温和的，有君子之交的距离感；苏轼的思念是深沉、滚烫的，里面还藏着对人生、对离别、对命运的思考，层次更丰富。\n3. 落脚点不同：张九龄停留在「共此时」——此时此刻，我们在一起看月亮；苏轼往前走了一步——「人长久」，不仅要此刻在一起，还要长久地、平安地活着。这是更深的祝福。」
+    scoringPoints:
+      - 能说出至少一个角度的不同（如视角、情感、落脚点等）
+      - 能结合诗句内容进行具体分析
+      - 有自己的理解和感受，言之成理
+    misconceptions:
+      - 只是说"都写了月亮和思念"，没有区分
+      - 把张九龄说成唐代、苏轼说成宋代，但这是朝代不同，不是意境不同
+      - 认为"更好/更差"，没有客观比较意境特点

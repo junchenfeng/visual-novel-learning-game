@@ -5,6 +5,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 1. [项目架构](docs/architecture.md)
 2. [DLC 数据结构和要求](docs/dlc-spec.md)
 3. [自动测试说明](docs/testing.md)
+4. [ECS 发布](docs/deploy-ecs.md)
 
 开发者文档：
 

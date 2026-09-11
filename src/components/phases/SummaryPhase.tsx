@@ -9,6 +9,7 @@ type SummaryPhaseProps = {
   context: GameContext;
   status: "generating" | "ready" | "error";
   teacher: { src?: string; name: string };
+  onFinish?: () => void;
 };
 
 const REMARK_SPEED_MS = 24;
@@ -17,6 +18,7 @@ export function SummaryPhase({
   context,
   status,
   teacher,
+  onFinish,
 }: SummaryPhaseProps) {
   const poet = context.dlc.manifest.poet;
   const title = context.dlc.manifest.title;
@@ -86,9 +88,20 @@ export function SummaryPhase({
           — 本课由 <span className={styles.authorName}>{context.dlc.manifest.author}</span> 制作 —
         </p>
         {remarkDone ? (
-          <Link className={styles.resume} href="/" data-testid="finish-to-catalog">
-            返回目录
-          </Link>
+          onFinish ? (
+            <button
+              type="button"
+              className={styles.resume}
+              data-testid="finish-to-catalog"
+              onClick={onFinish}
+            >
+              合上书
+            </button>
+          ) : (
+            <Link className={styles.resume} href="/" data-testid="finish-to-catalog">
+              返回目录
+            </Link>
+          )
         ) : null}
       </div>
     </div>
