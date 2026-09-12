@@ -12,6 +12,9 @@ model_catalog_json = "model-catalog.deepseek.json"
 approval_policy = "never"
 sandbox_mode = "workspace-write"
 
+[sandbox_workspace_write]
+network_access = false
+
 [model_providers.deepseek]
 name = "DeepSeek"
 base_url = "https://api.deepseek.com/v1"

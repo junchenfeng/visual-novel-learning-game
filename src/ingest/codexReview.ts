@@ -37,12 +37,26 @@ function execScript(): string {
 
 const TASK_MD = `你是诗词穿越游戏的 DLC 审核员。
 
-只根据 SPEC.md 检查 pack/ 里的 YAML 和资源。SPEC.md 是唯一规则来源。
+当前 workspace 里只有这些输入，已经够用：
+- SPEC.md：唯一规则
+- MACHINE_ISSUES.json：机器已经报过的问题
+- FILE_LIST.txt：pack/ 内全部相对路径（已列全，不要再搜）
+- pack/：学员 DLC
+
+只根据 SPEC.md 检查 pack/ 里的 YAML，以及 FILE_LIST.txt 里的资源路径是否对得上。
 禁止发明玩法、禁止要求 SPEC 没写的字段、禁止改写教学目标。
+
+硬性禁止（违反即失败）：
+- 禁止 find、locate、grep -R、fd、rg 扫盘
+- 禁止 ls /、ls /tmp、ls /root、ls /home，禁止进入 workspace 以外的任何目录
+- 禁止读 /tmp、/root、仓库 git、其它学员目录、历史对局
+- 禁止 rm、mv、chmod、git、curl、wget、ssh、kill
+- 禁止为了「找 review.json」满盘乱翻；它还不存在，由你现在写出来
+- 禁止改 pack/ 里的任何文件
 
 先读 MACHINE_ISSUES.json。机器已经报过的问题不要原样重复，除非 SPEC 能给出更具体的改法。
 
-检查完成后把结果写成 workspace 根目录的 review.json，格式必须是：
+读完立刻在 workspace 根目录写 review.json，然后停止，不要再跑命令验证。格式必须是：
 
 {
   "issues": [
@@ -103,6 +117,23 @@ function copyPackIntoWorkspace(packRoot: string, dest: string): void {
   }
 }
 
+function listPackFiles(root: string, current = root): string[] {
+  const names = readdirSync(current, { withFileTypes: true });
+  const files: string[] = [];
+  for (const entry of names) {
+    if (entry.name === "codex-job") {
+      continue;
+    }
+    const full = path.join(current, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...listPackFiles(root, full));
+      continue;
+    }
+    files.push(path.relative(root, full).split(path.sep).join("/"));
+  }
+  return files.sort((a, b) => a.localeCompare(b));
+}
+
 export function writeCodexWorkspace(options: {
   workspace: string;
   packRoot?: string;
@@ -117,6 +148,12 @@ export function writeCodexWorkspace(options: {
   );
   if (options.packRoot && existsSync(options.packRoot)) {
     copyPackIntoWorkspace(options.packRoot, path.join(options.workspace, "pack"));
+    writeFileSync(
+      path.join(options.workspace, "FILE_LIST.txt"),
+      `${listPackFiles(options.packRoot).join("\n")}\n`,
+    );
+  } else {
+    writeFileSync(path.join(options.workspace, "FILE_LIST.txt"), "");
   }
 }
 
@@ -249,7 +286,7 @@ function spawnCodex(workspace: string): Promise<{ stdout: string; stderr: string
         "-",
       ],
       {
-        cwd: repoRoot(),
+        cwd: workspace,
         env: process.env,
         stdio: ["pipe", "pipe", "pipe"],
       },

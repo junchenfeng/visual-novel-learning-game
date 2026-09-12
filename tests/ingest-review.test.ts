@@ -42,6 +42,8 @@ describe("codex workspace", () => {
     writeCodexWorkspace({ workspace, machineIssues: [] });
     expect(readFileSync(path.join(workspace, "SPEC.md"), "utf8")).toMatch(/DLC 数据结构/);
     expect(readFileSync(path.join(workspace, "TASK.md"), "utf8")).toMatch(/review.json/);
+    expect(readFileSync(path.join(workspace, "TASK.md"), "utf8")).toMatch(/禁止 find/);
+    expect(readFileSync(path.join(workspace, "FILE_LIST.txt"), "utf8")).toBe("");
     rmSync(workspace, { recursive: true, force: true });
   });
 
@@ -59,6 +61,7 @@ describe("codex workspace", () => {
     mkdirSync(workspace, { recursive: true });
     writeCodexWorkspace({ workspace, packRoot: unpack, machineIssues: [] });
     expect(readFileSync(path.join(workspace, "pack", "manifest.yaml"), "utf8")).toMatch(/demo/);
+    expect(readFileSync(path.join(workspace, "FILE_LIST.txt"), "utf8")).toMatch(/manifest.yaml/);
     expect(existsSync(path.join(workspace, "pack", "codex-job"))).toBe(false);
     rmSync(unpack, { recursive: true, force: true });
   });
