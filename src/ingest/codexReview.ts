@@ -191,6 +191,13 @@ export async function runCodexSpecReview(options: {
   } catch (error) {
     const spawned = error as { stdout?: string; stderr?: string };
     stdout = spawned.stdout ?? stdout;
+    const recovered = readReviewJson(workspace);
+    if (recovered) {
+      return {
+        issues: asIssues(recovered),
+        transcript: readTranscript(workspace, { stdout, reviewJson: recovered }),
+      };
+    }
     return {
       issues: [
         {
@@ -208,38 +215,41 @@ export async function runCodexSpecReview(options: {
     };
   }
 
-  const reviewFile = path.join(workspace, "review.json");
-  if (!existsSync(reviewFile)) {
+  const reviewJson = readReviewJson(workspace);
+  if (!reviewJson) {
+    const reviewFile = path.join(workspace, "review.json");
     return {
       issues: [
         {
           severity: "blocking",
           source: "spec",
           rule: "审核引擎",
-          message: "审核引擎没有写出 review.json，请稍后重试",
+          message: existsSync(reviewFile)
+            ? "审核引擎返回的 review.json 无法解析，请稍后重试"
+            : "审核引擎没有写出 review.json，请稍后重试",
         },
       ],
-      transcript: readTranscript(workspace, { stdout, error: "missing review.json" }),
+      transcript: readTranscript(workspace, {
+        stdout,
+        error: existsSync(reviewFile) ? "invalid review.json" : "missing review.json",
+      }),
     };
   }
+  return {
+    issues: asIssues(reviewJson),
+    transcript: readTranscript(workspace, { stdout, reviewJson }),
+  };
+}
+
+function readReviewJson(workspace: string): unknown | null {
+  const reviewFile = path.join(workspace, "review.json");
+  if (!existsSync(reviewFile)) {
+    return null;
+  }
   try {
-    const reviewJson = JSON.parse(readFileSync(reviewFile, "utf8"));
-    return {
-      issues: asIssues(reviewJson),
-      transcript: readTranscript(workspace, { stdout, reviewJson }),
-    };
+    return JSON.parse(readFileSync(reviewFile, "utf8"));
   } catch {
-    return {
-      issues: [
-        {
-          severity: "blocking",
-          source: "spec",
-          rule: "审核引擎",
-          message: "审核引擎返回的 review.json 无法解析，请稍后重试",
-        },
-      ],
-      transcript: readTranscript(workspace, { stdout, error: "invalid review.json" }),
-    };
+    return null;
   }
 }
 
@@ -324,16 +334,41 @@ function spawnCodex(workspace: string): Promise<{ stdout: string; stderr: string
       // 进程可能已退出，忽略 EPIPE
     });
     child.stdin.end(readFileSync(path.join(workspace, "TASK.md"), "utf8"));
+    const stopWatching = () => {
+      clearTimeout(timer);
+      clearInterval(poll);
+    };
+    const acceptWrittenReview = () => {
+      if (!readReviewJson(workspace)) {
+        return false;
+      }
+      child.kill("SIGTERM");
+      succeed({ stdout, stderr });
+      return true;
+    };
     const timer = setTimeout(() => {
+      if (acceptWrittenReview()) {
+        stopWatching();
+        return;
+      }
       child.kill("SIGTERM");
       fail(`codex exec 超时 ${CODEX_TIMEOUT_MS}ms: ${stderr.slice(-400)}`);
     }, CODEX_TIMEOUT_MS);
+    const poll = setInterval(() => {
+      if (acceptWrittenReview()) {
+        stopWatching();
+      }
+    }, 1000);
     child.on("error", (error) => {
-      clearTimeout(timer);
+      stopWatching();
       fail(error.message);
     });
     child.on("close", (code) => {
-      clearTimeout(timer);
+      stopWatching();
+      if (readReviewJson(workspace)) {
+        succeed({ stdout, stderr });
+        return;
+      }
       if (code !== 0) {
         fail(`codex exec 退出码 ${code}: ${stderr.slice(-400)}`);
         return;
