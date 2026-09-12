@@ -24,8 +24,17 @@ export function markdownHttpResponse(markdown: string, request: Request): Respon
   });
 }
 
+function markdownTitle(markdown: string): string {
+  const heading = markdown.match(/^#\s+(.+)$/m)?.[1]?.trim();
+  return heading || "poem-rpg docs";
+}
+
 function markdownHtmlDocument(markdown: string): string {
   const escaped = markdown
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+  const title = markdownTitle(markdown)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
@@ -34,7 +43,7 @@ function markdownHtmlDocument(markdown: string): string {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>poem-dlc-ingest how-to</title>
+  <title>${title}</title>
   <style>
     html, body { margin: 0; background: #d9c7a1; color: #2c2416; }
     body {
