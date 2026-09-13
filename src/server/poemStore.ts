@@ -172,6 +172,10 @@ export function uploadsIndexKey() {
   return `${OSS_PREFIX}/uploads/index.json`;
 }
 
+export function ingestPreviewIndexKey() {
+  return `${OSS_PREFIX}/ingest-preview/index.json`;
+}
+
 export function uploadedCompiledKey(dlcId: string) {
   return `${OSS_PREFIX}/uploads/${dlcId}/compiled.json`;
 }

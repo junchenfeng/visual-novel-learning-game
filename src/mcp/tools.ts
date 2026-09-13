@@ -3,6 +3,7 @@ import { extname } from "node:path";
 import { MAX_ZIP_BYTES } from "../dlc/uploadPack";
 import { portraitQueryMeta, runWithIngestUser, zipQueryMeta, type IngestGateOptions } from "../ingest/gate";
 import { type IngestResult } from "../ingest/issues";
+import { safeUpsertPreviewEntry } from "../ingest/previewIndex";
 import { reviewAndIngestDlc } from "../ingest/reviewIngest";
 import { portraitHint } from "../roster/portrait";
 import { loadRoster, upsertPoet, upsertWork } from "../roster/store";
@@ -143,37 +144,76 @@ export async function ingestDlcTool(
     now: options.now,
     extractTranscript: (result) => result.transcript,
     run: async (user) => {
-      if (!zipBuffer) {
-        return {
-          verdict: "reject" as const,
-          issues: [
-            {
-              severity: "blocking" as const,
-              source: "machine" as const,
-              rule: "zip",
-              message: "请提供 zipBase64，或在本机 stdio 下提供 zipPath",
-            },
-          ],
-        };
+      const poetId = input.poetId.trim();
+      const workTitle = input.workTitle.trim();
+      const poet = await lookupPoetName(poetId, options);
+      const previewBase = {
+        userId: user.canonical,
+        nickname: user.nickname,
+        poetId,
+        workTitle,
+        poet,
+        now: options.now,
+      };
+      await safeUpsertPreviewEntry({ ...previewBase, status: "reviewing" }, options.store);
+      try {
+        if (!zipBuffer) {
+          const rejected: IngestResult = {
+            verdict: "reject",
+            issues: [
+              {
+                severity: "blocking",
+                source: "machine",
+                rule: "zip",
+                message: "请提供 zipBase64，或在本机 stdio 下提供 zipPath",
+              },
+            ],
+          };
+          await safeUpsertPreviewEntry({ ...previewBase, status: "rejected" }, options.store);
+          return rejected;
+        }
+        if (zipBuffer.byteLength > MAX_ZIP_BYTES) {
+          const rejected: IngestResult = {
+            verdict: "reject",
+            issues: [
+              {
+                severity: "blocking",
+                source: "machine",
+                rule: "zip 大小",
+                message: `zip 超过 ${Math.round(MAX_ZIP_BYTES / (1024 * 1024))}MB`,
+              },
+            ],
+          };
+          await safeUpsertPreviewEntry({ ...previewBase, status: "rejected" }, options.store);
+          return rejected;
+        }
+        const result = await reviewAndIngestDlc({
+          form: { userId: user.canonical, poetId, workTitle },
+          zipBuffer,
+          origin: input.origin,
+        });
+        await safeUpsertPreviewEntry(
+          {
+            ...previewBase,
+            status: result.verdict === "accept" ? "published" : "rejected",
+            dlcId: result.pack?.dlcId,
+          },
+          options.store,
+        );
+        return result;
+      } catch (error) {
+        await safeUpsertPreviewEntry({ ...previewBase, status: "rejected" }, options.store);
+        throw error;
       }
-      if (zipBuffer.byteLength > MAX_ZIP_BYTES) {
-        return {
-          verdict: "reject" as const,
-          issues: [
-            {
-              severity: "blocking" as const,
-              source: "machine" as const,
-              rule: "zip 大小",
-              message: `zip 超过 ${Math.round(MAX_ZIP_BYTES / (1024 * 1024))}MB`,
-            },
-          ],
-        };
-      }
-      return reviewAndIngestDlc({
-        form: { userId: user.canonical, poetId: input.poetId.trim(), workTitle: input.workTitle.trim() },
-        zipBuffer,
-        origin: input.origin,
-      });
     },
   });
+}
+
+async function lookupPoetName(poetId: string, options: IngestGateOptions): Promise<string> {
+  try {
+    const roster = await loadRoster(options.store);
+    return roster.find((poet) => poet.poetId === poetId)?.poet ?? "";
+  } catch {
+    return "";
+  }
 }

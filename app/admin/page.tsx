@@ -3,6 +3,8 @@ import { getAdminPassword } from "../../src/auth/admin";
 import { readAdminSession } from "../../src/auth/requestAdmin";
 import { loadRoster } from "../../src/roster/store";
 import { loadUploadIndex } from "../../src/dlc/uploadIndex";
+import { mergePreviewRows, nicknameForUserId } from "../../src/ingest/preview";
+import { loadPreviewIndex } from "../../src/ingest/previewIndex";
 import { requestOrigin } from "../../src/server/siteUrl";
 import { AdminConsole } from "./AdminConsole";
 import { AdminLogin } from "./AdminLogin";
@@ -15,6 +17,9 @@ export default async function AdminPage() {
     return <AdminLogin configured={Boolean(getAdminPassword())} />;
   }
   const headerList = await headers();
-  const [packs, poets] = await Promise.all([loadUploadIndex(), loadRoster()]);
-  return <AdminConsole poets={poets} packs={packs} origin={requestOrigin(headerList)} />;
+  const [packs, previews, poets] = await Promise.all([loadUploadIndex(), loadPreviewIndex(), loadRoster()]);
+  const rows = mergePreviewRows(previews, packs).map((row) =>
+    row.nickname ? row : { ...row, nickname: nicknameForUserId(row.userId) },
+  );
+  return <AdminConsole poets={poets} previews={rows} origin={requestOrigin(headerList)} />;
 }

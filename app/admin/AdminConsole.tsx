@@ -3,19 +3,56 @@
 import { useMemo, useState } from "react";
 import type { RosterPoet } from "../../src/dlc/roster";
 import type { UploadedPack } from "../../src/dlc/uploadIndex";
+import {
+  PREVIEW_STATUS_LABEL,
+  nicknameForUserId,
+  previewFromUploadedPack,
+  previewPlayDlcId,
+  type PreviewEntry,
+} from "../../src/ingest/preview";
 import styles from "./admin.module.css";
 
 function playLink(origin: string, dlcId: string) {
   return `${origin.replace(/\/+$/, "")}/play/${dlcId}`;
 }
 
+function poetWorkLabel(entry: Pick<PreviewEntry, "poet" | "poetId" | "workTitle">): string {
+  const poet = (entry.poet || entry.poetId).trim();
+  const work = entry.workTitle.trim();
+  if (poet && work) {
+    return `${poet} · ${work}`;
+  }
+  return poet || work || "—";
+}
+
+function formatUpdatedAt(iso: string): string {
+  if (!iso) {
+    return "";
+  }
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return iso;
+  }
+  return date.toLocaleString("zh-CN", { timeZone: "Asia/Shanghai", hour12: false });
+}
+
+function statusClass(status: PreviewEntry["status"]): string {
+  if (status === "published") {
+    return styles.statusPublished;
+  }
+  if (status === "rejected") {
+    return styles.statusRejected;
+  }
+  return styles.statusReviewing;
+}
+
 type AdminConsoleProps = {
   poets: RosterPoet[];
-  packs: UploadedPack[];
+  previews: PreviewEntry[];
   origin: string;
 };
 
-export function AdminConsole({ poets, packs, origin }: AdminConsoleProps) {
+export function AdminConsole({ poets, previews, origin }: AdminConsoleProps) {
   const [poetId, setPoetId] = useState(poets[0]?.poetId ?? "");
   const works = useMemo(
     () => poets.find((poet) => poet.poetId === poetId)?.works ?? [],
@@ -26,7 +63,7 @@ export function AdminConsole({ poets, packs, origin }: AdminConsoleProps) {
   const [issues, setIssues] = useState<string[]>([]);
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
-  const [list, setList] = useState(packs);
+  const [list, setList] = useState(previews);
 
   function onPoetChange(nextPoetId: string) {
     setPoetId(nextPoetId);
@@ -88,10 +125,8 @@ export function AdminConsole({ poets, packs, origin }: AdminConsoleProps) {
                 return;
               }
               if (data.pack) {
-                setList((current) => {
-                  const without = current.filter((item) => item.dlcId !== data.pack?.dlcId);
-                  return [data.pack!, ...without];
-                });
+                const row = previewFromUploadedPack(data.pack, nicknameForUserId(data.pack.userId));
+                setList((current) => [row, ...current.filter((item) => item.slotKey !== row.slotKey)]);
                 setMessage(`已入库 ${data.pack.dlcId}`);
                 form.reset();
                 setUserId("");
@@ -170,28 +205,47 @@ export function AdminConsole({ poets, packs, origin }: AdminConsoleProps) {
       </form>
 
       <section>
-        <h2>已上传</h2>
+        <header className={styles.previewHeader}>
+          <h2>预览</h2>
+          <button type="button" className={styles.ghost} onClick={() => window.location.reload()}>
+            刷新
+          </button>
+        </header>
         {list.length === 0 ? (
-          <p>还没有上传包。</p>
+          <p>还没有提交记录。</p>
         ) : (
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>user id</th>
-                <th>play</th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.map((pack) => (
-                <tr key={pack.dlcId}>
-                  <td>{pack.userId}</td>
-                  <td>
-                    <a href={playLink(origin, pack.dlcId)}>{playLink(origin, pack.dlcId)}</a>
-                  </td>
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>user id</th>
+                  <th>昵称</th>
+                  <th>诗人-诗词</th>
+                  <th>url</th>
+                  <th>提交状态</th>
+                  <th>更新时间</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {list.map((entry) => {
+                  const dlcId = previewPlayDlcId(entry);
+                  const url = dlcId ? playLink(origin, dlcId) : "";
+                  return (
+                    <tr key={entry.slotKey}>
+                      <td>{entry.userId}</td>
+                      <td>{entry.nickname || nicknameForUserId(entry.userId) || "—"}</td>
+                      <td>{poetWorkLabel(entry)}</td>
+                      <td className={styles.tableUrl}>
+                        {url ? <a href={url}>{url}</a> : null}
+                      </td>
+                      <td className={statusClass(entry.status)}>{PREVIEW_STATUS_LABEL[entry.status]}</td>
+                      <td className={styles.nowrap}>{formatUpdatedAt(entry.updatedAt)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </main>

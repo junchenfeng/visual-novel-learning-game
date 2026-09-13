@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { normalizeUsername, usernameHint } from "../../../../src/auth/username";
 import { MAX_ZIP_BYTES, publishUploadedDlc } from "../../../../src/dlc/publishUpload";
+import { nicknameForUserId } from "../../../../src/ingest/preview";
+import { safeUpsertPreviewEntry } from "../../../../src/ingest/previewIndex";
 import { loadRoster } from "../../../../src/roster/store";
 
 export const runtime = "nodejs";
@@ -40,5 +42,15 @@ export async function POST(request: NextRequest) {
   if ("issues" in result) {
     return NextResponse.json({ error: "校验未通过", issues: result.issues }, { status: 400 });
   }
-  return NextResponse.json({ pack: result.pack });
+  const pack = result.pack;
+  await safeUpsertPreviewEntry({
+    userId: pack.userId,
+    poetId: pack.poetId,
+    workTitle: pack.workTitle,
+    poet: pack.poet,
+    nickname: nicknameForUserId(pack.userId),
+    status: "published",
+    dlcId: pack.dlcId,
+  });
+  return NextResponse.json({ pack });
 }

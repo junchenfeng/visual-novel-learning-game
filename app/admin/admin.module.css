@@ -14,7 +14,7 @@
 }
 
 .pageWide {
-  max-width: 52rem;
+  max-width: 76rem;
 }
 
 .header {
@@ -99,6 +99,10 @@
   line-height: 1.6;
 }
 
+.tableWrap {
+  overflow-x: auto;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -112,9 +116,37 @@
   border: 1px solid #cbb58a;
   padding: 10px 12px;
   text-align: left;
+  vertical-align: top;
+  word-break: normal;
+}
+
+.tableUrl {
   word-break: break-all;
 }
 
 .table th {
   background: #f4ead5;
+}
+
+.previewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.statusReviewing {
+  color: #6a5428;
+}
+
+.statusRejected {
+  color: #7a2e2e;
+}
+
+.statusPublished {
+  color: #2c4a3a;
 }
