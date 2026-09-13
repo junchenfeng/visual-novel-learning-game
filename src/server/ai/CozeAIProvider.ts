@@ -14,9 +14,21 @@ function parseJsonContent(content: string | undefined, label: string) {
   if (!content) {
     throw new Error("AI 没有返回内容");
   }
+  const trimmed = content.trim();
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
+  const raw = fenced?.[1]?.trim() ?? trimmed;
   try {
-    return JSON.parse(content) as unknown;
+    return JSON.parse(raw) as unknown;
   } catch {
+    const start = raw.indexOf("{");
+    const end = raw.lastIndexOf("}");
+    if (start >= 0 && end > start) {
+      try {
+        return JSON.parse(raw.slice(start, end + 1)) as unknown;
+      } catch {
+        // fall through
+      }
+    }
     throw new Error(`${label} 不是合法 JSON`);
   }
 }

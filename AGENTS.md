@@ -77,7 +77,7 @@ pnpm test        # 运行 Jest 测试
 - `predev` / `prebuild` 钩子已自动触发编译
 - Next.js 16 有破坏性变更，写代码前查阅 `node_modules/next/dist/docs/`
 - 故事结束到读词之间可在 `manifest.yaml` 配可选 `easterEgg`；不配则最后一页只有「开始读词」，不会出现「这是什么？」。字段见 `docs/dlc-spec.md`。
-- 试评轨迹 YAML 放 `docs/teaching/prompt-lab/cases/`（进 git，quiz-only）。开发环境进总结前会把完整对局（故事+课堂，不含读诗/彩蛋）写到 `assets/sessions/<dlcId>/`。总评 LLM 目前返回「待完成」，作业见 `docs/teaching/README.md`。
+- 试评轨迹 YAML 放 `docs/teaching/prompt-lab/cases/`（进 git，quiz-only）。开发环境进总结前会把完整对局（故事+课堂，不含读诗/彩蛋）写到 `assets/sessions/<dlcId>/`。总评走 `/api/summary`，把完整作答轨迹交给 LLM。方法见 `docs/teaching/README.md`。
 - 改 DLC 故事或题目时请升高 `manifest.yaml` 的 `version`。分析本机对局时丢掉 `dlcVersion` 对不上的文件。
 
 ## 新增 DLC（带练创作）
