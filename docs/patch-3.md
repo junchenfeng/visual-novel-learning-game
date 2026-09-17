@@ -31,9 +31,10 @@ YAML 规范：https://poem.aibeaver.cn/dlc-spec
 | `poem.aibeaver.cn/mcp` | MCP 地址已写进文档 |
 | `ingest_dlc` | 上传课包流程已写进文档 |
 | `usage_manifest` | 拿回使用数据流程已写进文档 |
+| `hailao-shuidiao` | 上传范围规则已写进文档（扫项目 `dlc/` 下全部合规包，跳过课堂课包） |
 
-- **三个都在**：已对齐，跳过第 1 节。
-- **缺任意一个**：把第 1 节的整段**追加到 `AGENTS.md` 末尾**。三件事是一次写全的，别只补缺的那一段。
+- **四个都在**：已对齐，跳过第 1 节。
+- **缺任意一个**：把第 1 节的整段**追加到 `AGENTS.md` 末尾**。这几件事是一次写全的，别只补缺的那一段。已经粘过旧版（三个探针在、没有 `hailao-shuidiao`）的，把上传那一节替换成新版原文。
 - **项目根没有 `AGENTS.md`**：新建一个，把整段粘进去即可（其它章节以后自然会长出来）。
 
 **B. 回看按钮**：在学员项目里搜 `quiz-back` 与 `.navBack`：
@@ -90,8 +91,9 @@ curl -s https://poem.aibeaver.cn/mcp \
 
 说明页：https://poem.aibeaver.cn/mcp-how-to
 
-- 只向用户要两样：`userId`、DLC 目录（里面有 `manifest.yaml`）。**不要让用户自己打 zip**，也不要问 poetId / 诗人中文名 / 篇名 —— 从 `manifest.yaml` 读。不要向用户要 token。
-- 工具：`list_roster`（先看诗人与篇目）→ 诗人不在名册时 `upsert_poet`（正方形 png/jpg/webp，边长 512–1024px，≤2MB，传 `portraitBase64`；几百 KB 的正方形 webp 本来就合规，不用先压缩、也不用为此改尺寸）→ `ingest_dlc`（zip ≤30MB，传 `zipBase64`）。
+- 只向用户要一样：`userId`。**不要再问「要传哪个包」「目录在哪」** —— 课包固定在项目根的 `dlc/` 下：`find dlc -name manifest.yaml`，每个命中目录就是一个包根，**逐个都传**。**不要让用户自己打 zip**，也不要问 poetId / 诗人中文名 / 篇名 —— 从 `manifest.yaml` 读。不要向用户要 token。
+- **跳过 `hailao-shuidiao`**：它是课堂课包，不归学员。口径是 `manifest.yaml` 的 `id` 命中 `src/dlc/unpublished.ts` 的 `UNPUBLISHED_DLC_IDS`（本项目就是 `hailao-shuidiao`）。传上去等于把老师的课包挂到学员 id 下 —— 服务端只挡精确 id 冲突，**挡不住这种挂靠**。用户点名只传某一个包时才只传那一个。
+- 工具：`list_roster`（先看诗人与篇目）→ 诗人不在名册时 `upsert_poet`（正方形 png/jpg/webp，边长 512–1024px，≤2MB，传 `portraitBase64`；几百 KB 的正方形 webp 本来就合规，不用先压缩、也不用为此改尺寸；同一位诗人只需建一次）→ `ingest_dlc`（zip ≤30MB，传 `zipBase64`；每个包一轮）。
 - 打包排除 `.DS_Store`、`.git`、`node_modules`、`__MACOSX`。诗人头像是公共资源，**不要放进 zip**。
 - 审核 = 机器校验 + 对照 https://poem.aibeaver.cn/dlc-spec 的评审，可能要几分钟，别中途取消。
 - `verdict: accept` → 把返回的 `playUrl` 给用户，结束；`verdict: reject` → 按 `issues[].message` / `fixHint` 改 YAML，**你自己重新打包**再 `ingest_dlc`，不要让用户手动重压。
@@ -265,7 +267,7 @@ const backButton = canGoBack ? (
 
 肉眼核对 + 跑原有检查：
 
-1. `AGENTS.md` 末尾出现 `## 平台 MCP：上传课包与拿回使用数据`，且三个探针（`poem.aibeaver.cn/mcp`、`ingest_dlc`、`usage_manifest`）都在。
+1. `AGENTS.md` 末尾出现 `## 平台 MCP：上传课包与拿回使用数据`，且四个探针（`poem.aibeaver.cn/mcp`、`ingest_dlc`、`usage_manifest`、`hailao-shuidiao`）都在；上传那节写明「扫项目 `dlc/` 下全部合规包、跳过 `hailao-shuidiao`」。
 2. 七个工具名一个没写错：`list_roster`、`upsert_poet`、`upsert_work`、`ingest_dlc`、`list_my_dlc`、`usage_manifest`、`download_usage_files`。
 3. 两个域名写对：MCP 是 `https://poem.aibeaver.cn/mcp`，不是 `/api/ingest`。
 4. MCP 探测方式对：`curl -s -o /dev/null -w '%{http_code}' https://poem.aibeaver.cn/mcp` 应当是 **405**（POST-only 的 JSON-RPC，GET 不通是正常的）；带 `Accept: application/json, text/event-stream` 发 `initialize` 应返回 `event: message` 的 SSE 帧。**别拿 GET 的 405 当成端点故障**。
