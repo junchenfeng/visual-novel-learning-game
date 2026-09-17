@@ -50,6 +50,17 @@ export const endingMetaSchema = z.object({
   quote: z.string().optional(),
 });
 
+/**
+ * 分阶段 BGM 配置：`story` = 前面的小说（故事/彩蛋），`poem` = 后面的读词。
+ * 缺省的阶段不播放背景音乐。
+ */
+export const musicConfigSchema = z.object({
+  story: relativePathSchema.optional(),
+  poem: relativePathSchema.optional(),
+});
+
+export type MusicConfig = z.infer<typeof musicConfigSchema>;
+
 export const manifestSchema = z.object({
   schemaVersion: z.literal(SCHEMA_VERSION),
   id: idSchema,
@@ -74,7 +85,13 @@ export const manifestSchema = z.object({
   characters: z.array(characterSchema).min(1),
   assets: z
     .object({
-      music: relativePathSchema.optional(),
+      /**
+       * 背景音乐。支持两种写法：
+       * - 对象 { story?, poem? }：为前面小说、后面读词分别配置音频；
+       * - 旧版字符串：一份音频在小说与读词阶段共用。
+       * 未配置的阶段默认不播放音频。
+       */
+      music: z.union([musicConfigSchema, relativePathSchema]).optional(),
     })
     .optional(),
   easterEgg: easterEggSchema.optional(),

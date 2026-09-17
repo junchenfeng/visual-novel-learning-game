@@ -64,9 +64,23 @@ function git(repo, cmdArgs, options = {}) {
   });
 }
 
-/** 前缀匹配目录（以 / 结尾）或精确匹配文件。 */
+/**
+ * 路径规则匹配：
+ * - 以 `/` 结尾 → 目录前缀；否则精确匹配整条路径
+ * - 含 `*` / `**` → 通配（`*` 不跨 `/`，`**` 跨 `/`）
+ */
 function matches(rel, rules) {
-  return rules.some((rule) => (rule.endsWith("/") ? rel.startsWith(rule) : rel === rule));
+  return rules.some((rule) => {
+    if (rule.includes("*")) {
+      const pattern = rule
+        .replace(/[.+^${}()|[\]\\]/g, "\\$&")
+        .replace(/\*\*/g, "\u0000")
+        .replace(/\*/g, "[^/]*")
+        .replace(/\u0000/g, ".*");
+      return new RegExp(`^${pattern}$`).test(rel);
+    }
+    return rule.endsWith("/") ? rel.startsWith(rule) : rel === rule;
+  });
 }
 
 /** `git ls-tree -r` 一次取出 path → blob sha，二进制安全且便宜。 */
@@ -200,16 +214,26 @@ function buildPlan() {
   const cozeTree = treeMap(B_REPO, CFG.cozeRef);
   const fileSet = new Set(sourceTree.keys());
 
-  const plan = { add: [], update: [], same: [], blocked: [], remove: [], quarantined: [] };
+  const plan = {
+    add: [],
+    update: [],
+    same: [],
+    blocked: [],
+    remove: [],
+    quarantined: [],
+    perHost: [],
+  };
 
   for (const rel of CFG.quarantine ?? []) {
     if (sourceTree.has(rel)) plan.quarantined.push(rel);
   }
+  plan.perHost = [...sourceTree.keys()].filter((rel) => matches(rel, CFG.perHost ?? [])).sort();
 
   const isCandidate = (rel) =>
     matches(rel, CFG.include) &&
     !matches(rel, CFG.exclude) &&
     !matches(rel, CFG.bOwned) &&
+    !matches(rel, CFG.perHost ?? []) &&
     !matches(rel, CFG.quarantine ?? []);
 
   for (const rel of sourceTree.keys()) {
@@ -263,6 +287,9 @@ function report(plan) {
   console.log(`  可同步：${plan.update.length} 改 / ${plan.add.length} 新增`);
   console.log(`  已一致：${plan.same.length}`);
   console.log(`  被拒绝：${plan.blocked.length}（含宿主依赖，扣子仓库保留旧版）`);
+  if (plan.perHost.length) {
+    console.log(`  各仓库自有：${plan.perHost.length}（${plan.perHost.join("、")}）`);
+  }
   if (plan.remove.length) console.log(`  主仓库已删：${plan.remove.length}（加 --prune 清理）`);
 
   if (plan.update.length) {

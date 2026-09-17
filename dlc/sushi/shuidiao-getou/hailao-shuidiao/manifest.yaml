@@ -31,3 +31,6 @@ characters:
     name: 何解
   - id: student
     name: 你
+assets:
+  music:
+    poem: assets/backgrounds/bgm-poem.m4a

@@ -6,8 +6,13 @@
     "include/exclude 只是粗筛；真正的判定是 scripts/coze-sync.mjs 的 import 闭包检查——",
     "任何直接或间接 import 到 exclude 路径的文件都会被拒绝同步。",
     "quarantine 是临时名单：主仓库上这些文件处于自相矛盾（编译不过）的状态，",
-    "先从同步里摘出去，等主仓库修好再删掉条目。每一条都必须写清楚原因。"
+    "先从同步里摘出去，等主仓库修好再删掉条目。每一条都必须写清楚原因。",
+    "perHost 是各仓库自有策略：两边内容天然不同、且都必须不同，永远不参与同步。",
+    "路径规则支持 *（不跨 /）与 **（跨 /）通配。"
   ],
+  "$perHostComment": {
+    "src/dlc/unpublished.ts": "main 必须隐藏海狸老师的 hailao-shuidiao（课堂课包不进公网目录），扣子版必须上架（它就是教学关卡）。策略小且天然分叉，各自持有。"
+  },
   "cozeRepo": "../visual-novel-poem-coze",
   "cozeRef": "main",
   "sourceRef": "main",
@@ -20,6 +25,7 @@
     "tests/",
     "public/",
     "docs/",
+    "DESIGN.md",
     "scripts/compile-dlc.ts",
     "jest.config.cjs",
     "tsconfig.json",
@@ -45,7 +51,7 @@
     "app/dlc-spec/",
     "app/mcp/",
     "app/mcp-how-to/",
-    "app/patch-1/",
+    "app/patch*/**",
 
     "src/assets/webp.ts",
     "src/auth/",
@@ -68,7 +74,7 @@
     "docs/deploy-ecs.md",
     "docs/mcp-how-to.md",
     "docs/mcp-ingest.md",
-    "docs/patch-1.md",
+    "docs/patch*.md",
 
     "dlc/sushi/shuidiao-getou/hailao-v2/",
 
@@ -84,6 +90,10 @@
 
   "quarantine": [],
 
+  "perHost": [
+    "src/dlc/unpublished.ts"
+  ],
+
   "bOwned": [
     ".coze",
     ".codegraph/",
@@ -91,7 +101,6 @@
     "AGENTS.md",
     "README.md",
     "CLAUDE.md",
-    "DESIGN.md",
     "package.json",
     "pnpm-lock.yaml",
     "next.config.ts",

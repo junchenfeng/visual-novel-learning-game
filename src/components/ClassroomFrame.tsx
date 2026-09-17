@@ -213,6 +213,20 @@ export function ClassroomFrame({
           key={`${question.id}-${speaker}-${status}`}
         >
           <p className={`${styles.speaker} ${speakerColor[speaker]}`}>{portraits[speaker].name}</p>
+          {status === "idle" && (beat === "classmate" || beat === "student") ? (
+            <button
+              className={styles.navBack}
+              data-testid="quiz-back"
+              onClick={() => {
+                playSfx("click");
+                setBeat((current) =>
+                  current === "student" ? (showHint ? "classmate" : "teacher") : "teacher",
+                );
+              }}
+            >
+              ← 回看上一段
+            </button>
+          ) : null}
           <div className={styles.dialogueBody}>
             {status === "idle" && beat === "teacher" ? (
               <TypedParagraph tw={promptTw} className={styles.promptText} testId="quiz-prompt" />

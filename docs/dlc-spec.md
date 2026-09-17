@@ -68,11 +68,31 @@ flowchart LR
 | `classroom.teacher/classmate/student` | 是 | 问答舞台三个角色，必须能在 `characters` 里找到 |
 | `files.story/poem/quiz` | 是 | 三个内容文件的相对路径 |
 | `characters[]` | 是 | `id`、`name`、可选 `portrait` |
-| `assets.music` | 否 | 背景音乐相对路径 |
+| `assets.music` | 否 | 背景音乐。对象 `story`/`poem` 分阶段配置，或旧版单路径（见下） |
 | `easterEgg` | 否 | 故事结束到读词之间的可选彩蛋小游戏。**不写则最后一页只有「开始读词」，不会出现「这是什么？」** |
 | `endings[]` | 否 | 真结局元数据：`endingId` / `title`，以及可选的 `subtitle` / `triggerHint` / `quote`。与故事里带 `endingId` 的 `gameOver` 对应 |
 
 资源路径必须是相对路径，不能包含 `..`，也不能以 `/` 开头。
+
+#### 背景音乐（`assets.music`）
+
+可以为**前面的小说**（进入穿越后的故事，含彩蛋）和**后面的读词**分别配置一首 BGM。未配置的阶段默认不播放音频。
+
+```yaml
+assets:
+  music:
+    story: assets/bgm-story.mp3    # 前面小说/彩蛋的背景音乐（可选）
+    poem: assets/bgm-poem.mp3      # 后面读词的背景音乐（可选）
+```
+
+也兼容旧版单路径写法——一份音频在小说与读词阶段共用：
+
+```yaml
+assets:
+  music: assets/bgm-music.mp3
+```
+
+音频文件放在 DLC 包 `assets/` 目录下，路径须是安全的相对路径。两种写法都支持只配置其中一部分，漏掉的阶段就不会有音乐。
 
 故事最后一页（旁白/史实省略 `nextNodeId`）默认只有「开始读词」。只有配置了 `easterEgg`，才会多出「这是什么？」：
 

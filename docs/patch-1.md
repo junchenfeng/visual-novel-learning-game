@@ -1,6 +1,7 @@
 # patch-1：把现有引擎对齐解谜关
 
-永久地址：https://poem.aibeaver.cn/patch-1  
+永久地址：https://poem.aibeaver.cn/patch  
+本补丁：https://poem.aibeaver.cn/patch-1  
 YAML 规范：https://poem.aibeaver.cn/dlc-spec  
 提交课包：https://poem.aibeaver.cn/mcp-how-to
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import type { Poem } from "../dlc/schema";
@@ -19,6 +19,11 @@ type PoemScrollFrameProps = {
   onNext: () => void;
 };
 
+// 读词强制节奏：每进入一句锁定 N 秒，期间"下一句"按钮与空格键均不可用，避免连点。
+const READ_LOCK_SECONDS = 3;
+const RING_R = 10;
+const RING_C = 2 * Math.PI * RING_R;
+
 export function PoemScrollFrame({
   poet,
   workTitle,
@@ -29,6 +34,22 @@ export function PoemScrollFrame({
   onNext,
 }: PoemScrollFrameProps) {
   const currentRef = useRef<HTMLElement | null>(null);
+  const [lockSeconds, setLockSeconds] = useState(READ_LOCK_SECONDS);
+  const locked = lockSeconds > 0;
+  const ringRatio = READ_LOCK_SECONDS <= 0 ? 0 : lockSeconds / READ_LOCK_SECONDS;
+  const ringOffset = RING_C * (1 - ringRatio);
+
+  useEffect(() => {
+    setLockSeconds(READ_LOCK_SECONDS);
+  }, [lineIndex]);
+
+  useEffect(() => {
+    if (lockSeconds <= 0) {
+      return;
+    }
+    const timer = window.setTimeout(() => setLockSeconds((s) => s - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [lockSeconds]);
 
   useEffect(() => {
     currentRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -36,7 +57,7 @@ export function PoemScrollFrame({
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === " " && !event.repeat) {
+      if (event.key === " " && !event.repeat && !locked) {
         event.preventDefault();
         playSfx("line");
         onNext();
@@ -44,7 +65,7 @@ export function PoemScrollFrame({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onNext]);
+  }, [onNext, locked]);
 
   const revealed = poem.lines.slice(0, lineIndex + 1);
   const isLast = lineIndex >= poem.lines.length - 1;
@@ -118,12 +139,36 @@ export function PoemScrollFrame({
             <button
               className={styles.primary}
               data-testid="next-line"
+              disabled={locked}
+              aria-disabled={locked}
               onClick={() => {
+                if (locked) {
+                  return;
+                }
                 playSfx("line");
                 onNext();
               }}
             >
-              {isLast ? "进入问答" : "下一句"}
+              {locked ? (
+                <>
+                  <svg className={styles.lockRing} viewBox="0 0 24 24" aria-hidden="true">
+                    <circle className={styles.lockRingTrack} cx="12" cy="12" r={RING_R} />
+                    <circle
+                      className={styles.lockRingBar}
+                      cx="12"
+                      cy="12"
+                      r={RING_R}
+                      strokeDasharray={RING_C}
+                      strokeDashoffset={ringOffset}
+                    />
+                  </svg>
+                  {isLast ? "进入问答" : "下一句"}
+                </>
+              ) : isLast ? (
+                "进入问答"
+              ) : (
+                "下一句"
+              )}
             </button>
           </div>
         </motion.article>

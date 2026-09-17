@@ -194,6 +194,30 @@
   gap: 14px;
 }
 
+.navBack {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  z-index: 2;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  border: 1px solid rgba(244, 234, 213, 0.35);
+  background: rgba(16, 20, 28, 0.7);
+  color: #d9c9a3;
+  padding: 6px 12px;
+  min-height: 30px;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.navBack:hover {
+  background: rgba(244, 234, 213, 0.12);
+  color: #f4ead5;
+  border-color: #f4ead5;
+}
+
 .dialogueBody::-webkit-scrollbar {
   width: 0;
   height: 0;

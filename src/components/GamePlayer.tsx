@@ -7,6 +7,7 @@ import { playSfx } from "../audio/playSfx";
 import { useOptionalHowl, usePageTurnSound } from "../audio/useHowler";
 import type { CompiledDlc } from "../dlc/schema";
 import { isChoiceQuestion } from "../dlc/quizHelpers";
+import { resolveMusicUrls, resolveMusicZone } from "../dlc/music";
 import { gameMachine, getCurrentNode } from "../game/gameMachine";
 import { groupAnswerAttempts } from "../game/answerAttempts";
 import { buildRecordedSession } from "../sessions/recordedSession";
@@ -58,6 +59,18 @@ function currentPhaseName(value: unknown): string {
   return "unknown";
 }
 
+/** 提取机器状态机的最顶层 phase 名（复合状态取其第一个子键，如 quiz/summary）。 */
+function topLevelPhase(value: unknown): string {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (value && typeof value === "object") {
+    const keys = Object.keys(value as object);
+    return keys.length > 0 ? keys[0] : "unknown";
+  }
+  return "unknown";
+}
+
 type GamePlayerProps = {
   dlc: CompiledDlc;
 };
@@ -78,10 +91,15 @@ export function GamePlayer({ dlc }: GamePlayerProps) {
   const context = snapshot.context;
   const node = getCurrentNode(context);
   const isTurning = snapshot.matches("pageTransition");
-  const music = dlc.manifest.assets?.music
-    ? `${dlc.publicBasePath}/${dlc.manifest.assets.music}`
-    : undefined;
-  useOptionalHowl(music, { loop: true });
+  // 分阶段 BGM：前面的小说与后面的读词分别配置，缺省阶段不播放。
+  const { story: storyMusic, poem: poemMusic } = useMemo(() => resolveMusicUrls(dlc), [dlc]);
+  const musicZone = useMemo(
+    () => resolveMusicZone(topLevelPhase(snapshot.value), context.pendingPhase),
+    [snapshot.value, context.pendingPhase],
+  );
+  const activeMusic =
+    musicZone === "story" ? storyMusic : musicZone === "poem" ? poemMusic : undefined;
+  useOptionalHowl(activeMusic, { loop: true });
   usePageTurnSound(isTurning);
 
   const chapters: ChapterTab[] = useMemo(() => {

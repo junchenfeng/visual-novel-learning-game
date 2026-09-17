@@ -1,6 +1,11 @@
 import { parseDlcDirectory } from "../src/dlc/parser";
 import { isChoiceQuestion } from "../src/dlc/quizHelpers";
-import { DlcValidationError, easterEggSchema, exploreNodeSchema } from "../src/dlc/schema";
+import {
+  DlcValidationError,
+  easterEggSchema,
+  exploreNodeSchema,
+  manifestSchema,
+} from "../src/dlc/schema";
 import { validateStoryGraph } from "../src/dlc/graphValidator";
 import type { StoryNode } from "../src/dlc/schema";
 
@@ -48,6 +53,30 @@ describe("DLC schema and story graph", () => {
     expect(easterEggSchema.safeParse({ kind: "placeholder" }).success).toBe(true);
     expect(easterEggSchema.safeParse({ kind: "fill-in" }).success).toBe(true);
     expect(easterEggSchema.safeParse({ kind: "not-a-game" }).success).toBe(false);
+  });
+
+  it("accepts phased music config { story?, poem? } and legacy single path", () => {
+    const base = {
+      schemaVersion: 1,
+      id: "demo",
+      version: "1.0.0",
+      title: "示例",
+      author: "作者",
+      poet: "诗人",
+      poetId: "demo",
+      workTitle: "示例作品",
+      summary: "简介",
+      startStoryNodeId: "start",
+      classroom: { teacher: "t", classmate: "c", student: "s" },
+      files: { story: "story.yaml", poem: "poem.yaml", quiz: "quiz.yaml" },
+      characters: [{ id: "t", name: "老师" }],
+    };
+    const pair = { ...base, assets: { music: { story: "a.mp3", poem: "b.mp3" } } };
+    const single = { ...base, assets: { music: "bgm.mp3" } };
+    const onlyPoem = { ...base, assets: { music: { poem: "b.mp3" } } };
+    expect(manifestSchema.safeParse(pair).success).toBe(true);
+    expect(manifestSchema.safeParse(single).success).toBe(true);
+    expect(manifestSchema.safeParse(onlyPoem).success).toBe(true);
   });
 
   it("accepts explore objects with mixed valid flags", () => {

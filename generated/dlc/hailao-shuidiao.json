@@ -56,6 +56,11 @@
         "portraitUrl": "/portraits/student.webp"
       }
     ],
+    "assets": {
+      "music": {
+        "poem": "assets/backgrounds/bgm-poem.m4a"
+      }
+    },
     "endings": []
   },
   "story": {
