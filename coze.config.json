@@ -83,28 +83,7 @@
     "tests/username.test.ts"
   ],
 
-  "quarantine": [
-    "docs/dlc-spec.md",
-    "src/analytics/eventSchema.ts",
-    "src/components/GameOverModal.tsx",
-    "src/components/GamePlayer.tsx",
-    "src/components/GameViewport.tsx",
-    "src/components/phases/ExplorePhase.tsx",
-    "src/components/phases/explore.module.css",
-    "src/components/game-over.module.css",
-    "src/components/viewport.module.css",
-    "src/dlc/graphValidator.ts",
-    "src/dlc/schema.ts",
-    "src/easter-egg/FillInGame.tsx",
-    "src/easter-egg/fill-in.module.css",
-    "src/easter-egg/registry.ts",
-    "src/game/gameMachine.ts",
-    "tests/catalog.test.ts",
-    "tests/compiler.test.ts",
-    "tests/dlc-schema.test.ts",
-    "tests/eventSchema.test.ts",
-    "tests/gameMachine.test.ts"
-  ],
+  "quarantine": [],
 
   "bOwned": [
     ".coze",
