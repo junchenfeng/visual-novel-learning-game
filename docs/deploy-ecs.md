@@ -23,6 +23,23 @@ POEM_ADMIN_PASSWORD=（只写在服务器上，不要进 git）
 
 静态图会在 `deploy:build` 里转成 webp 并同步到 OSS，页面走 `CDN_BASE_URL`。管理台上传 DLC 用 `POEM_ADMIN_PASSWORD`；首页用户名填 `nova-admin` 进入上传台。
 
+OSS 桶需要一条 CORS 规则，否则跨源取音频（Howler 的 Web Audio 路径走 XHR）会被浏览器拦下：
+
+```json
+{ "allowedOrigin": ["https://poem.aibeaver.cn"], "allowedMethod": ["GET", "HEAD"],
+  "allowedHeader": ["*"], "exposeHeader": ["Content-Length", "Content-Range", "ETag", "Last-Modified"],
+  "maxAgeSeconds": 86400 }
+```
+
+写入方式（服务器上有 OSS 凭证）：
+
+```bash
+node -e 'const OSS=require("ali-oss");const c=new OSS({/* /root/ai-gallery/config.json 的 oss */});
+c.putBucketCORS("<bucket>", [/* 上面的规则 */])'
+```
+
+CDN 会透传该头。注意 CDN 是按完整 URL 缓存的：**补规则之前就已经缓存过的对象仍会返回不带 ACAO 的旧响应**（仓库课包音频 `Cache-Control: immutable`、边缘 TTL 30 天），要立刻生效得刷新 CDN 缓存或换 URL。所以客户端 BGM 走 Howler 的 `html5` 模式（`<audio>` 跨源播放不需要 CORS），不依赖这条规则。
+
 Nginx 需允许较大的 zip：
 
 ```nginx

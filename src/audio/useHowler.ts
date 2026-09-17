@@ -18,6 +18,15 @@ export function useOptionalHowl(src?: string, options?: { loop?: boolean }) {
         src: [src],
         loop: options?.loop ?? false,
         volume: 0.28,
+        // 线上 BGM 放在 CDN 上，属跨源资源。Howler 默认走 Web Audio：先用 XHR 把整段
+        // 音频取回来再 decodeAudioData，而跨源 XHR 需要 Access-Control-Allow-Origin。
+        // CDN 早已把这条 URL 连同「不带 ACAO」的响应缓存了下来（Cache-Control:
+        // immutable，边缘 TTL 30 天），事后补 OSS 桶的 CORS 规则也刷不掉旧缓存，
+        // 控制台就一直报 CORS 失败。html5 模式改用 <audio> 直接拉流——媒体元素跨源
+        // 播放不需要 CORS，音量与循环照旧，也就不必去刷 CDN 缓存。
+        // （OSS 桶的 CORS 规则已补上，见 docs/deploy-ecs.md；将来若要用 Web Audio
+        //  做音量淡入淡出，得连同刷新 CDN 缓存或换 URL 一起做。）
+        html5: true,
         onloaderror: () => undefined,
         onplayerror: () => undefined,
       });
