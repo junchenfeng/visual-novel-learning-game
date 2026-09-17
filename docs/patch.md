@@ -10,10 +10,20 @@ YAML 规范：https://poem.aibeaver.cn/dlc-spec
 
 | 补丁 | 内容 | 地址 |
 | --- | --- | --- |
+| patch-3 | `AGENTS.md` 补上平台 MCP 说明（上传课包 / 拿回使用数据）+ 课堂「回看上一段」按钮归位到动作区；**累计补丁**，可跳过 patch-2 单独应用 | https://poem.aibeaver.cn/patch-3 |
 | patch-2 | 课堂「回看上一段」、读词节奏控制（每句锁 3 秒 + 环形读秒）、小说 / 读词分阶段 BGM | https://poem.aibeaver.cn/patch-2 |
 | patch-1 | 解谜关 `type: explore`、真结局 `endingId`、填词彩蛋 `easterEgg` | https://poem.aibeaver.cn/patch-1 |
 
 按编号从小到大应用。patch-2 对 `GamePlayer.tsx` 的改动是在 patch-1 已应用的状态上做的；**若还没应用 patch-1，先应用 patch-1**。
+
+patch-3 是**累计补丁**，可以单独应用、**不要求先打过 patch-2**，两件事：
+
+1. 往 `AGENTS.md` 追加一节，让项目里的 agent 知道两个平台 MCP 的入口与规矩：提交课包（https://poem.aibeaver.cn/mcp-how-to）和拿回自己课包的使用数据（https://poem.aibeaver.cn/mcp-usage）。这部分只改文档。
+2. 把课堂「回看上一段」按钮从气泡右上角的绝对定位**归位到动作区、与提交按钮同排**（改 `ClassroomFrame.tsx` + `classroom.module.css`）。
+
+第 2 件事分两种起点，最终收敛到同一份代码：打过 patch-2 的项目只需搬位置 + 换样式；没打过 patch-2 的项目按 patch-3 里给的完整规格一次做全（回看是 `ClassroomFrame` 内部的本地 UI 状态，不需要碰 `gameMachine`）。patch-3 与 patch-2 动同一个文件，**先后顺序随意**：先 patch-2 再 patch-3，就按「只归位」做；只打 patch-3，就按「一次做全」做。
+
+读词节奏与分阶段 BGM 仍只在 patch-2 里，patch-3 不重复它们（两份说明会漂移）。
 
 ## 判断方法
 
