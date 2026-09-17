@@ -1,20 +1,9 @@
 import { STATIC_OSS_PREFIX } from "../assets/cdn";
-import type { CompileResult } from "./compiler";
 import { getPoemStore, uploadedCompiledKey, uploadsIndexKey, type PoemStore } from "../server/poemStore";
-import { isUnpublishedDlc } from "./unpublished";
+import type { UploadedDlcSource, UploadedPack } from "./uploadedContent";
 
-export type UploadedPack = {
-  userId: string;
-  dlcId: string;
-  poetId: string;
-  poet: string;
-  workTitle: string;
-  title: string;
-  author: string;
-  version: string;
-  summary: string;
-  uploadedAt: string;
-};
+export type { UploadedPack } from "./uploadedContent";
+export { findUploadedPack, publishedUploads, uploadedPackToCompileResult } from "./uploadedContent";
 
 function asUploadedPack(value: unknown): UploadedPack | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -37,19 +26,6 @@ function asUploadedPack(value: unknown): UploadedPack | null {
     version: String(record.version ?? "").trim(),
     summary: String(record.summary ?? "").trim(),
     uploadedAt: String(record.uploadedAt ?? "").trim(),
-  };
-}
-
-export function uploadedPackToCompileResult(pack: UploadedPack): CompileResult {
-  return {
-    id: pack.dlcId,
-    version: pack.version,
-    title: pack.title,
-    author: pack.author,
-    poet: pack.poet,
-    poetId: pack.poetId,
-    workTitle: pack.workTitle,
-    summary: pack.summary,
   };
 }
 
@@ -77,13 +53,15 @@ export function staticDlcObjectKey(dlcId: string, relativePath: string): string 
   return `${STATIC_OSS_PREFIX}/dlc/${dlcId}/${cleaned}`;
 }
 
-export function findUploadedPack(index: UploadedPack[], dlcId: string): UploadedPack | undefined {
-  return index.find((item) => item.dlcId === dlcId);
-}
-
-export function publishedUploads(
-  index: UploadedPack[],
-  reservedGitIds: Set<string>,
-): UploadedPack[] {
-  return index.filter((item) => !isUnpublishedDlc(item.dlcId) && !reservedGitIds.has(item.dlcId));
+/**
+ * 把 OSS 上传层接到内核的上传层端口上。
+ *
+ * 由根目录 instrumentation.ts 在服务启动时调用。store 在每次调用时才取，
+ * 避免在启动阶段就把 OSS 凭据固化下来。
+ */
+export function createUploadedDlcSource(): UploadedDlcSource {
+  return {
+    listPacks: () => loadUploadIndex(),
+    loadCompiled: (id) => loadUploadedCompiled(id),
+  };
 }

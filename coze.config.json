@@ -54,7 +54,6 @@
     "src/roster/",
     "src/user/",
     "src/dlc/publishUpload.ts",
-    "src/dlc/unpublished.ts",
     "src/dlc/uploadIndex.ts",
     "src/dlc/uploadPack.ts",
     "src/server/galleryConfig.ts",

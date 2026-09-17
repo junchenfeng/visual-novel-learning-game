@@ -4,7 +4,7 @@ import { publicAssetUrl } from "../assets/cdn";
 import { collapseSameAuthorVersion } from "./catalogShared";
 import { compiledDlcSchema, DlcValidationError, type CompiledDlc } from "./schema";
 import type { CompileResult } from "./compiler";
-import { loadUploadIndex, loadUploadedCompiled, publishedUploads, uploadedPackToCompileResult } from "./uploadIndex";
+import { getUploadedDlcSource, publishedUploads, uploadedPackToCompileResult } from "./uploadedContent";
 import { excludeUnpublished, isUnpublishedDlc } from "./unpublished";
 
 function generatedDir() {
@@ -27,35 +27,51 @@ export async function loadCompiledCatalog(): Promise<CompileResult[]> {
   const shipped = loadShippedCatalog();
   const reserved = new Set(shipped.map((item) => item.id));
   const published = excludeUnpublished(shipped);
-  let uploaded: Awaited<ReturnType<typeof loadUploadIndex>> = [];
-  try {
-    uploaded = await loadUploadIndex();
-  } catch {
-    uploaded = [];
+  return [...collapseSameAuthorVersion(published), ...(await loadUploadedPacks(reserved))];
+}
+
+/** 学员上传的课包由宿主注入（线上是 OSS）。未注入即站点没有这一层，返回空。 */
+async function loadUploadedPacks(reserved: Set<string>): Promise<CompileResult[]> {
+  const source = getUploadedDlcSource();
+  if (!source) {
+    return [];
   }
-  const extra = publishedUploads(uploaded, reserved).map(uploadedPackToCompileResult);
-  return [...collapseSameAuthorVersion(published), ...extra];
+  try {
+    return publishedUploads(await source.listPacks(), reserved).map(uploadedPackToCompileResult);
+  } catch {
+    return [];
+  }
 }
 
 export async function loadCompiledDlc(id: string): Promise<CompiledDlc | null> {
   if (!/^[a-z][a-z0-9_-]*$/i.test(id) || isUnpublishedDlc(id)) {
     return null;
   }
-  try {
-    const uploaded = await loadUploadedCompiled(id);
-    if (uploaded) {
-      return parseCompiledJson(id, uploaded);
-    }
-  } catch (error) {
-    if (error instanceof DlcValidationError) {
-      throw error;
-    }
+  const uploaded = await loadUploadedCompiled(id);
+  if (uploaded) {
+    return parseCompiledJson(id, uploaded);
   }
   const filePath = path.join(generatedDir(), `${id}.json`);
   if (existsSync(filePath)) {
     return parseCompiledJson(id, JSON.parse(readFileSync(filePath, "utf8")));
   }
   return null;
+}
+
+/** 同上：上传层未注入时返回 null，落到仓库自带的编译产物。 */
+async function loadUploadedCompiled(id: string): Promise<unknown | null> {
+  const source = getUploadedDlcSource();
+  if (!source) {
+    return null;
+  }
+  try {
+    return await source.loadCompiled(id);
+  } catch (error) {
+    if (error instanceof DlcValidationError) {
+      throw error;
+    }
+    return null;
+  }
 }
 
 function parseCompiledJson(id: string, raw: unknown): CompiledDlc {
