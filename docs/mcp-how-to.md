@@ -15,7 +15,9 @@ YAML 规范：https://poem.aibeaver.cn/dlc-spec
 
 ## 连接 MCP
 
-远程不用 token，用学员 `userId` 开门。Cursor 配置：
+这是**远程 MCP 服务** `https://poem.aibeaver.cn/mcp`，**不在学员的项目里、也不在本机** —— 不要去找端口、进程或本地脚本。远程不用 token，用学员 `userId` 开门。
+
+**工具列表里看不到 `list_roster` / `ingest_dlc`** 时，说明调用方还没配置它：把下面的配置交给用户，让他加进自己 agent 客户端，再重新发起请求。Cursor 配置：
 
 ```json
 {
@@ -69,8 +71,7 @@ rm -f "$OUT"
 (cd "$PACK" && zip -r "$OUT" . -x "*.DS_Store" -x "**/.git/**" -x "**/node_modules/**" -x "__MACOSX/**")
 ```
 
-- 远程 MCP：把 zip 编成 base64，调用 `ingest_dlc` 的 `zipBase64`（可带 `data:application/zip;base64,` 前缀）
-- 本机 stdio：把临时 zip 路径传给 `zipPath`，不要传目录
+- 把 zip 编成 base64，调用 `ingest_dlc` 的 `zipBase64`（可带 `data:application/zip;base64,` 前缀）
 
 ### 4. 调工具
 
@@ -88,7 +89,7 @@ rm -f "$OUT"
 2. 同名 `{poetId}.png` / `.jpg` / `.webp`
 3. 仍没有：只再问用户「诗人头像文件路径」
 
-远程用 `portraitBase64`，本机 stdio 可用 `portraitPath`。
+头像用 base64 传 `portraitBase64`。
 
 ```json
 {

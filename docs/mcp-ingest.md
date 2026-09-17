@@ -107,9 +107,9 @@
 
 - `list_my_dlc`：列出自己已上架的课包。
 - `usage_manifest`：返回使用数据清单（sessions / events），带落盘路径、字节数与 sha256。
-- `download_usage_files`：按清单 path 取内容；远程回 base64，本机 stdio 直接写入 `assets/user_data/`。
+- `download_usage_files`：按清单 path 取内容，返回 `contentBase64` 由调用方写盘到 `assets/user_data/`。
 
-只导出「课包归属人是本人」的数据，越权路径整单拒绝。完整操作说明（含增量算法与 `pnpm usage:sync`）：https://poem.aibeaver.cn/mcp-usage ，文档在 [mcp-usage.md](mcp-usage.md)。
+只导出「课包归属人是本人」的数据，越权路径整单拒绝。完整操作说明（含增量算法）：https://poem.aibeaver.cn/mcp-usage ，文档在 [mcp-usage.md](mcp-usage.md)。
 
 ## 留存（audit）
 

@@ -21,6 +21,10 @@ MCP 地址：https://poem.aibeaver.cn/mcp
 
 ## 连接 MCP
 
+这一组工具跑在**远程 MCP 服务** `https://poem.aibeaver.cn/mcp` 上，**不在你当前的项目里、也不在本机**：不要去找端口、进程、脚本或本地 server。
+
+**工具列表里看不到 `list_my_dlc` / `usage_manifest` / `download_usage_files`** 时，说明调用方还没把这个 MCP 配进来。把下面这段交给用户，让他加进自己 agent 客户端的 MCP 配置，再重新发起请求：
+
 ```json
 {
   "mcpServers": {
@@ -70,8 +74,7 @@ MCP 地址：https://poem.aibeaver.cn/mcp
 
 - 只接受 `usage_manifest` 返回过的 path；出现不认识/不属于自己的 path，整单拒绝。
 - 一次最多 25 个文件。
-- 远程 MCP：返回 `contentBase64`，由你写盘。
-- 本机 stdio（`pnpm mcp:ingest`）：直接写入 `targetDir`（默认 `assets/user_data/`），返回 `transport: "stdio"` 与已写文件列表。
+- 返回 `contentBase64`，由你写盘到 `assets/user_data/`，并保持清单里的 `path` 原样。
 
 ## 增量算法（照做）
 
@@ -84,15 +87,7 @@ MCP 地址：https://poem.aibeaver.cn/mcp
 4. 写盘（远程形态）时保持 `path` 原样，不要改文件名，否则下次增量会重复下载。
 5. 更新基线：把 `assets/user_data/manifest.json` 写成「本机确实已有且哈希一致」的清单，作为下次比对依据。
 
-一条命令跑完整个流程（Node 标准库，无需装依赖）：
-
-```bash
-node scripts/usage-sync.mjs --userId hh_学号
-# 或
-pnpm usage:sync -- --userId hh_学号
-```
-
-可选参数：`--dlc <dlcId>` 只同步一个课包；`--base <url>` 换站点（本机 `http://127.0.0.1:5000`）；`--out <dir>` 换落盘目录。
+整条流程**没有本地脚本可跑**：清单与内容都从远程 MCP 拿（或文末的同源 HTTP）。
 
 ## 落盘目录
 

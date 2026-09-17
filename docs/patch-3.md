@@ -63,7 +63,13 @@ YAML 规范：https://poem.aibeaver.cn/dlc-spec
 ````md
 ## 平台 MCP：上传课包与拿回使用数据
 
-平台把「提交 DLC」和「拿回使用数据」放在同一台 MCP 上：`https://poem.aibeaver.cn/mcp`。远程不用 token，每个工具都靠学员自己的 `userId` 开门。
+平台把「提交 DLC」和「拿回使用数据」放在同一台 MCP 上：`https://poem.aibeaver.cn/mcp`。这是**远程 MCP 服务，不在当前项目里、也不在本机** —— 不要去找端口、进程或脚本。远程不用 token，每个工具都靠学员自己的 `userId` 开门。
+
+**工具列表里看不到 `list_roster` / `upsert_poet` / `upsert_work` / `ingest_dlc` / `list_my_dlc` / `usage_manifest` / `download_usage_files` 时**，说明调用方还没配置这个 MCP。把下面这段交给用户，让他加进自己 agent 客户端的 MCP 配置，再重新发起请求：
+
+```json
+{ "mcpServers": { "poem-dlc-ingest": { "url": "https://poem.aibeaver.cn/mcp" } } }
+```
 
 **userId**：`hh` + 学号，或 `hh_` + 学号（`hh11016863` / `hh_11016863`，大小写不敏感）。学号须是当前在读学员。格式不对或不在名单，工具返回「user id不正确，需要咨询老师」—— 此时停下问老师，不要换别的 id 重试。
 
