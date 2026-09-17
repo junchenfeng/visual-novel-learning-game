@@ -55,8 +55,7 @@
         "name": "你",
         "portraitUrl": "/portraits/student.webp"
       }
-    ],
-    "endings": []
+    ]
   },
   "story": {
     "startNodeId": "ch1_open",

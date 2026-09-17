@@ -9,26 +9,17 @@ import styles from "./game-over.module.css";
 type GameOverModalProps = {
   node: GameOverNode;
   onReplay: () => void;
-  isEnding?: boolean;
-  endingTitle?: string;
 };
 
 /**
- * 结局弹窗：gameOver 节点时呈现。
- * - 普通失败：显示「此路不通」+ 重选
- * - 真结局（endingId 存在）：显示结局标题 + 继续读词
+ * 结局弹窗：游戏结束（gameOver 节点）时，以放大弹窗 + 水墨特效的形式呈现。
  */
-export function GameOverModal({
-  node,
-  onReplay,
-  isEnding = false,
-  endingTitle,
-}: GameOverModalProps) {
+export function GameOverModal({ node, onReplay }: GameOverModalProps) {
   const { displayed, done, skip } = useTypewriter(node.text);
 
   useEffect(() => {
-    playSfx(isEnding ? "correct" : "incorrect");
-  }, [isEnding]);
+    playSfx("incorrect");
+  }, []);
 
   return (
     <div className={styles.mask} role="dialog" aria-modal="true" aria-label="结局">
@@ -43,19 +34,15 @@ export function GameOverModal({
         <i />
       </div>
 
-      <div className={`${styles.card} ${isEnding ? styles.endingCard : ""}`}>
-        <div className={`${styles.seal} ${isEnding ? styles.endingSeal : ""}`} aria-hidden="true">
-          {isEnding ? "终" : "止"}
+      <div className={styles.card}>
+        <div className={styles.seal} aria-hidden="true">
+          止
         </div>
         <p className={styles.kicker}>
-          {node.speaker ? `${node.speaker} · ` : ""}
-          {isEnding ? "结局" : "此路不通"}
+          {node.speaker ? `${node.speaker} · ` : ""}结局
         </p>
-        <h2
-          className={`${styles.title} ${isEnding ? styles.endingTitle : ""}`}
-          data-testid="gameover-title"
-        >
-          {isEnding ? endingTitle ?? "一阕终章" : "此路不通"}
+        <h2 className={styles.title} data-testid="gameover-title">
+          此路不通
         </h2>
         <p
           className={styles.body}
@@ -66,29 +53,16 @@ export function GameOverModal({
           {done ? null : <span className={styles.caret}>▍</span>}
         </p>
         {done ? (
-          isEnding ? (
-            <button
-              className={styles.replay}
-              data-testid="gameover-continue"
-              onClick={() => {
-                playSfx("click");
-                onReplay();
-              }}
-            >
-              合卷沉思，开始读词
-            </button>
-          ) : (
-            <button
-              className={styles.replay}
-              data-testid="gameover-replay"
-              onClick={() => {
-                playSfx("click");
-                onReplay();
-              }}
-            >
-              回到岔路，重新选择
-            </button>
-          )
+          <button
+            className={styles.replay}
+            data-testid="gameover-replay"
+            onClick={() => {
+              playSfx("click");
+              onReplay();
+            }}
+          >
+            回到岔路，重新选择
+          </button>
         ) : (
           <p className={styles.muted}>点文字可以立刻看完全段</p>
         )}

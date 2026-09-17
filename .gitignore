@@ -47,10 +47,6 @@ next-env.d.ts
 /public/dlc/
 .cozeproj/
 
-# local-only classmate DLC (not shipped)
-/dlc/sushi/shuidiao-getou/hailao-v2/
-/generated/dlc/sushi-shuidiao-hailao-v2.json
-
 # local-only helpers (not used by Coze .coze deploy)
 /.npmrc
 /scripts/dev-local.sh
@@ -60,6 +56,3 @@ next-env.d.ts
 .preview
 .cozeproj/reduction
 .codegraph
-
-# local VS Code / Cursor launch (not shared)
-.vscode/

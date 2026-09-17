@@ -70,7 +70,6 @@ flowchart LR
 | `characters[]` | 是 | `id`、`name`、可选 `portrait` |
 | `assets.music` | 否 | 背景音乐相对路径 |
 | `easterEgg` | 否 | 故事结束到读词之间的可选彩蛋小游戏。**不写则最后一页只有「开始读词」，不会出现「这是什么？」** |
-| `endings[]` | 否 | 真结局元数据：`endingId` / `title`，以及可选的 `subtitle` / `triggerHint` / `quote`。与故事里带 `endingId` 的 `gameOver` 对应 |
 
 资源路径必须是相对路径，不能包含 `..`，也不能以 `/` 开头。
 
@@ -84,22 +83,8 @@ easterEgg:
 
 - 点「开始读词」：跳过小游戏，直接读词。
 - 点「这是什么？」：进入小游戏，玩完再进读词。
-- `kind` 必须在引擎注册表里。目前内建 `placeholder` 占位，以及 `fill-in` 填词小游戏。
+- `kind` 必须在引擎注册表里。目前内建 `placeholder` 占位；接上真正的小游戏后再换 kind。
 - 彩蛋结果不进课堂评分。
-
-`fill-in` 用 `params.blanks` 配空：
-
-```yaml
-easterEgg:
-  kind: fill-in
-  title: 补全苏轼心中那阕词
-  params:
-    blanks:
-      - prefix: "明月几时有，把酒问"
-        suffix: "。"
-        correct: 青天
-        options: [青天, 苍天, 长天, 远天]
-```
 
 ### 2. `story.yaml`（故事图）
 
@@ -114,7 +99,7 @@ chapters:
 
 背景路径同样必须是安全的相对路径，编译器也会检查文件是否真实存在。
 
-节点有五种 `type`：
+节点有四种 `type`：
 
 **旁白 `narration`**（代入故事）
 
@@ -125,8 +110,6 @@ chapters:
   chapterTitle: 苏轼与苏辙
   text: 你忽然发现自己变成了苏轼。
   nextNodeId: ch1_choice   # 省略表示故事结束，进入读词
-  # speaker: 旁白          # 可选
-  # portrait: sushi        # 可选，对应 characters.id
 ```
 
 **史实 `fact`**（只讲背景知识，没有选项。点「翻到下一页」继续）
@@ -141,36 +124,7 @@ chapters:
   nextNodeId: ch2_fact_disagree
 ```
 
-史实页和旁白一样走直线：没有分岔。失败用的 `gameOver`（没有 `endingId`）不能由旁白/史实直接跳入；带 `endingId` 的真结局可以。
-
-**搜集线索 `explore`**（插在故事中间的场景点物）
-
-```yaml
-- id: s08_explore
-  type: explore
-  chapter: 2
-  chapterTitle: 中秋夜·四下走走
-  text: 月光如水，每一样物件都藏着一段回忆。
-  nextNodeId: s09_after          # 必填，点齐有效线索后进入
-  objects:
-    - id: moon
-      name: 明月
-      hint: 挂在天上
-      memory: 你想起小时候和子由一起赏月。
-      valid: true                # 有效线索，解密后盖「有效」红戳，可重看
-    - id: robe
-      name: 旧官袍
-      hint: 搭在椅背上
-      memory: 这件官袍已经旧了。
-      valid: false               # 错误线索，解密后置灰，不能再点
-  hiddenReward: 你忽然明白……    # 可选；找齐全部有效线索后显示
-```
-
-- `valid` 默认 `true`。至少要有一条有效线索。
-- 过关条件：找齐**全部有效线索**即可继续。错误线索可点可不点。
-- 解密后：弹出解说（盖住画面，点「知道了」才关闭）。有效线索同时盖红戳「有效」，仍可点开重看；错误线索置灰且不能再点。
-- `hiddenReward` 在找齐全部有效线索、关掉当前解说后，再弹一次隐藏回忆。
-- 起始节点不能是 `explore`。`nextNodeId` 不能指向没有 `endingId` 的失败 `gameOver`。
+史实页和旁白一样走直线：没有分岔，也不能直接跳进 `gameOver`。适合先把「这件事是什么、为什么重要」讲清楚，再让玩家做选择。
 
 **选择 `choice`**
 
@@ -180,7 +134,7 @@ chapters:
   chapter: 2
   chapterTitle: 变法与外放
   text: 面对变法争论，你会怎么走？
-  convergesTo: ch2_join    # 正路必须汇合到这里；多结局分叉可以省略
+  convergesTo: ch2_join    # 正路必须汇合到这里
   choices:
     - id: ask_transfer
       label: 坚持自己的看法，请求离开京城
@@ -198,10 +152,9 @@ chapters:
   chapter: 2
   chapterTitle: 变法与外放
   text: 这条路走不通。请回到刚才的选择。
-  # endingId: ending_changjiu   # 有则是真结局，进入读词/彩蛋，而不是重选
 ```
 
-没有 `endingId` 的 `gameOver` 是失败死路：玩家只能点「重新选择」，回到**刚才那个选择节点**。带 `endingId` 的是真结局，对应 `manifest.endings`，玩家继续进入彩蛋或读词。
+`gameOver` 没有选项，也没有 `nextNodeId`。玩家只能点「重新选择」，回到**刚才那个选择节点**。
 
 ### 剧情图规则（编译器会检查）
 
@@ -220,12 +173,10 @@ flowchart TD
 
 - 所有节点必须能从起点走到。
 - 不能出现循环（不能绕圈回已经过的主线）。
-- 选择节点若写了 `convergesTo`，正路必须能走到汇合点。
-- 选择节点若省略 `convergesTo`，每条分支必须到达带 `endingId` 的真结局。
+- 选择节点的正路必须能走到 `convergesTo`。
 - 指向 `gameOver` 的选项**免做汇合检查**。
-- 没有 `endingId` 的失败 `gameOver` 只能由选项进入；旁白、史实、探索不能直接指向它。带 `endingId` 的真结局可以由旁白/史实进入。
-- 起始节点不能是 `gameOver` 或 `explore`。
-- `explore` 的出边参与可达性与无环检查。
+- `gameOver` 只能由选项进入，旁白和史实的 `nextNodeId` 不能直接指向它。
+- 起始节点不能是 `gameOver`。
 
 ### 3. `poem.yaml`（读词）
 

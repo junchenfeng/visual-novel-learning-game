@@ -20,7 +20,6 @@ import { GameOverModal } from "./GameOverModal";
 import { GameViewport } from "./GameViewport";
 import { PoemScrollFrame } from "./PoemScrollFrame";
 import { EasterEggHost } from "../easter-egg/EasterEggHost";
-import { ExplorePhase } from "./phases/ExplorePhase";
 import { StoryPhase } from "./phases/StoryPhase";
 import { SummaryPhase } from "./phases/SummaryPhase";
 
@@ -419,7 +418,7 @@ export function GamePlayer({ dlc }: GamePlayerProps) {
         overlay={overlay}
         progress={computeStoryProgress(dlc, node.id)}
       >
-        {snapshot.matches("story") && node.type !== "gameOver" && node.type !== "explore" ? (
+        {snapshot.matches("story") && node.type !== "gameOver" ? (
           <StoryPhase
             key={node.id}
             node={node}
@@ -450,33 +449,12 @@ export function GamePlayer({ dlc }: GamePlayerProps) {
             }}
           />
         ) : null}
-        {snapshot.matches("story") && node.type === "explore" ? (
-          <ExplorePhase
-            key={node.id}
-            node={node}
-            disabled={isTurning}
-            tappedIds={context.exploredObjectIds}
-            hiddenUnlocked={context.exploreHiddenUnlocked}
-            onTapObject={(objectId) => {
-              appendEvent("story.explore_tap", { nodeId: node.id, objectId });
-              send({ type: "EXPLORE_TAP", objectId });
-            }}
-            onContinue={() => {
-              appendEvent("story.explore_done", { nodeId: node.id });
-              send({ type: "EXPLORE_CONTINUE" });
-            }}
-          />
-        ) : null}
       </BookFrame>
     );
   }
 
   const isGameOverNode =
     snapshot.matches("story") && node.type === "gameOver";
-  const isEndingNode = isGameOverNode && Boolean(node.endingId);
-  const endingTitle = isEndingNode
-    ? dlc.manifest.endings.find((item) => item.endingId === node.endingId)?.title
-    : undefined;
 
   return (
     <GameViewport>
@@ -484,16 +462,7 @@ export function GamePlayer({ dlc }: GamePlayerProps) {
       {isGameOverNode ? (
         <GameOverModal
           node={node}
-          isEnding={isEndingNode}
-          endingTitle={endingTitle}
           onReplay={() => {
-            if (isEndingNode) {
-              appendEvent("story.ending_continue", {
-                endingId: node.endingId,
-              });
-              send({ type: "ENDING_CONTINUE" });
-              return;
-            }
             lastGameOver.current = "";
             appendEvent("story.replayed", {
               fromNodeId: node.id,

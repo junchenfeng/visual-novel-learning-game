@@ -14,7 +14,7 @@ export function GameViewport({ children }: GameViewportProps) {
         <span>词</span>
       </div>
       <main className={styles.viewport}>
-        <div className={styles.canvas} data-game-overlay-root>{children}</div>
+        <div className={styles.canvas}>{children}</div>
       </main>
       <div className={`${styles.sideOrnament} ${styles.sideOrnamentRight}`} aria-hidden="true">
         <span>入</span>
