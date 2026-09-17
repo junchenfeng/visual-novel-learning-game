@@ -44,6 +44,18 @@ describe("resolveMusicUrls", () => {
     expect(urls.story).toBeUndefined();
     expect(urls.poem).toBe("/dlc/demo/assets/bgm-poem.mp3");
   });
+
+  it("already-rewritten absolute paths are used as-is", () => {
+    // loadCompiled 会把 music 改写成站点绝对路径或 OSS/CDN 地址，
+    // 这两种形态都不能再被拼一次 publicBasePath。
+    const sitePath = resolveMusicUrls(dlcWithMusic({ music: "/dlc/demo/assets/bgm-poem.m4a" }));
+    expect(sitePath.poem).toBe("/dlc/demo/assets/bgm-poem.m4a");
+
+    const cdnUrl = "https://cdn.aibeaver.cn/poem-rpg/static/dlc/demo/assets/bgm-poem.m4a";
+    const rewritten = resolveMusicUrls(dlcWithMusic({ music: { poem: cdnUrl } }));
+    expect(rewritten.poem).toBe(cdnUrl);
+    expect(rewritten.story).toBeUndefined();
+  });
 });
 
 describe("resolveMusicZone", () => {

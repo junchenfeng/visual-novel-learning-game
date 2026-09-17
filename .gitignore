@@ -47,6 +47,10 @@ next-env.d.ts
 /public/dlc/
 .cozeproj/
 
+# local-only classmate DLC (not shipped)
+/dlc/sushi/shuidiao-getou/hailao-v2/
+/generated/dlc/sushi-shuidiao-hailao-v2.json
+
 # PM2 logs
 /logs/
 

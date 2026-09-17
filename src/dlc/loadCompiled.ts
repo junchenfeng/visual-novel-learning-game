@@ -83,12 +83,45 @@ function parseCompiledJson(id: string, raw: unknown): CompiledDlc {
   }
 }
 
+/**
+ * BGM 也要落到 OSS 地址。
+ *
+ * 编译产物里 backgroundUrl / portraitUrl 都经 publicAssetUrl 拿到 CDN 绝对地址，
+ * 而 assets.music 一直是包内相对路径，只靠 publicBasePath 拼接才碰巧对。这里显式
+ * 改写，任何直接读 compiled.manifest.assets.music 的消费方（预览、审计、以后接的
+ * 第三方）都能拿到可直接访问的地址。resolveMusicUrls 认绝对路径，不会再拼一遍前缀。
+ */
+function rewriteMusicAssets(
+  dlcId: string,
+  assets: CompiledDlc["manifest"]["assets"],
+): CompiledDlc["manifest"]["assets"] {
+  const music = assets?.music;
+  if (!assets || !music) {
+    return assets;
+  }
+  const toUrl = (relative?: string) => {
+    if (!relative) {
+      return undefined;
+    }
+    const sitePath = `/dlc/${dlcId}/${relative}`;
+    return publicAssetUrl(sitePath) || sitePath;
+  };
+  return {
+    ...assets,
+    music:
+      typeof music === "string"
+        ? toUrl(music)
+        : { story: toUrl(music.story), poem: toUrl(music.poem) },
+  };
+}
+
 function rewriteCompiledAssets(dlc: CompiledDlc): CompiledDlc {
   return {
     ...dlc,
     publicBasePath: publicAssetUrl(dlc.publicBasePath) || dlc.publicBasePath,
     manifest: {
       ...dlc.manifest,
+      assets: rewriteMusicAssets(dlc.manifest.id, dlc.manifest.assets),
       characters: dlc.manifest.characters.map((character) => ({
         ...character,
         portraitUrl: character.portraitUrl ? publicAssetUrl(character.portraitUrl) : undefined,

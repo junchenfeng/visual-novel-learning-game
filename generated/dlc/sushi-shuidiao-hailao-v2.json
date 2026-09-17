@@ -48,6 +48,11 @@
         "portraitUrl": "/portraits/student.webp"
       }
     ],
+    "assets": {
+      "music": {
+        "poem": "assets/backgrounds/bgm-poem.m4a"
+      }
+    },
     "easterEgg": {
       "kind": "fill-in",
       "title": "补全苏轼心中那阕词",

@@ -69,3 +69,7 @@ endings:
     subtitle: 早退田园，兄弟相守
     triggerHint: 旷逸指数最高
     quote: 归去，也无风雨也无晴。
+
+assets:
+  music:
+    poem: assets/backgrounds/bgm-poem.m4a

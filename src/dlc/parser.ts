@@ -135,6 +135,21 @@ export function parseDlcDirectory(rootDir: string): CompiledDlc {
       backgroundUrl: `/dlc/${manifest.id}/${chapter.background}`,
     };
   });
+  // 背景音乐引用的音频文件必须真的在包里。审核阶段就要拦住，
+  // 否则要等到学生读词时才 404，而且没人知道是漏了文件还是路径写错。
+  const musicAssets = manifest.assets?.music;
+  if (typeof musicAssets === "string") {
+    if (!existsSync(path.join(rootDir, musicAssets))) {
+      issues.push(`背景音乐资源不存在：${musicAssets}`);
+    }
+  } else if (musicAssets) {
+    if (musicAssets.story && !existsSync(path.join(rootDir, musicAssets.story))) {
+      issues.push(`小说阶段背景音乐资源不存在：${musicAssets.story}`);
+    }
+    if (musicAssets.poem && !existsSync(path.join(rootDir, musicAssets.poem))) {
+      issues.push(`读词阶段背景音乐资源不存在：${musicAssets.poem}`);
+    }
+  }
   if (issues.length > 0) {
     throw new DlcValidationError(issues);
   }

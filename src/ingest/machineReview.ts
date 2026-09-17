@@ -39,6 +39,13 @@ function classifyMachineMessage(message: string): ReviewIssue {
   if (/篇目/.test(message) && /名册/.test(message)) {
     return machineIssue(message, { rule: "篇目名册", path: "manifest.yaml" });
   }
+  if (/背景音乐|音频/.test(message)) {
+    return machineIssue(message, {
+      rule: "背景音乐",
+      path: "manifest.yaml",
+      fixHint: "把音频文件放进包内 assets/，并在 manifest.yaml 的 assets.music 里写对相对路径",
+    });
+  }
   if (/图|环|节点|gameOver|converge/.test(message)) {
     return machineIssue(message, { rule: "剧情图规则", path: "content/story.yaml" });
   }
