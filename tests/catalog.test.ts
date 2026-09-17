@@ -37,6 +37,35 @@ describe("classroom roles", () => {
     expect(dlc.manifest.author).toBe("海狸老师");
     expect(dlc.manifest.classroom.teacher).toBe("teacher");
   });
+
+  it("keeps two packs of the same work as separate catalog entries", () => {
+    const poets = buildCatalogPoets([
+      {
+        id: "hailao-shuidiao",
+        version: "1.0.1",
+        title: "水调歌头",
+        author: "海狸老师",
+        poet: "苏轼",
+        poetId: "sushi",
+        workTitle: "水调歌头·明月几时有",
+        summary: "a",
+      },
+      {
+        id: "other-shuidiao",
+        version: "2.3.0",
+        title: "水调歌头·明月几时有",
+        author: "海棠海棠",
+        poet: "苏轼",
+        poetId: "sushi",
+        workTitle: "水调歌头",
+        summary: "b",
+      },
+    ]);
+    const sushi = poets.find((item) => item.poetId === "sushi");
+    const work = sushi?.works.find((item) => item.title.includes("水调歌头"));
+    expect(work?.dlcs).toHaveLength(2);
+    expect(work?.dlcs.map((item) => item.author).sort()).toEqual(["海棠海棠", "海狸老师"]);
+  });
 });
 
 describe("curriculum roster", () => {

@@ -18,6 +18,81 @@ function withEasterEgg(dlc: CompiledDlc): CompiledDlc {
   };
 }
 
+function withExploreScene(dlc: CompiledDlc): CompiledDlc {
+  return {
+    ...dlc,
+    story: {
+      ...dlc.story,
+      startNodeId: "explore_intro",
+      nodes: {
+        ...dlc.story.nodes,
+        explore_intro: {
+          id: "explore_intro",
+          type: "narration",
+          chapter: 1,
+          chapterTitle: "测",
+          text: "看看周围",
+          nextNodeId: "look_around",
+        },
+        look_around: {
+          id: "look_around",
+          type: "explore",
+          chapter: 1,
+          chapterTitle: "测",
+          text: "找找看",
+          nextNodeId: "after_look",
+          objects: [
+            { id: "moon", name: "月", memory: "圆", valid: true },
+            { id: "wine", name: "酒", memory: "醉", valid: false },
+            { id: "letter", name: "信", memory: "家书", valid: true },
+          ],
+        },
+        after_look: {
+          id: "after_look",
+          type: "narration",
+          chapter: 1,
+          chapterTitle: "测",
+          text: "找齐了",
+        },
+      },
+    },
+  };
+}
+
+function withTrueEnding(dlc: CompiledDlc): CompiledDlc {
+  return {
+    ...dlc,
+    manifest: {
+      ...dlc.manifest,
+      easterEgg: { kind: "fill-in", title: "填词" },
+      endings: [{ endingId: "ending_home", title: "归乡" }],
+    },
+    story: {
+      ...dlc.story,
+      startNodeId: "ending_intro",
+      nodes: {
+        ...dlc.story.nodes,
+        ending_intro: {
+          id: "ending_intro",
+          type: "narration",
+          chapter: 1,
+          chapterTitle: "测",
+          text: "旁白",
+          nextNodeId: "true_end",
+        },
+        true_end: {
+          id: "true_end",
+          type: "gameOver",
+          chapter: 1,
+          chapterTitle: "测",
+          text: "终章",
+          endingId: "ending_home",
+        },
+      },
+    },
+  };
+}
+
 const teacherFeedback = {
   assessment: "correct" as const,
   classmateAnalysis: "同学说得有对有错。",
@@ -257,5 +332,59 @@ describe("game machine", () => {
     withEgg.send({ type: "EASTER_EGG_DONE" });
     drainTransition(withEgg);
     expect(withEgg.getSnapshot().value).toBe("poem");
+  });
+
+  it("does not continue explore until all valid clues are found", () => {
+    const dlc = withExploreScene(parseDlcDirectory("dlc/sushi/shuidiao-getou/hailao-shuidiao"));
+    const actor = createActor(gameMachine, {
+      input: { dlc, sessionId: "explore-session" },
+    });
+    actor.start();
+    actor.send({ type: "BEGIN_STORY" });
+    actor.send({ type: "CONTINUE" });
+    drainTransition(actor);
+
+    const explore = getCurrentNode(actor.getSnapshot().context);
+    expect(explore.type).toBe("explore");
+
+    actor.send({ type: "EXPLORE_CONTINUE" });
+    expect(actor.getSnapshot().value).toBe("story");
+    expect(getCurrentNode(actor.getSnapshot().context).id).toBe(explore.id);
+
+    actor.send({ type: "EXPLORE_TAP", objectId: "wine" });
+    expect(actor.getSnapshot().context.exploredObjectIds).toEqual(["wine"]);
+    actor.send({ type: "EXPLORE_CONTINUE" });
+    expect(getCurrentNode(actor.getSnapshot().context).id).toBe(explore.id);
+
+    actor.send({ type: "EXPLORE_TAP", objectId: "moon" });
+    actor.send({ type: "EXPLORE_TAP", objectId: "letter" });
+    expect(actor.getSnapshot().context.exploreHiddenUnlocked).toBe(true);
+    actor.send({ type: "EXPLORE_CONTINUE" });
+    drainTransition(actor);
+    expect(getCurrentNode(actor.getSnapshot().context).id).toBe("after_look");
+    expect(actor.getSnapshot().context.exploredObjectIds).toEqual([]);
+  });
+
+  it("continues from a true ending into the fill-in easter egg", () => {
+    const dlc = withTrueEnding(parseDlcDirectory("dlc/sushi/shuidiao-getou/hailao-shuidiao"));
+    const actor = createActor(gameMachine, {
+      input: { dlc, sessionId: "ending-session" },
+    });
+    actor.start();
+    actor.send({ type: "BEGIN_STORY" });
+    actor.send({ type: "CONTINUE" });
+    drainTransition(actor);
+
+    const ending = getCurrentNode(actor.getSnapshot().context);
+    expect(ending.type).toBe("gameOver");
+    if (ending.type === "gameOver") {
+      expect(ending.endingId).toBe("ending_home");
+    }
+    actor.send({ type: "ENDING_CONTINUE" });
+    drainTransition(actor);
+    expect(actor.getSnapshot().value).toBe("easterEgg");
+    actor.send({ type: "EASTER_EGG_DONE" });
+    drainTransition(actor);
+    expect(actor.getSnapshot().value).toBe("poem");
   });
 });

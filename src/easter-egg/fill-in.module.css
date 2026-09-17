@@ -1,22 +1,15 @@
 .shell {
   width: 100%;
-  height: 100%;
-  max-height: 100%;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  padding: 28px 20px 8px;
+  justify-content: center;
+  padding: 48px 32px;
   background: linear-gradient(180deg, #f5ecd4 0%, #ead9b0 100%);
   color: #2c2416;
   font-family: "Songti SC", "SimSun", "STSong", "Noto Serif SC", serif;
-  position: absolute;
-  inset: 0;
+  position: relative;
 }
 
 .shell::before {
@@ -40,46 +33,40 @@
 }
 
 .title {
-  font-size: clamp(20px, 6cqi, 28px);
+  font-size: 28px;
   font-weight: 500;
   margin: 0 0 8px;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.2em;
   color: #2c4a6b;
   position: relative;
   z-index: 1;
-  text-align: center;
 }
 
 .subtitle {
   font-size: 14px;
   color: #5a4a32;
-  margin: 0 0 20px;
+  margin: 0 0 32px;
   max-width: 480px;
   text-align: center;
   position: relative;
   z-index: 1;
-  padding: 0 8px;
 }
 
 .poem {
   background: rgba(255, 252, 240, 0.65);
   border: 1px solid #c9a857;
-  width: min(100%, 520px);
-  padding: 20px 16px;
-  margin-bottom: 16px;
+  padding: 32px 40px;
+  margin-bottom: 28px;
   position: relative;
   z-index: 1;
-  box-sizing: border-box;
 }
 
 .line {
-  font-size: clamp(16px, 4.8cqi, 22px);
-  line-height: 1.85;
+  font-size: 22px;
+  line-height: 2.2;
   margin: 0;
-  text-align: left;
-  letter-spacing: 0.04em;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  text-align: center;
+  letter-spacing: 0.1em;
 }
 
 .blank {
@@ -113,7 +100,7 @@
 .optionsPanel {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
   align-items: stretch;
   width: 100%;
   max-width: 520px;
@@ -193,14 +180,8 @@
   display: flex;
   gap: 12px;
   justify-content: center;
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  width: 100%;
-  max-width: 520px;
-  margin-top: auto;
-  padding: 12px 0 max(16px, env(safe-area-inset-bottom));
-  background: linear-gradient(180deg, rgba(234, 217, 176, 0), #ead9b0 32%);
+  position: relative;
+  z-index: 1;
 }
 
 .primary {
@@ -224,30 +205,10 @@
 }
 
 .author {
-  margin-top: 12px;
-  margin-bottom: 8px;
+  margin-top: 32px;
   font-size: 12px;
   color: #8b5a2b;
   letter-spacing: 0.3em;
   position: relative;
   z-index: 1;
-}
-
-@media (max-width: 600px), (pointer: coarse) {
-  .shell {
-    padding: 16px 12px 4px;
-  }
-
-  .kicker {
-    margin-bottom: 8px;
-  }
-
-  .poem {
-    padding: 14px 12px;
-    margin-bottom: 12px;
-  }
-
-  .optionGroup {
-    padding: 8px 10px;
-  }
 }
