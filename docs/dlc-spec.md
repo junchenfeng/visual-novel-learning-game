@@ -54,7 +54,7 @@ flowchart LR
 
 ## 进阶版：四个文件的字段
 
-`schemaVersion` 目前必须是 `1`。`id` 即 short id，只能用字母、数字、下划线和短横线，必须全局唯一。
+`schemaVersion` 目前必须是 `1`。`id` 即 short id，只能用字母、数字、下划线和短横线。仓库课包的 short id 必须全局唯一；学员上传后线上 id 是 `{short-id}-{userId}`，同一学员再传同一个 short id 会覆盖自己的包，不会盖掉别人或仓库课包。
 
 ### 1. `manifest.yaml`（封面）
 

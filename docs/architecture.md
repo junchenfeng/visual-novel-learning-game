@@ -138,4 +138,4 @@ flowchart TB
 4. **服务器 AI 层**：master prompt 只放在服务器。DLC 只提供 `gradingPrompt` / `summaryPrompt` 作为「本课补充说明」，不能改写老师身份。
 5. **存储层**：游戏数据是文件；学习行为事件在 `localStorage`。开发环境进入总结前会把本局（故事+课堂，不含读诗/彩蛋）写到 `assets/sessions/`，带上 `dlcVersion`。
 
-选择题在浏览器里本地判分；填空题走 `/api/teacher`。全部答完后走 `/api/summary`；目前总评固定返回「待完成」，请求体带每题作答轨迹 `attempts`。作业见 [`docs/teaching/README.md`](teaching/README.md)。
+选择题在浏览器里本地判分；填空题走 `/api/teacher`。全部答完后走 `/api/summary`，把每题作答轨迹 `attempts` 交给总评 LLM。方法见 [`docs/teaching/README.md`](teaching/README.md)。

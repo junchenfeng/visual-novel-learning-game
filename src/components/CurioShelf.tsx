@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import type { CatalogWork } from "../dlc/catalog";
+import type { CatalogWork } from "../dlc/catalogShared";
+import { normalizeWorkTitle } from "../dlc/catalogShared";
+import { useWorkPrefs } from "../user/useWorkPrefs";
 import { CurioBook, type BookLayout } from "./CurioBook";
 import styles from "./curio-shelf.module.css";
 
@@ -113,6 +115,7 @@ function DecorItem({ type }: { type: string | undefined }) {
 
 export function CurioShelf({ works }: CurioShelfProps) {
   const layout = useMemo(() => buildLayout(works.length), [works.length]);
+  const { ready, selectedDlcByWork, saveSelection } = useWorkPrefs();
 
   // 将书按顺序分配到 layout 中非装饰的格子
   let bookIndex = 0;
@@ -151,7 +154,13 @@ export function CurioShelf({ works }: CurioShelfProps) {
             }}
             role="listitem"
           >
-            <CurioBook work={work} layout={cell.layout as BookLayout} />
+            <CurioBook
+              work={work}
+              layout={cell.layout as BookLayout}
+              savedDlcId={selectedDlcByWork[normalizeWorkTitle(work.title)]}
+              prefsReady={ready}
+              onSelectDlc={saveSelection}
+            />
           </div>
         );
       })}

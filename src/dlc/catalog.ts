@@ -1,27 +1,27 @@
 import type { CompileResult } from "./compiler";
-import { POET_ROSTER } from "./roster";
+import { POET_ROSTER, type RosterPoet } from "./roster";
+import { publicAssetUrl } from "../assets/cdn";
+import {
+  computeDisplayAuthors,
+  randomPickId,
+  titlesMatch,
+  type CatalogPack,
+  type CatalogWork,
+} from "./catalogShared";
 
-export type CatalogPack = {
-  id: string;
-  version: string;
-  title: string;
-  author: string;
-  displayAuthor: string;
-  summary: string;
-};
+export type { CatalogPack, CatalogWork } from "./catalogShared";
+export {
+  normalizeWorkTitle,
+  randomPickId,
+  resolveSelectedDlcId,
+  titlesMatch,
+} from "./catalogShared";
 
 export type PoetShelf = {
   poetId: string;
   poet: string;
   poetPortraitUrl: string;
   works: CompileResult[];
-};
-
-export type CatalogWork = {
-  title: string;
-  available: boolean;
-  dlcs: CatalogPack[];
-  primaryDlcId?: string;
 };
 
 export type CatalogPoet = {
@@ -32,43 +32,7 @@ export type CatalogPoet = {
   works: CatalogWork[];
 };
 
-export function normalizeWorkTitle(value: string) {
-  return value.replace(/[・·．.、（）()\s]/g, "");
-}
-
-export function titlesMatch(left: string, right: string) {
-  const a = normalizeWorkTitle(left);
-  const b = normalizeWorkTitle(right);
-  return a === b || a.includes(b) || b.includes(a);
-}
-
-function computeDisplayAuthors(packs: CatalogPack[]): CatalogPack[] {
-  const authorCounts = new Map<string, number>();
-  const sorted = [...packs].sort((a, b) => a.id.localeCompare(b.id));
-  for (const pack of sorted) {
-    authorCounts.set(pack.author, (authorCounts.get(pack.author) ?? 0) + 1);
-  }
-  const seen = new Map<string, number>();
-  return sorted.map((pack) => {
-    const count = authorCounts.get(pack.author) ?? 1;
-    if (count <= 1) {
-      return { ...pack, displayAuthor: pack.author };
-    }
-    const index = (seen.get(pack.author) ?? 0) + 1;
-    seen.set(pack.author, index);
-    // 第一个不加后缀，第二个起 .a .b .c ...
-    const suffix = index === 1 ? "" : `.${String.fromCharCode(96 + index - 1)}`;
-    return { ...pack, displayAuthor: `${pack.author}${suffix}` };
-  });
-}
-
-function randomPickId(packs: CatalogPack[]): string | undefined {
-  if (packs.length === 0) return undefined;
-  const index = Math.floor(Math.random() * packs.length);
-  return packs[index]?.id;
-}
-
-export function groupCatalogByPoet(catalog: CompileResult[]): PoetShelf[] {
+export function groupCatalogByPoet(catalog: CompileResult[], roster: RosterPoet[] = POET_ROSTER): PoetShelf[] {
   const shelves = new Map<string, PoetShelf>();
   for (const work of catalog) {
     const existing = shelves.get(work.poetId);
@@ -76,11 +40,11 @@ export function groupCatalogByPoet(catalog: CompileResult[]): PoetShelf[] {
       existing.works.push(work);
       continue;
     }
-    const rosterPoet = POET_ROSTER.find((p) => p.poetId === work.poetId);
+    const rosterPoet = roster.find((p) => p.poetId === work.poetId);
     shelves.set(work.poetId, {
       poetId: work.poetId,
       poet: work.poet,
-      poetPortraitUrl: rosterPoet?.poetPortraitUrl ?? `/poets/${work.poetId}.webp`,
+      poetPortraitUrl: publicAssetUrl(rosterPoet?.poetPortraitUrl ?? `/poets/${work.poetId}.webp`),
       works: [work],
     });
   }
@@ -108,9 +72,9 @@ function compileResultToPack(item: CompileResult): CatalogPack {
   };
 }
 
-export function buildCatalogPoets(catalog: CompileResult[]): CatalogPoet[] {
+export function buildCatalogPoets(catalog: CompileResult[], roster: RosterPoet[] = POET_ROSTER): CatalogPoet[] {
   const remaining = [...catalog];
-  const poets = POET_ROSTER.map((poet) => {
+  const poets = roster.map((poet) => {
     const pool = remaining.filter((item) => item.poetId === poet.poetId || item.poet === poet.poet);
     for (const item of pool) {
       const index = remaining.indexOf(item);
@@ -154,13 +118,13 @@ export function buildCatalogPoets(catalog: CompileResult[]): CatalogPoet[] {
     return {
       poetId: poet.poetId,
       poet: poet.poet,
-      poetPortraitUrl: poet.poetPortraitUrl,
+      poetPortraitUrl: publicAssetUrl(poet.poetPortraitUrl),
       available: works.some((item) => item.available),
       works,
     };
   });
 
-  const extras = groupCatalogByPoet(remaining).map((shelf) => {
+  const extras = groupCatalogByPoet(remaining, roster).map((shelf) => {
     // 将 shelf.works 按 workTitle 聚合
     const workMap = new Map<string, CompileResult[]>();
     for (const w of shelf.works) {
@@ -190,10 +154,18 @@ export function buildCatalogPoets(catalog: CompileResult[]): CatalogPoet[] {
   return [...poets, ...extras];
 }
 
-export function findPoetShelf(catalog: CompileResult[], poetId: string): PoetShelf | undefined {
-  return groupCatalogByPoet(catalog).find((shelf) => shelf.poetId === poetId);
+export function findPoetShelf(
+  catalog: CompileResult[],
+  poetId: string,
+  roster: RosterPoet[] = POET_ROSTER,
+): PoetShelf | undefined {
+  return groupCatalogByPoet(catalog, roster).find((shelf) => shelf.poetId === poetId);
 }
 
-export function findCatalogPoet(catalog: CompileResult[], poetId: string): CatalogPoet | undefined {
-  return buildCatalogPoets(catalog).find((poet) => poet.poetId === poetId);
+export function findCatalogPoet(
+  catalog: CompileResult[],
+  poetId: string,
+  roster: RosterPoet[] = POET_ROSTER,
+): CatalogPoet | undefined {
+  return buildCatalogPoets(catalog, roster).find((poet) => poet.poetId === poetId);
 }

@@ -45,9 +45,33 @@ export class MockAIProvider implements AIProvider {
     });
   }
 
-  async summarize(_request: SummaryRequest): Promise<TeacherSummary> {
-    return teacherSummarySchema.parse({
-      remark: "待完成",
-    });
+  async summarize(request: SummaryRequest): Promise<TeacherSummary> {
+    const total = request.answers.length;
+    const retried = request.answers.filter((item) => item.attempts.length > 1).length;
+    const guessed = request.answers.filter((item) => {
+      if (item.questionType !== "choice" || item.attempts.length < 2) {
+        return false;
+      }
+      const ids = item.attempts.map((attempt) => attempt.optionId).filter(Boolean);
+      if (ids.length < 2) {
+        return false;
+      }
+      const sequential = ids.every((id, index) => {
+        const prev = ids[index - 1];
+        if (!prev || !id) {
+          return true;
+        }
+        return prev.length === 1 && id.length === 1 && id.charCodeAt(0) === prev.charCodeAt(0) + 1;
+      });
+      const alwaysFirst = ids.every((id) => id === item.options?.[0]?.id);
+      return sequential || alwaysFirst;
+    }).length;
+    const remark =
+      guessed > 0
+        ? `你读完了${request.poet}的《${request.workTitle}》。有 ${guessed} 题像是顺着选项挨个点到对的，这样对理解诗词帮助不大。先读懂词句再作答，老师等你认真来一回。`
+        : retried > 0
+          ? `你认真读完了${request.poet}的《${request.workTitle}》。${total} 题里有 ${retried} 题不是一次就选对，说明还有地方要再对照词句想一想。下次先想清楚再点，会更踏实。`
+          : `你认真读完了${request.poet}的《${request.workTitle}》。${total} 题大多一次就抓住了要点。继续把词句和故事连起来想，就会越读越清楚。`;
+    return teacherSummarySchema.parse({ remark });
   }
 }

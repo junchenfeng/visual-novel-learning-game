@@ -9,11 +9,12 @@ export type RosterPoet = {
   works: RosterWork[];
 };
 
-function poetPortrait(poetId: string): string {
+export function poetPortrait(poetId: string): string {
   return `/poets/${poetId}.webp`;
 }
 
-export const POET_ROSTER: RosterPoet[] = [
+/** 仓库内置课表。线上名册以 OSS roster.json 为准，首次读取会把这份 seed 写进去。 */
+export const SEED_ROSTER: RosterPoet[] = [
   {
     poetId: "libai",
     poet: "李白",
@@ -73,3 +74,6 @@ export const POET_ROSTER: RosterPoet[] = [
     works: [{ title: "出塞" }],
   },
 ];
+
+/** 兼容旧测试与同步调用；生产目录请用 loadRoster()。 */
+export const POET_ROSTER = SEED_ROSTER;

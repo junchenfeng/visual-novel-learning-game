@@ -1,0 +1,988 @@
+{
+  "schemaVersion": 1,
+  "publicBasePath": "/dlc/sushi-shuidiao-hailao-v2",
+  "manifest": {
+    "schemaVersion": 1,
+    "id": "sushi-shuidiao-hailao-v2",
+    "version": "2.3.0",
+    "title": "水调歌头·明月几时有",
+    "author": "海棠海棠",
+    "poet": "苏轼",
+    "poetId": "sushi",
+    "workTitle": "水调歌头",
+    "summary": "密州中秋夜，苏轼大醉，想起远方的弟弟苏辙，提笔写下这首千古中秋第一词。这次，你的选择将决定苏轼的人生走向——是仕途兼济，是归隐田园，还是千里共婵娟？",
+    "startStoryNodeId": "s01_intro",
+    "classroom": {
+      "teacher": "teacher",
+      "classmate": "classmate",
+      "student": "student"
+    },
+    "files": {
+      "story": "content/story.yaml",
+      "poem": "content/poem.yaml",
+      "quiz": "content/quiz.yaml"
+    },
+    "characters": [
+      {
+        "id": "sushi",
+        "name": "苏轼",
+        "portraitUrl": "/poets/sushi.webp"
+      },
+      {
+        "id": "zhe",
+        "name": "苏辙"
+      },
+      {
+        "id": "teacher",
+        "name": "老师",
+        "portraitUrl": "/portraits/teacher-cutout.png"
+      },
+      {
+        "id": "classmate",
+        "name": "同学",
+        "portraitUrl": "/portraits/classmate-cutout.png"
+      },
+      {
+        "id": "student",
+        "name": "玩家",
+        "portraitUrl": "/portraits/student.webp"
+      }
+    ],
+    "easterEgg": {
+      "kind": "fill-in",
+      "title": "补全苏轼心中那阕词",
+      "params": {
+        "blanks": [
+          {
+            "prefix": "明月几时有，把酒问",
+            "suffix": "。",
+            "correct": "青天",
+            "options": [
+              "青天",
+              "苍天",
+              "长天",
+              "远天"
+            ]
+          },
+          {
+            "prefix": "不知天上宫阙，今夕是",
+            "suffix": "。",
+            "correct": "何年",
+            "options": [
+              "何年",
+              "何夕",
+              "几年",
+              "几时"
+            ]
+          },
+          {
+            "prefix": "人有悲欢离合，月有阴晴圆缺，此事古",
+            "suffix": "全。",
+            "correct": "难",
+            "options": [
+              "难",
+              "不",
+              "未",
+              "莫"
+            ]
+          }
+        ]
+      }
+    },
+    "endings": [
+      {
+        "endingId": "ending_changjiu",
+        "title": "但愿人长久",
+        "subtitle": "千里共婵娟",
+        "triggerHint": "亲情权重最高",
+        "quote": "但愿人长久，千里共婵娟。"
+      },
+      {
+        "endingId": "ending_gaochu",
+        "title": "高处不胜寒",
+        "subtitle": "起舞弄清影，何似在人间",
+        "triggerHint": "仕途之心最高",
+        "quote": "高处不胜寒。起舞弄清影，何似在人间。"
+      },
+      {
+        "endingId": "ending_guiqu",
+        "title": "归去，也无风雨也无晴",
+        "subtitle": "早退田园，兄弟相守",
+        "triggerHint": "旷逸指数最高",
+        "quote": "归去，也无风雨也无晴。"
+      }
+    ]
+  },
+  "story": {
+    "startNodeId": "s01_intro",
+    "chapters": [
+      {
+        "chapter": 1,
+        "backgroundUrl": "/dlc/sushi-shuidiao-hailao-v2/assets/backgrounds/chapter-1-brothers.webp"
+      },
+      {
+        "chapter": 2,
+        "backgroundUrl": "/dlc/sushi-shuidiao-hailao-v2/assets/backgrounds/chapter-3-mid-autumn.webp"
+      },
+      {
+        "chapter": 3,
+        "backgroundUrl": "/dlc/sushi-shuidiao-hailao-v2/assets/backgrounds/chapter-2-reform-debate.webp"
+      },
+      {
+        "chapter": 4,
+        "backgroundUrl": "/dlc/sushi-shuidiao-hailao-v2/assets/bg/chapter04-fields.jpg"
+      }
+    ],
+    "nodes": {
+      "s01_intro": {
+        "id": "s01_intro",
+        "type": "narration",
+        "chapter": 1,
+        "chapterTitle": "密州任上",
+        "text": "熙宁九年，中秋。密州的月色格外清亮，像铺了一层霜在庭院里。苏轼独自坐在超然台上，手里端着半盏冷酒。",
+        "speaker": "旁白",
+        "nextNodeId": "s02_fact"
+      },
+      "s02_fact": {
+        "id": "s02_fact",
+        "type": "fact",
+        "chapter": 1,
+        "chapterTitle": "密州任上",
+        "text": "熙宁四年，苏轼因与王安石政见不合，自请外放，先通判杭州，后迁密州知州。此时弟弟苏辙在济南，兄弟二人已有七年未见。",
+        "heading": "史实",
+        "nextNodeId": "s03_choice1"
+      },
+      "s03_choice1": {
+        "id": "s03_choice1",
+        "type": "choice",
+        "chapter": 1,
+        "chapterTitle": "初入仕途的抉择",
+        "text": "你想起三年前，王安石在汴京推行新法，朝堂上新旧两党争得不可开交。那时的你，正站在仕途的岔路口：是留在朝堂，在党争的漩涡里周旋，尽力匡正新法；还是自请外放，远远躲开这摊是非；又或是按捺心绪，先看看风向，再作打算？",
+        "speaker": "旁白",
+        "portrait": "sushi",
+        "convergesTo": "s04_post_choice1",
+        "choices": [
+          {
+            "id": "c1_stay",
+            "label": "留在朝堂，参与变法",
+            "nextNodeId": "s03a_ambition",
+            "feedback": "你选择了兼济天下的路。",
+            "attrs": {
+              "ambition": 2,
+              "ease": -1
+            }
+          },
+          {
+            "id": "c1_leave",
+            "label": "自请外放，躲开党争",
+            "nextNodeId": "s03b_ease",
+            "feedback": "你选择了眼不见为净。",
+            "attrs": {
+              "ambition": -1,
+              "ease": 2
+            }
+          },
+          {
+            "id": "c1_balance",
+            "label": "先看看，再决定",
+            "nextNodeId": "s03c_balance",
+            "feedback": "你决定再观望一阵。",
+            "attrs": {
+              "ambition": 1,
+              "ease": 1
+            }
+          }
+        ]
+      },
+      "s03a_ambition": {
+        "id": "s03a_ambition",
+        "type": "narration",
+        "chapter": 1,
+        "chapterTitle": "初入仕途的抉择",
+        "text": "你选择了留在朝堂。新官上任三把火，你想凭一己之力，让变法走得更稳一些。只是你没有想到，党争的漩涡，远比你想象的深。",
+        "speaker": "旁白",
+        "nextNodeId": "s04_post_choice1"
+      },
+      "s03b_ease": {
+        "id": "s03b_ease",
+        "type": "narration",
+        "chapter": 1,
+        "chapterTitle": "初入仕途的抉择",
+        "text": "你选择了自请外放。杭州的山水、密州的民情，让你暂别了朝堂的纷争。只是夜深人静时，你偶尔也会想起，那些留在汴京的故人。",
+        "speaker": "旁白",
+        "nextNodeId": "s04_post_choice1"
+      },
+      "s03c_balance": {
+        "id": "s03c_balance",
+        "type": "narration",
+        "chapter": 1,
+        "chapterTitle": "初入仕途的抉择",
+        "text": "你选择了观望。既不激进，也不退缩，像一根芦苇在风里摇摆。可有些时候，观望本身，也是一种选择。",
+        "speaker": "旁白",
+        "nextNodeId": "s04_post_choice1"
+      },
+      "s04_post_choice1": {
+        "id": "s04_post_choice1",
+        "type": "narration",
+        "chapter": 1,
+        "chapterTitle": "中秋将至",
+        "text": "无论当年如何选择，如今你都站在了密州的超然台上。中秋的月亮，圆得有些刺眼。",
+        "speaker": "旁白",
+        "nextNodeId": "s05_letter"
+      },
+      "s05_letter": {
+        "id": "s05_letter",
+        "type": "narration",
+        "chapter": 1,
+        "chapterTitle": "中秋将至",
+        "text": "案上放着一封苏辙上月寄来的信。信里说济南一切都好，只是中秋又要一个人过了。",
+        "speaker": "旁白",
+        "portrait": "sushi",
+        "nextNodeId": "s06_choice2"
+      },
+      "s06_choice2": {
+        "id": "s06_choice2",
+        "type": "choice",
+        "chapter": 1,
+        "chapterTitle": "子由的信",
+        "text": "你拿着这封信，指尖微微发凉。要不要写封回信？写些什么好呢？",
+        "speaker": "旁白",
+        "portrait": "sushi",
+        "convergesTo": "s07_post_choice2",
+        "choices": [
+          {
+            "id": "c2_political",
+            "label": "聊聊朝堂近况与新法得失",
+            "nextNodeId": "s06a_political",
+            "feedback": "你们是兄弟，也是同道中人。",
+            "attrs": {
+              "ambition": 1,
+              "family": 1
+            }
+          },
+          {
+            "id": "c2_family",
+            "label": "只说家常，不提政事",
+            "nextNodeId": "s06b_family",
+            "feedback": "平安二字值千金。",
+            "attrs": {
+              "family": 2
+            }
+          },
+          {
+            "id": "c2_poetry",
+            "label": "寄一首新作的诗过去",
+            "nextNodeId": "s06c_poetry",
+            "feedback": "诗，是你们兄弟之间的密语。",
+            "attrs": {
+              "family": 1,
+              "ease": 1
+            }
+          }
+        ]
+      },
+      "s06a_political": {
+        "id": "s06a_political",
+        "type": "narration",
+        "chapter": 1,
+        "chapterTitle": "子由的信",
+        "text": "你在信里洋洋洒洒写了许多，从免行法到青苗法，从朝堂到地方。写完你才发现，不知不觉，你们兄弟之间的话题，越来越离不开政事了。",
+        "speaker": "旁白",
+        "nextNodeId": "s07_post_choice2"
+      },
+      "s06b_family": {
+        "id": "s06b_family",
+        "type": "narration",
+        "chapter": 1,
+        "chapterTitle": "子由的信",
+        "text": "你只写了些家常——密州的枣子熟了，后院的竹子又长高了，朝云新学会了一道菜。信很短，但你写得很慢，每一个字都像是在量月光的温度。",
+        "speaker": "旁白",
+        "nextNodeId": "s07_post_choice2"
+      },
+      "s06c_poetry": {
+        "id": "s06c_poetry",
+        "type": "narration",
+        "chapter": 1,
+        "chapterTitle": "子由的信",
+        "text": "你附上了一首近作。纸短情长，千言万语，不如一首诗。你们从小一起长大，彼此的心事，从来不用明说。",
+        "speaker": "旁白",
+        "nextNodeId": "s07_post_choice2"
+      },
+      "s07_post_choice2": {
+        "id": "s07_post_choice2",
+        "type": "narration",
+        "chapter": 1,
+        "chapterTitle": "中秋将至",
+        "text": "夜色渐深，酒意渐浓。你决定在院子里走走。",
+        "speaker": "旁白",
+        "nextNodeId": "s08_explore"
+      },
+      "s08_explore": {
+        "id": "s08_explore",
+        "type": "explore",
+        "chapter": 2,
+        "chapterTitle": "中秋夜·四下走走",
+        "text": "月光如水，洒在庭院里。你环顾四周，都是些平日里熟视无睹的物件——可今夜，好像每一样都藏着一段回忆。",
+        "objects": [
+          {
+            "id": "moon",
+            "name": "明月",
+            "hint": "挂在天上",
+            "memory": "你想起小时候，你和子由一起在院子里赏月。父亲说，月亮是一面镜子，照着天下所有想念的人。那时你们不懂，只觉得月亮又大又圆，像个月饼。",
+            "valid": true,
+            "attrs": {
+              "family": 1
+            }
+          },
+          {
+            "id": "wine",
+            "name": "酒盏",
+            "hint": "半盏残酒",
+            "memory": "你想起去年中秋，你在杭州，和朋友一起喝得大醉。酒醒时，天已经亮了。你忽然很想子由，想他在你身边，陪你喝一杯。",
+            "valid": false,
+            "attrs": {
+              "ease": 1
+            }
+          },
+          {
+            "id": "letter",
+            "name": "家书",
+            "hint": "子由的信",
+            "memory": "你拿起那封信，又读了一遍。子由的字还是那样端端正正，像他的人一样，稳稳当当。你笑了笑，把信放回信封里。",
+            "valid": true,
+            "attrs": {
+              "family": 2
+            }
+          },
+          {
+            "id": "osmanthus",
+            "name": "桂花",
+            "hint": "墙角的桂树",
+            "memory": "桂花的香，让你想起四川老家。母亲在世时，每到中秋都会做桂花糕。你和子由围着灶台转，母亲总笑着说，别急，还没熟呢。",
+            "valid": false,
+            "attrs": {
+              "family": 1,
+              "ease": 1
+            }
+          },
+          {
+            "id": "robe",
+            "name": "旧官袍",
+            "hint": "搭在椅背上",
+            "memory": "那件旧官袍，是你初入仕途时穿的。那时你年轻气盛，以为凭一支笔、一颗心，就能改变天下。如今官袍还在，人却已经不是当年的人了。",
+            "valid": false,
+            "attrs": {
+              "ambition": 1
+            }
+          }
+        ],
+        "hiddenReward": "你忽然明白，这些年你走遍了大江南北，看过了无数的月亮——可最圆的那一轮，永远是和子由一起看过的那一轮。",
+        "nextNodeId": "s09_post_explore",
+        "speaker": "旁白",
+        "portrait": "sushi"
+      },
+      "s09_post_explore": {
+        "id": "s09_post_explore",
+        "type": "narration",
+        "chapter": 2,
+        "chapterTitle": "大醉",
+        "text": "你回到亭子里，把酒一饮而尽。酒意上头，思绪万千。你拿起笔，想写点什么。",
+        "speaker": "旁白",
+        "nextNodeId": "s10_choice3"
+      },
+      "s10_choice3": {
+        "id": "s10_choice3",
+        "type": "choice",
+        "chapter": 2,
+        "chapterTitle": "提笔的瞬间",
+        "text": "写什么呢？是写家国天下，还是写儿女情长？是写给朝廷，还是写给子由？",
+        "speaker": "旁白",
+        "portrait": "sushi",
+        "convergesTo": "s11_post_choice3",
+        "choices": [
+          {
+            "id": "c3_political",
+            "label": "写写对新法的看法",
+            "nextNodeId": "s10a_political",
+            "feedback": "先天下之忧而忧。",
+            "attrs": {
+              "ambition": 2
+            }
+          },
+          {
+            "id": "c3_brother",
+            "label": "写给子由",
+            "nextNodeId": "s10b_brother",
+            "feedback": "这才是你此刻最想说的话。",
+            "attrs": {
+              "family": 2
+            }
+          },
+          {
+            "id": "c3_philosophy",
+            "label": "写写人生的感慨",
+            "nextNodeId": "s10c_philosophy",
+            "feedback": "人生到处知何似，应似飞鸿踏雪泥。",
+            "attrs": {
+              "ease": 2
+            }
+          }
+        ]
+      },
+      "s10a_political": {
+        "id": "s10a_political",
+        "type": "narration",
+        "chapter": 2,
+        "chapterTitle": "提笔的瞬间",
+        "text": "你本想写些关于新法的见解，可笔在纸上悬了半天，终究落不下去。今夜是中秋，谈什么政事呢？你摇摇头，把纸翻了一面。",
+        "speaker": "旁白",
+        "nextNodeId": "s11_post_choice3"
+      },
+      "s10b_brother": {
+        "id": "s10b_brother",
+        "type": "narration",
+        "chapter": 2,
+        "chapterTitle": "提笔的瞬间",
+        "text": "你第一个想到的，就是子由。七年未见，他在济南过得好吗？中秋的月亮，他也在看吗？你深吸一口气，笔尖落下。",
+        "speaker": "旁白",
+        "nextNodeId": "s11_post_choice3"
+      },
+      "s10c_philosophy": {
+        "id": "s10c_philosophy",
+        "type": "narration",
+        "chapter": 2,
+        "chapterTitle": "提笔的瞬间",
+        "text": "你望着天上的月亮，忽然觉得人生就像这月亮一样，有圆有缺，谁也强求不得。你微微一笑，有了个开头。",
+        "speaker": "旁白",
+        "nextNodeId": "s11_post_choice3"
+      },
+      "s11_post_choice3": {
+        "id": "s11_post_choice3",
+        "type": "narration",
+        "chapter": 2,
+        "chapterTitle": "大醉",
+        "text": "你喝醉了，醉得一塌糊涂。恍惚间，你好像乘风而去，飞到了月亮上……",
+        "speaker": "旁白",
+        "nextNodeId": "s12_dream"
+      },
+      "s12_dream": {
+        "id": "s12_dream",
+        "type": "narration",
+        "chapter": 2,
+        "chapterTitle": "乘风归去",
+        "text": "明月几时有？把酒问青天。不知天上宫阙，今夕是何年……你在月光里飘啊飘，忽然，面前出现了三条路。",
+        "speaker": "旁白",
+        "nextNodeId": "s13_choice4"
+      },
+      "s13_choice4": {
+        "id": "s13_choice4",
+        "type": "choice",
+        "chapter": 2,
+        "chapterTitle": "月宫三岔口",
+        "text": "你看见三条路，分别通往三个不同的地方。你知道，这一走，就是一辈子。",
+        "speaker": "旁白",
+        "convergesTo": "s14_post_choice4",
+        "choices": [
+          {
+            "id": "c4_court",
+            "label": "回朝堂去，做番事业",
+            "nextNodeId": "s13a_court_road",
+            "feedback": "高处不胜寒，你偏要往高处走。",
+            "attrs": {
+              "ambition": 3,
+              "ease": -2
+            }
+          },
+          {
+            "id": "c4_moon",
+            "label": "继续往上，飞到月亮上",
+            "nextNodeId": "s13b_moon_road",
+            "feedback": "你想看看，天上到底有没有神仙。",
+            "attrs": {
+              "family": 1,
+              "ease": 2
+            }
+          },
+          {
+            "id": "c4_home",
+            "label": "往下走，回家去",
+            "nextNodeId": "s13c_home_road",
+            "feedback": "人间烟火，才是最暖的。",
+            "attrs": {
+              "family": 2,
+              "ease": 1
+            }
+          }
+        ]
+      },
+      "s13a_court_road": {
+        "id": "s13a_court_road",
+        "type": "narration",
+        "chapter": 3,
+        "chapterTitle": "朝堂之路",
+        "text": "你选择了回朝堂。你相信，凭你的才学，一定能做一番事业。只是，这条路比你想象的难走得多。",
+        "speaker": "旁白",
+        "nextNodeId": "s14_post_choice4"
+      },
+      "s13b_moon_road": {
+        "id": "s13b_moon_road",
+        "type": "narration",
+        "chapter": 2,
+        "chapterTitle": "月宫之路",
+        "text": "你乘风而上，越飞越高。风越来越冷，你却浑然不觉。你只想看看，那月亮上到底有什么。",
+        "speaker": "旁白",
+        "nextNodeId": "s14_post_choice4"
+      },
+      "s13c_home_road": {
+        "id": "s13c_home_road",
+        "type": "narration",
+        "chapter": 4,
+        "chapterTitle": "田园之路",
+        "text": "你转身往下走。人间的灯火渐次亮起，炊烟袅袅。你忽然觉得，这些才是你真正想要的。",
+        "speaker": "旁白",
+        "nextNodeId": "s14_post_choice4"
+      },
+      "s14_post_choice4": {
+        "id": "s14_post_choice4",
+        "type": "narration",
+        "chapter": 2,
+        "chapterTitle": "大醉",
+        "text": "你走着走着，忽然脚下一空——你从梦里惊醒了。酒意散了大半，你发现自己还在超然台上，手里还握着笔。",
+        "speaker": "旁白",
+        "nextNodeId": "s15_choice5"
+      },
+      "s15_choice5": {
+        "id": "s15_choice5",
+        "type": "choice",
+        "chapter": 2,
+        "chapterTitle": "梦醒时分",
+        "text": "你望着纸上那半阕词，一时不知该如何继续。是继续做那个兼济天下的你，还是做那个寄情山水的你，还是做那个只想着弟弟的你？",
+        "speaker": "旁白",
+        "portrait": "sushi",
+        "choices": [
+          {
+            "id": "c5_ambition",
+            "label": "男儿何不带吴钩，收取关山五十州",
+            "nextNodeId": "s15a_ambition_end",
+            "feedback": "你终究放不下家国天下。",
+            "attrs": {
+              "ambition": 3,
+              "family": -1,
+              "ease": -1
+            }
+          },
+          {
+            "id": "c5_family",
+            "label": "但愿人长久，千里共婵娟",
+            "nextNodeId": "s15b_family_end",
+            "feedback": "你心里最柔软的地方，还是子由。",
+            "attrs": {
+              "ambition": -1,
+              "family": 3
+            }
+          },
+          {
+            "id": "c5_ease",
+            "label": "竹杖芒鞋轻胜马，谁怕",
+            "nextNodeId": "s15c_ease_end",
+            "feedback": "一蓑烟雨任平生。",
+            "attrs": {
+              "ambition": -2,
+              "ease": 3
+            }
+          }
+        ]
+      },
+      "s15a_ambition_end": {
+        "id": "s15a_ambition_end",
+        "type": "narration",
+        "chapter": 3,
+        "chapterTitle": "高处不胜寒",
+        "text": "你决定重返朝堂。你相信变法能改变这个国家，你愿意做那颗过河的卒子。只是后来的事，谁也说不准——也许你会名垂青史，也许你会摔得粉身碎骨。",
+        "speaker": "旁白",
+        "nextNodeId": "end_gaochu"
+      },
+      "s15b_family_end": {
+        "id": "s15b_family_end",
+        "type": "narration",
+        "chapter": 2,
+        "chapterTitle": "但愿人长久",
+        "text": "你望着月亮，想起了子由。千里之外，他是不是也在看着同一轮月亮？你放下笔，忽然就笑了。不能相见又如何？至少，你们共享着同一轮明月。",
+        "speaker": "旁白",
+        "nextNodeId": "end_changjiu"
+      },
+      "s15c_ease_end": {
+        "id": "s15c_ease_end",
+        "type": "narration",
+        "chapter": 4,
+        "chapterTitle": "归去",
+        "text": "你忽然觉得，做官有什么意思呢？不如归去，寻一片田园，和弟弟比邻而居，喝酒、作诗、看月亮。人生不过百年，何苦难为自己？",
+        "speaker": "旁白",
+        "nextNodeId": "end_guiqu"
+      },
+      "end_changjiu": {
+        "id": "end_changjiu",
+        "type": "gameOver",
+        "chapter": 2,
+        "chapterTitle": "结局·但愿人长久",
+        "text": "你选择了亲情。仕途算什么？天下算什么？只要弟弟还在，只要月亮还在，就够了。你提笔写下：但愿人长久，千里共婵娟。这是你留给世人的，也是你留给子由的。",
+        "speaker": "旁白",
+        "portrait": "sushi",
+        "endingId": "ending_changjiu"
+      },
+      "end_gaochu": {
+        "id": "end_gaochu",
+        "type": "gameOver",
+        "chapter": 3,
+        "chapterTitle": "结局·高处不胜寒",
+        "text": "你选择了仕途。你在朝堂上殚精竭虑，与苏辙政见渐渐不同，兄弟之间的话也越来越少。许多年后，你被贬到更偏远的地方，一个人看着中秋的月亮，忽然想起了子由。高处不胜寒，起舞弄清影，何似在人间。",
+        "speaker": "旁白",
+        "portrait": "sushi",
+        "endingId": "ending_gaochu"
+      },
+      "end_guiqu": {
+        "id": "end_guiqu",
+        "type": "gameOver",
+        "chapter": 4,
+        "chapterTitle": "结局·归去",
+        "text": "你选择了归去。你辞了官，在颍川找了一块地，和子由做了邻居。你们每天喝酒、作诗、晒太阳。日子过得平淡，却也安稳。只是，少了那些宦海沉浮，便也少了那些传世的名篇。后人说起苏轼，只道是个写词不错的隐士。",
+        "speaker": "旁白",
+        "portrait": "zhe",
+        "endingId": "ending_guiqu"
+      }
+    }
+  },
+  "poem": {
+    "schemaVersion": 1,
+    "title": "水调歌头·明月几时有",
+    "lines": [
+      {
+        "id": "L1",
+        "original": "明月几时有？把酒问青天。",
+        "translation": "明月是从什么时候开始有的呢？我端起酒杯问一问苍天。",
+        "note": "开篇破空而来，屈原《天问》有「九天之际，安放安属」之问，李白有「青天有月来几时？我今停杯一问之」。苏轼此问，既有谪仙之风，又有哲思之深。",
+        "glosses": [
+          {
+            "word": "把酒",
+            "meaning": "端着酒杯。把，持、握。"
+          }
+        ]
+      },
+      {
+        "id": "L2",
+        "original": "不知天上宫阙，今夕是何年。",
+        "translation": "不知道天上的宫殿，今夜是哪一年呢？",
+        "note": "把对月亮的想象具体化——天上也有宫殿，也有年月，只是与人世不同。这是「乘风归去」的铺垫。",
+        "glosses": [
+          {
+            "word": "宫阙",
+            "meaning": "宫殿。阙，皇宫门前两边的楼台。"
+          }
+        ]
+      },
+      {
+        "id": "L3",
+        "original": "我欲乘风归去，又恐琼楼玉宇，高处不胜寒。",
+        "translation": "我想乘着风回到天上，又怕那美玉砌成的楼宇，太高了，受不住那里的寒冷。",
+        "note": "「归去」二字极妙——苏轼自认是天上贬下来的仙人，所以回天上去是「归」，不是「去」。但仙人也怕冷，也有凡人的犹豫。",
+        "glosses": [
+          {
+            "word": "琼楼玉宇",
+            "meaning": "美玉砌成的楼宇，指月中宫殿。琼、玉，都是美玉。宇，屋檐，代指房屋。"
+          },
+          {
+            "word": "不胜寒",
+            "meaning": "受不住寒冷。胜，承受得住。"
+          }
+        ]
+      },
+      {
+        "id": "L4",
+        "original": "起舞弄清影，何似在人间。",
+        "translation": "起身跳舞，与自己清朗的影子相伴——哪里比得上在人间呢？",
+        "note": "这是上阕的「转身」。想上天去，可又觉得还是人间好。这就是苏轼的可爱之处——再出世的人，也留恋人间的温度。",
+        "glosses": [
+          {
+            "word": "弄清影",
+            "meaning": "和清朗的影子嬉戏。弄，戏弄、嬉戏。"
+          }
+        ]
+      },
+      {
+        "id": "L5",
+        "original": "转朱阁，低绮户，照无眠。",
+        "translation": "月光转过朱红色的楼阁，低低地照进雕花的窗户，照着那个睡不着的人。",
+        "note": "这句没有主语，但处处是月亮——月亮在动，人无眠。月光是无辜的，可睡不着的人总觉得月光是故意来照自己的。",
+        "glosses": [
+          {
+            "word": "朱阁",
+            "meaning": "朱红色的楼阁。"
+          },
+          {
+            "word": "绮户",
+            "meaning": "雕花的窗户。绮，有花纹的丝织品。"
+          }
+        ]
+      },
+      {
+        "id": "L6",
+        "original": "不应有恨，何事长向别时圆？",
+        "translation": "（月亮）你不应该对人有什么怨恨吧，为什么偏偏在人们分离的时候才圆呢？",
+        "note": "这是「怨月」——月亮本来只是自然现象，但睡不着的人偏要怪它。这种「不讲理」的写法，最见情深。",
+        "glosses": [
+          {
+            "word": "何事",
+            "meaning": "为什么。"
+          }
+        ]
+      },
+      {
+        "id": "L7",
+        "original": "人有悲欢离合，月有阴晴圆缺，此事古难全。",
+        "translation": "人有悲欢离合，月有阴晴圆缺，这种事情自古以来就难以周全。",
+        "note": "从怨月，到理解月，再到自我开解——苏轼只用了三句话。这就是他的「旷达」：不是没烦恼，而是烦恼来了，他能自己把它想通。",
+        "glosses": [
+          {
+            "word": "古难全",
+            "meaning": "自古以来就难以周全。全，齐全、圆满。"
+          }
+        ]
+      },
+      {
+        "id": "L8",
+        "original": "但愿人长久，千里共婵娟。",
+        "translation": "只希望人们都能长久平安，即使相隔千里，也能共享这美好的月光。",
+        "note": "这是整首词的「词眼」。从「问青天」的哲思，到「怨月亮」的情痴，最后落在一句温暖的祝愿上——不是求团圆，而是求「长久」；不是求相见，而是求「共婵娟」。这就是苏轼的温度。",
+        "glosses": [
+          {
+            "word": "婵娟",
+            "meaning": "美好的样子，这里指月亮。也可指美女。"
+          }
+        ]
+      }
+    ]
+  },
+  "quiz": {
+    "schemaVersion": 1,
+    "gradingPrompt": "你是一位语文老师，正在点评学生关于苏轼《水调歌头·明月几时有》的课堂答题。请根据学生的回答给出评估。",
+    "summaryPrompt": "你是一位温和但要求严格的语文老师，学生读完《水调歌头·明月几时有》并完成课堂问答后，请你依据每道选择题的作答轨迹判断作答态度，写一段贴合本人、绝不套路化的总评。\n\n关键规则——识别「全靠蒙」并当面指正：\n1. 逐条核对 user 数据中每道选择题的 optionIds：若学生几乎每道题都只选第一个选项（optionId 恒为 a），或明显顺着选项顺序一个接一个乱点直到碰上正确项——这就是典型的不认真作答、蒙答案，不是认真思考。\n2. 对这类「全靠蒙」的学生，总评绝不能温柔夸赞「掌握得很好」「答得漂亮」；要温和但明确地指出：答题态度不够端正，靠蒙答案对理解诗词没有帮助，希望他静下心来、先读懂词句再作答，望其改正。\n3. 对认真作答的学生（有思考痕迹、不是机械地全选第一个选项），才按实际掌握程度正常鼓励或给具体建议。\n\n其余要求：\n- 保持温和、正面引导，不嘲讽、不恐吓、不贴标签；批评只落在「行为/态度」上，不否定学生本人。\n- 点名具体题目与作答情况，评语有据可依、不空洞。\n- 只输出 JSON 对象，字段必须是 remark，约 80 到 180 字。",
+    "questions": [
+      {
+        "id": "q1-basics-jiuci",
+        "type": "choice",
+        "prompt": "「「把酒问青天」中的「把」字，和下面哪个词语里的「把」意思最接近？」",
+        "options": [
+          {
+            "id": "a",
+            "label": "把关",
+            "feedback": "「把关」的「把」是看守的意思，不一样。"
+          },
+          {
+            "id": "b",
+            "label": "把握",
+            "feedback": "正确。「把握」的「把」是握、持的意思，和「把酒」（端着酒杯）的「把」意思一致。"
+          },
+          {
+            "id": "c",
+            "label": "把戏",
+            "feedback": "「把戏」的「把」是耍弄的意思，不一样。"
+          },
+          {
+            "id": "d",
+            "label": "个把月",
+            "feedback": "「个把月」的「把」是大约的意思，不一样。"
+          }
+        ],
+        "correctOptionId": "b",
+        "feedbackSpeaker": "teacher",
+        "hint": {
+          "text": "「把酒」就是端着酒杯。想想「把」在这里是什么词性？",
+          "isCorrect": true
+        }
+      },
+      {
+        "id": "q2-basics-chanjuan",
+        "type": "choice",
+        "prompt": "「「千里共婵娟」中的「婵娟」在这里指的是什么？」",
+        "options": [
+          {
+            "id": "a",
+            "label": "美女",
+            "feedback": "「婵娟」可以指美女，但这首词里不是。"
+          },
+          {
+            "id": "b",
+            "label": "月亮",
+            "feedback": "正确。「婵娟」本指美好的样子，这里用来代指月亮。"
+          },
+          {
+            "id": "c",
+            "label": "桂花",
+            "feedback": "不是桂花哦。"
+          },
+          {
+            "id": "d",
+            "label": "嫦娥",
+            "feedback": "不是嫦娥，虽然月亮上确实有嫦娥的传说。"
+          }
+        ],
+        "correctOptionId": "b",
+        "feedbackSpeaker": "teacher",
+        "hint": {
+          "text": "「千里共婵娟」是说相隔千里也能一起看同一个美好的东西，联系这首词的主题——中秋夜。",
+          "isCorrect": true
+        }
+      },
+      {
+        "id": "q3-basics-qionglou",
+        "type": "choice",
+        "prompt": "「「琼楼玉宇」形容的是什么？」",
+        "options": [
+          {
+            "id": "a",
+            "label": "精美的玉器",
+            "feedback": "不是玉器，而是用玉器形容的建筑。"
+          },
+          {
+            "id": "b",
+            "label": "神仙住的山洞",
+            "feedback": "不是山洞，是楼宇。"
+          },
+          {
+            "id": "c",
+            "label": "华丽的宫殿",
+            "feedback": "正确。琼、玉都是美玉，用美玉砌成的楼宇，形容华美的宫殿，这里指想象中的月中宫殿。"
+          },
+          {
+            "id": "d",
+            "label": "冰雕的建筑",
+            "feedback": "不是冰做的，是玉做的（比喻）。"
+          }
+        ],
+        "correctOptionId": "c",
+        "feedbackSpeaker": "teacher",
+        "hint": {
+          "text": "「琼」和「玉」都是美玉，「楼」和「宇」都是房屋。",
+          "isCorrect": true
+        }
+      },
+      {
+        "id": "q4-basics-author",
+        "type": "choice",
+        "prompt": "「这首词的作者苏轼，是哪个朝代的人？」",
+        "options": [
+          {
+            "id": "a",
+            "label": "唐代",
+            "feedback": "不是唐代。唐代最有名的姓李的诗人很多，但苏轼不是。"
+          },
+          {
+            "id": "b",
+            "label": "宋代",
+            "feedback": "正确。苏轼是北宋人，和王安石、司马光同朝为官。"
+          },
+          {
+            "id": "c",
+            "label": "明代",
+            "feedback": "不是明代。"
+          },
+          {
+            "id": "d",
+            "label": "清代",
+            "feedback": "不是清代。"
+          }
+        ],
+        "correctOptionId": "b",
+        "feedbackSpeaker": "teacher",
+        "hint": {
+          "text": "想想王安石变法——这是哪个朝代的事？",
+          "isCorrect": true
+        }
+      },
+      {
+        "id": "q6-adv-shangque",
+        "type": "choice",
+        "prompt": "「词的上阕中，苏轼的情感变化过程是怎样的？」",
+        "options": [
+          {
+            "id": "a",
+            "label": "留恋人间 → 向往天上 → 犹豫徘徊",
+            "feedback": "顺序不对，上阕最后落回了人间。"
+          },
+          {
+            "id": "b",
+            "label": "犹豫徘徊 → 向往天上 → 留恋人间",
+            "feedback": "开头是直接问天，然后想归去，不是先犹豫。"
+          },
+          {
+            "id": "c",
+            "label": "悲伤孤独 → 愤怒质问 → 释然接受",
+            "feedback": "上阕的情绪没有那么激烈，更多是哲思和犹豫。"
+          },
+          {
+            "id": "d",
+            "label": "向往天上 → 犹豫徘徊 → 留恋人间",
+            "feedback": "正确。从「我欲乘风归去」的向往，到「又恐琼楼玉宇，高处不胜寒」的犹豫，再到「起舞弄清影，何似在人间」的肯定——苏轼终究选择了人间。"
+          }
+        ],
+        "correctOptionId": "d",
+        "feedbackSpeaker": "teacher",
+        "hint": {
+          "text": "抓住三个关键词：「我欲」、「又恐」、「何似」。它们分别代表什么情绪？",
+          "isCorrect": true
+        }
+      },
+      {
+        "id": "q7-challenge-otherworks",
+        "type": "choice",
+        "prompt": "「下列诗句中，哪一句不是苏轼写的？」",
+        "options": [
+          {
+            "id": "a",
+            "label": "「人生到处知何似，应似飞鸿踏雪泥。」",
+            "feedback": "这是苏轼的《和子由渑池怀旧》，很有名的一首七律。"
+          },
+          {
+            "id": "b",
+            "label": "「竹杖芒鞋轻胜马，谁怕？一蓑烟雨任平生。」",
+            "feedback": "这是苏轼的《定风波》，写于被贬黄州期间。"
+          },
+          {
+            "id": "c",
+            "label": "「先天下之忧而忧，后天下之乐而乐。」",
+            "feedback": "正确。这是范仲淹《岳阳楼记》里的名句，不是苏轼写的。"
+          },
+          {
+            "id": "d",
+            "label": "「不识庐山真面目，只缘身在此山中。」",
+            "feedback": "这是苏轼的《题西林壁》，小学课本里就有。"
+          }
+        ],
+        "correctOptionId": "c",
+        "feedbackSpeaker": "teacher",
+        "hint": {
+          "text": "有一句，是写岳阳楼的那位大文豪写的——他和苏轼是同一朝代，但比苏轼大几十岁。",
+          "isCorrect": false
+        }
+      },
+      {
+        "id": "q8-challenge-compare",
+        "type": "open",
+        "prompt": "「同样是写月亮、写思念，张九龄的「海上生明月，天涯共此时」和苏轼的「但愿人长久，千里共婵娟」在意境上有什么不同？请谈谈你的理解。」",
+        "classmateAnswer": "「我觉得张九龄的更宏大，苏轼的更温柔。」",
+        "classmateIsCorrect": false,
+        "referenceAnswer": "「两首都是咏月怀人的千古名句，但意境各有侧重：\\n1. 视角不同：张九龄从景入情，先写「海上生明月」的壮阔景象，再自然地带出「天涯共此时」的思念；苏轼则从哲思入情，先问天、问月，最后落到「共婵娟」的祝愿。\\n2. 情感浓度不同：张九龄的思念是克制、温和的，有君子之交的距离感；苏轼的思念是深沉、滚烫的，里面还藏着对人生、对离别、对命运的思考，层次更丰富。\\n3. 落脚点不同：张九龄停留在「共此时」——此时此刻，我们在一起看月亮；苏轼往前走了一步——「人长久」，不仅要此刻在一起，还要长久地、平安地活着。这是更深的祝福。」",
+        "misconceptions": [
+          "只是说\"都写了月亮和思念\"，没有区分",
+          "把张九龄说成唐代、苏轼说成宋代，但这是朝代不同，不是意境不同",
+          "认为\"更好/更差\"，没有客观比较意境特点"
+        ],
+        "scoringPoints": [
+          "能说出至少一个角度的不同（如视角、情感、落脚点等）",
+          "能结合诗句内容进行具体分析",
+          "有自己的理解和感受，言之成理"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,38 @@
+# poem-dlc-ingest 专用轻量 Codex 配置。
+# 与 ~/.codex、ai-gallery grading-agent 隔离：无 MCP / plugins / memories。
+#
+# 用法：
+#   export CODEX_HOME="$(pwd)/codex-home"
+#   ./scripts/codex-exec.sh '只回复：DeepSeek OK'
+
+model = "deepseek-flash"
+model_provider = "deepseek"
+model_catalog_json = "model-catalog.deepseek.json"
+
+approval_policy = "never"
+sandbox_mode = "workspace-write"
+
+[sandbox_workspace_write]
+network_access = false
+
+[model_providers.deepseek]
+name = "DeepSeek"
+base_url = "https://api.deepseek.com/v1"
+env_key = "DEEPSEEK_API_KEY"
+wire_api = "responses"
+env_key_instructions = "Set DEEPSEEK_API_KEY (same value as ai-gallery config.json llm deepseek api-key)"
+
+[features]
+memories = false
+js_repl = false
+plugins = false
+recommended_plugins = false
+
+[projects."/tmp"]
+trust_level = "trusted"
+
+[projects."/private/tmp"]
+trust_level = "trusted"
+
+[projects."/var/tmp"]
+trust_level = "trusted"

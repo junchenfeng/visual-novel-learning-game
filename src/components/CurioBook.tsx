@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import type { CatalogWork } from "../dlc/catalog";
+import { useEffect, useRef, useState } from "react";
+import { resolveSelectedDlcId, type CatalogWork } from "../dlc/catalogShared";
 import styles from "./curio-shelf.module.css";
 
 export type BookLayout = "vertical" | "horizontal" | "scroll";
@@ -35,17 +35,49 @@ function hashStringToIndex(str: string, max: number): number {
 type CurioBookProps = {
   work: CatalogWork;
   layout: BookLayout;
+  savedDlcId?: string;
+  prefsReady?: boolean;
+  onSelectDlc?: (workTitle: string, dlcId: string) => void;
 };
 
-export function CurioBook({ work, layout }: CurioBookProps) {
+export function CurioBook({
+  work,
+  layout,
+  savedDlcId,
+  prefsReady = true,
+  onSelectDlc,
+}: CurioBookProps) {
   const dlcs = work.dlcs ?? [];
   const hasMultiple = dlcs.length > 1;
 
-  const [selectedIndex, setSelectedIndex] = useState<number>(() => {
-    if (dlcs.length === 0) return 0;
-    return hashStringToIndex(work.title, dlcs.length);
-  });
+  const [selectedId, setSelectedId] = useState<string | undefined>(() =>
+    savedDlcId && dlcs.some((pack) => pack.id === savedDlcId) ? savedDlcId : undefined,
+  );
+  const persisted = useRef(Boolean(savedDlcId));
 
+  useEffect(() => {
+    if (!prefsReady || dlcs.length === 0 || persisted.current) {
+      if (savedDlcId) {
+        setSelectedId(savedDlcId);
+        persisted.current = true;
+      }
+      return;
+    }
+    const nextId = resolveSelectedDlcId(work, savedDlcId);
+    if (!nextId) {
+      return;
+    }
+    setSelectedId(nextId);
+    persisted.current = true;
+    if (!savedDlcId) {
+      onSelectDlc?.(work.title, nextId);
+    }
+  }, [dlcs.length, onSelectDlc, prefsReady, savedDlcId, work]);
+
+  const selectedIndex = Math.max(
+    0,
+    dlcs.findIndex((pack) => pack.id === (selectedId ?? dlcs[0]?.id)),
+  );
   const selectedDlc = dlcs[selectedIndex];
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -157,8 +189,9 @@ export function CurioBook({ work, layout }: CurioBookProps) {
                         idx === selectedIndex ? styles.packMenuItemActive : ""
                       }`}
                       onClick={() => {
-                        setSelectedIndex(idx);
+                        setSelectedId(dlc.id);
                         setMenuOpen(false);
+                        onSelectDlc?.(work.title, dlc.id);
                       }}
                     >
                       <span className={styles.packMenuItemLabel}>

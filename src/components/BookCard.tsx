@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import type { CatalogWork } from "../dlc/catalog";
+import type { CatalogWork } from "../dlc/catalogShared";
 
 type BookCardProps = {
   work: CatalogWork;

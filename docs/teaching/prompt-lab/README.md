@@ -2,13 +2,13 @@
 
 这里是 **试评分、试总评提示词** 的地方：孩子改一段「本课怎么评」，立刻看到老师会怎么讲。**只试提示词，不给提示词打分。**
 
-作业总览见 [docs/teaching/README.md](../README.md)。轨迹字段见 [case-schema.md](case-schema.md)。
+总评与试评方法见 [docs/teaching/README.md](../README.md)。轨迹字段见 [case-schema.md](case-schema.md)。
 
 真正上课时，服务器是这样拼的：
 
 ```text
 MASTER_PROMPT（柜台后，冻结） + gradingPrompt（本课） → 填空讲解
-SUMMARY_MASTER_PROMPT（冻结） + summaryPrompt（本课） → 总结页总评（现在接口返回「待完成」，作业第 4 步再接回）
+SUMMARY_MASTER_PROMPT（冻结） + summaryPrompt（本课） → 总结页总评
 ```
 
 对应代码：[`src/server/ai/masterPrompt.ts`](../../../src/server/ai/masterPrompt.ts)。老师身份（MASTER_PROMPT / SUMMARY_MASTER_PROMPT）**冻结，谁都不能改**。
@@ -49,11 +49,11 @@ SUMMARY_MASTER_PROMPT（冻结） + summaryPrompt（本课） → 总结页总�
    - 先点何解这条 HINT（帮了忙还是说岔了）
    - 再针对这条文字：对在哪、漏了什么
    - **不要** 输出 `assessment`，不要写 correct / partial / incorrect，不要打 0–100 分
-3. 总评：现在游戏接口返回「待完成」。对话里仍可按当前 `summaryPrompt` 草稿，根据 **整份轨迹**（选择题点过哪些选项、填空写过哪些句子）试写一段总评，让孩子对照三种画像差在哪。
+3. 总评：按当前 `summaryPrompt` 草稿，根据 **整份轨迹**（选择题点过哪些选项、填空写过哪些句子）试写一段总评，让孩子对照三种画像差在哪。线上总结页已接 `/api/summary`，同样读完整条轨迹。
 4. 最后只写三行「观察」，例如：
    - 填空讲解有没有点到「难全仍祝福」
    - 有没有纠正何解那种「分开就分开」
    - 总评有没有看出「挨个点选项」和「一次就对」不是同一种认真
 5. 草稿改完再跑时，让孩子看这三行变没变。不要评价「你的提示词好不好」。
 
-禁止：改 `MASTER_PROMPT` / `SUMMARY_MASTER_PROMPT`、给孩子的提示词打分、调用 `/api/teacher` 把结果写进游戏。接总结 LLM 是作业第 4 步，见 [../README.md](../README.md)。
+禁止：改 `MASTER_PROMPT` / `SUMMARY_MASTER_PROMPT`、给孩子的提示词打分、调用 `/api/teacher` 把结果写进游戏。总评接入见 [../README.md](../README.md)。

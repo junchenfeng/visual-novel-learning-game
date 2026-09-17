@@ -20,6 +20,13 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+function prefersFastTypewriter(): boolean {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return false;
+  }
+  return window.matchMedia("(pointer: coarse)").matches;
+}
+
 /**
  * 打字机效果：逐字显示 text。
  * - 文本变化时从头重播（渲染阶段同步重置进度，不闪现全文）
@@ -45,6 +52,7 @@ export function useTypewriter(text: string, speed = DEFAULT_SPEED_MS): Typewrite
       setCount(total);
       return;
     }
+    const stepMs = prefersFastTypewriter() ? Math.min(speed, 10) : speed;
     if (total === 0) {
       return;
     }
@@ -58,7 +66,7 @@ export function useTypewriter(text: string, speed = DEFAULT_SPEED_MS): Typewrite
       if (next >= total) {
         return;
       }
-      timer = window.setTimeout(() => step(next + 1), speed);
+      timer = window.setTimeout(() => step(next + 1), stepMs);
     };
     step(1);
     return () => {

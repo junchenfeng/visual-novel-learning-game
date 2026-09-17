@@ -263,3 +263,41 @@
 .replay:active {
   transform: translateY(0);
 }
+
+@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .mask {
+    animation: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .ring,
+  .particles,
+  .smoke {
+    display: none;
+  }
+
+  .card,
+  .seal {
+    animation: none;
+  }
+
+  .replay {
+    min-height: 48px;
+    padding: 14px 22px;
+  }
+}
+
+.endingCard {
+  outline-color: rgba(166, 50, 50, 0.28);
+}
+
+.endingSeal {
+  background: linear-gradient(160deg, #c24a3c, #8b2c24);
+}
+
+.endingTitle {
+  font-size: 28px;
+  letter-spacing: 0.12em;
+  text-indent: 0.12em;
+}

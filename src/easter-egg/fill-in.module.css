@@ -1,0 +1,253 @@
+.shell {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 28px 20px 8px;
+  background: linear-gradient(180deg, #f5ecd4 0%, #ead9b0 100%);
+  color: #2c2416;
+  font-family: "Songti SC", "SimSun", "STSong", "Noto Serif SC", serif;
+  position: absolute;
+  inset: 0;
+}
+
+.shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(#d4b97a 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.kicker {
+  font-size: 13px;
+  letter-spacing: 0.4em;
+  color: #a63232;
+  margin: 0 0 12px;
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-sans);
+}
+
+.title {
+  font-size: clamp(20px, 6cqi, 28px);
+  font-weight: 500;
+  margin: 0 0 8px;
+  letter-spacing: 0.14em;
+  color: #2c4a6b;
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #5a4a32;
+  margin: 0 0 20px;
+  max-width: 480px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  padding: 0 8px;
+}
+
+.poem {
+  background: rgba(255, 252, 240, 0.65);
+  border: 1px solid #c9a857;
+  width: min(100%, 520px);
+  padding: 20px 16px;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+}
+
+.line {
+  font-size: clamp(16px, 4.8cqi, 22px);
+  line-height: 1.85;
+  margin: 0;
+  text-align: left;
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.blank {
+  display: inline-block;
+  min-width: 56px;
+  padding: 0 8px;
+  margin: 0 4px;
+  border-bottom: 2px dashed #a63232;
+  color: #a63232;
+  font-weight: 600;
+  text-align: center;
+}
+
+.blank.filled {
+  border-bottom-style: solid;
+  border-bottom-color: #2c4a6b;
+  color: #2c4a6b;
+}
+
+.blank.correct {
+  border-bottom-color: #6b7c3f;
+  color: #6b7c3f;
+}
+
+.blank.autoCorrect {
+  border-bottom-color: #b8860b;
+  color: #b8860b;
+  font-style: italic;
+}
+
+.optionsPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+  width: 100%;
+  max-width: 520px;
+  position: relative;
+  z-index: 1;
+}
+
+.optionGroup {
+  background: rgba(255, 252, 240, 0.5);
+  padding: 12px 16px;
+  border: 1px solid #d4b97a;
+}
+
+.optionLabel {
+  font-size: 12px;
+  color: #8b5a2b;
+  margin: 0 0 8px;
+  letter-spacing: 0.2em;
+  font-family: var(--font-sans);
+}
+
+.options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.optionBtn {
+  flex: 1 1 80px;
+  padding: 10px 8px;
+  background: #fff8e6;
+  border: 1px solid #c9a857;
+  color: #2c2416;
+  font-size: 16px;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.optionBtn:hover {
+  background: #f5e6b8;
+  border-color: #b8860b;
+}
+
+.optionBtn.active {
+  background: #2c4a6b;
+  color: #f0e6d0;
+  border-color: #1e354f;
+}
+
+.resultHint {
+  padding: 16px 24px;
+  background: rgba(255, 252, 240, 0.7);
+  border: 1px solid #c9a857;
+  margin-bottom: 20px;
+  max-width: 520px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.correctText {
+  color: #6b7c3f;
+  margin: 0;
+  font-size: 16px;
+}
+
+.hintText {
+  color: #8b5a2b;
+  margin: 0;
+  font-size: 14px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  width: 100%;
+  max-width: 520px;
+  margin-top: auto;
+  padding: 12px 0 max(16px, env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(234, 217, 176, 0), #ead9b0 32%);
+}
+
+.primary {
+  padding: 12px 32px;
+  background: #2c4a6b;
+  color: #f0e6d0;
+  border: none;
+  font-size: 16px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  letter-spacing: 0.2em;
+}
+
+.primary:hover:not(:disabled) {
+  background: #1e354f;
+}
+
+.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.author {
+  margin-top: 12px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #8b5a2b;
+  letter-spacing: 0.3em;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 600px), (pointer: coarse) {
+  .shell {
+    padding: 16px 12px 4px;
+  }
+
+  .kicker {
+    margin-bottom: 8px;
+  }
+
+  .poem {
+    padding: 14px 12px;
+    margin-bottom: 12px;
+  }
+
+  .optionGroup {
+    padding: 8px 10px;
+  }
+}

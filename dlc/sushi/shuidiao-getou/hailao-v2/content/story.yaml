@@ -1,0 +1,433 @@
+schemaVersion: 1
+chapters:
+  - chapter: 1
+    background: assets/backgrounds/chapter-1-brothers.webp
+  - chapter: 2
+    background: assets/backgrounds/chapter-3-mid-autumn.webp
+  - chapter: 3
+    background: assets/backgrounds/chapter-2-reform-debate.webp
+  - chapter: 4
+    background: assets/bg/chapter04-fields.jpg
+
+nodes:
+  # ============== 第一章：密州任上 ==============
+  - id: s01_intro
+    type: narration
+    chapter: 1
+    chapterTitle: 密州任上
+    text: 熙宁九年，中秋。密州的月色格外清亮，像铺了一层霜在庭院里。苏轼独自坐在超然台上，手里端着半盏冷酒。
+    speaker: 旁白
+    nextNodeId: s02_fact
+
+  - id: s02_fact
+    type: fact
+    chapter: 1
+    chapterTitle: 密州任上
+    heading: 史实
+    text: 熙宁四年，苏轼因与王安石政见不合，自请外放，先通判杭州，后迁密州知州。此时弟弟苏辙在济南，兄弟二人已有七年未见。
+    nextNodeId: s03_choice1
+
+  - id: s03_choice1
+    type: choice
+    chapter: 1
+    chapterTitle: 初入仕途的抉择
+    text: 你想起三年前，王安石在汴京推行新法，朝堂上新旧两党争得不可开交。那时的你，正站在仕途的岔路口：是留在朝堂，在党争的漩涡里周旋，尽力匡正新法；还是自请外放，远远躲开这摊是非；又或是按捺心绪，先看看风向，再作打算？
+    speaker: 旁白
+    portrait: sushi
+    convergesTo: s04_post_choice1
+    choices:
+      - id: c1_stay
+        label: 留在朝堂，参与变法
+        feedback: 你选择了兼济天下的路。
+        nextNodeId: s03a_ambition
+        attrs:
+          ambition: 2
+          ease: -1
+      - id: c1_leave
+        label: 自请外放，躲开党争
+        feedback: 你选择了眼不见为净。
+        nextNodeId: s03b_ease
+        attrs:
+          ease: 2
+          ambition: -1
+      - id: c1_balance
+        label: 先看看，再决定
+        feedback: 你决定再观望一阵。
+        nextNodeId: s03c_balance
+        attrs:
+          ambition: 1
+          ease: 1
+
+  - id: s03a_ambition
+    type: narration
+    chapter: 1
+    chapterTitle: 初入仕途的抉择
+    text: 你选择了留在朝堂。新官上任三把火，你想凭一己之力，让变法走得更稳一些。只是你没有想到，党争的漩涡，远比你想象的深。
+    speaker: 旁白
+    nextNodeId: s04_post_choice1
+
+  - id: s03b_ease
+    type: narration
+    chapter: 1
+    chapterTitle: 初入仕途的抉择
+    text: 你选择了自请外放。杭州的山水、密州的民情，让你暂别了朝堂的纷争。只是夜深人静时，你偶尔也会想起，那些留在汴京的故人。
+    speaker: 旁白
+    nextNodeId: s04_post_choice1
+
+  - id: s03c_balance
+    type: narration
+    chapter: 1
+    chapterTitle: 初入仕途的抉择
+    text: 你选择了观望。既不激进，也不退缩，像一根芦苇在风里摇摆。可有些时候，观望本身，也是一种选择。
+    speaker: 旁白
+    nextNodeId: s04_post_choice1
+
+  - id: s04_post_choice1
+    type: narration
+    chapter: 1
+    chapterTitle: 中秋将至
+    text: 无论当年如何选择，如今你都站在了密州的超然台上。中秋的月亮，圆得有些刺眼。
+    speaker: 旁白
+    nextNodeId: s05_letter
+
+  - id: s05_letter
+    type: narration
+    chapter: 1
+    chapterTitle: 中秋将至
+    text: 案上放着一封苏辙上月寄来的信。信里说济南一切都好，只是中秋又要一个人过了。
+    speaker: 旁白
+    portrait: sushi
+    nextNodeId: s06_choice2
+
+  - id: s06_choice2
+    type: choice
+    chapter: 1
+    chapterTitle: 子由的信
+    text: 你拿着这封信，指尖微微发凉。要不要写封回信？写些什么好呢？
+    speaker: 旁白
+    portrait: sushi
+    convergesTo: s07_post_choice2
+    choices:
+      - id: c2_political
+        label: 聊聊朝堂近况与新法得失
+        feedback: 你们是兄弟，也是同道中人。
+        nextNodeId: s06a_political
+        attrs:
+          ambition: 1
+          family: 1
+      - id: c2_family
+        label: 只说家常，不提政事
+        feedback: 平安二字值千金。
+        nextNodeId: s06b_family
+        attrs:
+          family: 2
+      - id: c2_poetry
+        label: 寄一首新作的诗过去
+        feedback: 诗，是你们兄弟之间的密语。
+        nextNodeId: s06c_poetry
+        attrs:
+          ease: 1
+          family: 1
+
+  - id: s06a_political
+    type: narration
+    chapter: 1
+    chapterTitle: 子由的信
+    text: 你在信里洋洋洒洒写了许多，从免行法到青苗法，从朝堂到地方。写完你才发现，不知不觉，你们兄弟之间的话题，越来越离不开政事了。
+    speaker: 旁白
+    nextNodeId: s07_post_choice2
+
+  - id: s06b_family
+    type: narration
+    chapter: 1
+    chapterTitle: 子由的信
+    text: 你只写了些家常——密州的枣子熟了，后院的竹子又长高了，朝云新学会了一道菜。信很短，但你写得很慢，每一个字都像是在量月光的温度。
+    speaker: 旁白
+    nextNodeId: s07_post_choice2
+
+  - id: s06c_poetry
+    type: narration
+    chapter: 1
+    chapterTitle: 子由的信
+    text: 你附上了一首近作。纸短情长，千言万语，不如一首诗。你们从小一起长大，彼此的心事，从来不用明说。
+    speaker: 旁白
+    nextNodeId: s07_post_choice2
+
+  - id: s07_post_choice2
+    type: narration
+    chapter: 1
+    chapterTitle: 中秋将至
+    text: 夜色渐深，酒意渐浓。你决定在院子里走走。
+    speaker: 旁白
+    nextNodeId: s08_explore
+
+  # ============== 第二章：中秋夜探宝 ==============
+  - id: s08_explore
+    type: explore
+    chapter: 2
+    chapterTitle: 中秋夜·四下走走
+    text: 月光如水，洒在庭院里。你环顾四周，都是些平日里熟视无睹的物件——可今夜，好像每一样都藏着一段回忆。
+    speaker: 旁白
+    portrait: sushi
+    nextNodeId: s09_post_explore
+    objects:
+      - id: moon
+        name: 明月
+        hint: 挂在天上
+        valid: true
+        memory: 你想起小时候，你和子由一起在院子里赏月。父亲说，月亮是一面镜子，照着天下所有想念的人。那时你们不懂，只觉得月亮又大又圆，像个月饼。
+        attrs:
+          family: 1
+      - id: wine
+        name: 酒盏
+        hint: 半盏残酒
+        valid: false
+        memory: 你想起去年中秋，你在杭州，和朋友一起喝得大醉。酒醒时，天已经亮了。你忽然很想子由，想他在你身边，陪你喝一杯。
+        attrs:
+          ease: 1
+      - id: letter
+        name: 家书
+        hint: 子由的信
+        valid: true
+        memory: 你拿起那封信，又读了一遍。子由的字还是那样端端正正，像他的人一样，稳稳当当。你笑了笑，把信放回信封里。
+        attrs:
+          family: 2
+      - id: osmanthus
+        name: 桂花
+        hint: 墙角的桂树
+        valid: false
+        memory: 桂花的香，让你想起四川老家。母亲在世时，每到中秋都会做桂花糕。你和子由围着灶台转，母亲总笑着说，别急，还没熟呢。
+        attrs:
+          family: 1
+          ease: 1
+      - id: robe
+        name: 旧官袍
+        hint: 搭在椅背上
+        valid: false
+        memory: 那件旧官袍，是你初入仕途时穿的。那时你年轻气盛，以为凭一支笔、一颗心，就能改变天下。如今官袍还在，人却已经不是当年的人了。
+        attrs:
+          ambition: 1
+    hiddenReward: 你忽然明白，这些年你走遍了大江南北，看过了无数的月亮——可最圆的那一轮，永远是和子由一起看过的那一轮。
+
+  - id: s09_post_explore
+    type: narration
+    chapter: 2
+    chapterTitle: 大醉
+    text: 你回到亭子里，把酒一饮而尽。酒意上头，思绪万千。你拿起笔，想写点什么。
+    speaker: 旁白
+    nextNodeId: s10_choice3
+
+  - id: s10_choice3
+    type: choice
+    chapter: 2
+    chapterTitle: 提笔的瞬间
+    text: 写什么呢？是写家国天下，还是写儿女情长？是写给朝廷，还是写给子由？
+    speaker: 旁白
+    portrait: sushi
+    convergesTo: s11_post_choice3
+    choices:
+      - id: c3_political
+        label: 写写对新法的看法
+        feedback: 先天下之忧而忧。
+        nextNodeId: s10a_political
+        attrs:
+          ambition: 2
+      - id: c3_brother
+        label: 写给子由
+        feedback: 这才是你此刻最想说的话。
+        nextNodeId: s10b_brother
+        attrs:
+          family: 2
+      - id: c3_philosophy
+        label: 写写人生的感慨
+        feedback: 人生到处知何似，应似飞鸿踏雪泥。
+        nextNodeId: s10c_philosophy
+        attrs:
+          ease: 2
+
+  - id: s10a_political
+    type: narration
+    chapter: 2
+    chapterTitle: 提笔的瞬间
+    text: 你本想写些关于新法的见解，可笔在纸上悬了半天，终究落不下去。今夜是中秋，谈什么政事呢？你摇摇头，把纸翻了一面。
+    speaker: 旁白
+    nextNodeId: s11_post_choice3
+
+  - id: s10b_brother
+    type: narration
+    chapter: 2
+    chapterTitle: 提笔的瞬间
+    text: 你第一个想到的，就是子由。七年未见，他在济南过得好吗？中秋的月亮，他也在看吗？你深吸一口气，笔尖落下。
+    speaker: 旁白
+    nextNodeId: s11_post_choice3
+
+  - id: s10c_philosophy
+    type: narration
+    chapter: 2
+    chapterTitle: 提笔的瞬间
+    text: 你望着天上的月亮，忽然觉得人生就像这月亮一样，有圆有缺，谁也强求不得。你微微一笑，有了个开头。
+    speaker: 旁白
+    nextNodeId: s11_post_choice3
+
+  - id: s11_post_choice3
+    type: narration
+    chapter: 2
+    chapterTitle: 大醉
+    text: 你喝醉了，醉得一塌糊涂。恍惚间，你好像乘风而去，飞到了月亮上……
+    speaker: 旁白
+    nextNodeId: s12_dream
+
+  - id: s12_dream
+    type: narration
+    chapter: 2
+    chapterTitle: 乘风归去
+    text: 明月几时有？把酒问青天。不知天上宫阙，今夕是何年……你在月光里飘啊飘，忽然，面前出现了三条路。
+    speaker: 旁白
+    nextNodeId: s13_choice4
+
+  # ============== 关键选择点4（大分叉） ==============
+  - id: s13_choice4
+    type: choice
+    chapter: 2
+    chapterTitle: 月宫三岔口
+    text: 你看见三条路，分别通往三个不同的地方。你知道，这一走，就是一辈子。
+    speaker: 旁白
+    convergesTo: s14_post_choice4
+    choices:
+      - id: c4_court
+        label: 回朝堂去，做番事业
+        feedback: 高处不胜寒，你偏要往高处走。
+        nextNodeId: s13a_court_road
+        attrs:
+          ambition: 3
+          ease: -2
+      - id: c4_moon
+        label: 继续往上，飞到月亮上
+        feedback: 你想看看，天上到底有没有神仙。
+        nextNodeId: s13b_moon_road
+        attrs:
+          ease: 2
+          family: 1
+      - id: c4_home
+        label: 往下走，回家去
+        feedback: 人间烟火，才是最暖的。
+        nextNodeId: s13c_home_road
+        attrs:
+          family: 2
+          ease: 1
+
+  - id: s13a_court_road
+    type: narration
+    chapter: 3
+    chapterTitle: 朝堂之路
+    text: 你选择了回朝堂。你相信，凭你的才学，一定能做一番事业。只是，这条路比你想象的难走得多。
+    speaker: 旁白
+    nextNodeId: s14_post_choice4
+
+  - id: s13b_moon_road
+    type: narration
+    chapter: 2
+    chapterTitle: 月宫之路
+    text: 你乘风而上，越飞越高。风越来越冷，你却浑然不觉。你只想看看，那月亮上到底有什么。
+    speaker: 旁白
+    nextNodeId: s14_post_choice4
+
+  - id: s13c_home_road
+    type: narration
+    chapter: 4
+    chapterTitle: 田园之路
+    text: 你转身往下走。人间的灯火渐次亮起，炊烟袅袅。你忽然觉得，这些才是你真正想要的。
+    speaker: 旁白
+    nextNodeId: s14_post_choice4
+
+  - id: s14_post_choice4
+    type: narration
+    chapter: 2
+    chapterTitle: 大醉
+    text: 你走着走着，忽然脚下一空——你从梦里惊醒了。酒意散了大半，你发现自己还在超然台上，手里还握着笔。
+    speaker: 旁白
+    nextNodeId: s15_choice5
+
+  # ============== 关键选择点5（最终抉择·决定结局） ==============
+  - id: s15_choice5
+    type: choice
+    chapter: 2
+    chapterTitle: 梦醒时分
+    text: 你望着纸上那半阕词，一时不知该如何继续。是继续做那个兼济天下的你，还是做那个寄情山水的你，还是做那个只想着弟弟的你？
+    speaker: 旁白
+    portrait: sushi
+    choices:
+      - id: c5_ambition
+        label: 男儿何不带吴钩，收取关山五十州
+        feedback: 你终究放不下家国天下。
+        nextNodeId: s15a_ambition_end
+        attrs:
+          ambition: 3
+          family: -1
+          ease: -1
+      - id: c5_family
+        label: 但愿人长久，千里共婵娟
+        feedback: 你心里最柔软的地方，还是子由。
+        nextNodeId: s15b_family_end
+        attrs:
+          family: 3
+          ambition: -1
+      - id: c5_ease
+        label: 竹杖芒鞋轻胜马，谁怕
+        feedback: 一蓑烟雨任平生。
+        nextNodeId: s15c_ease_end
+        attrs:
+          ease: 3
+          ambition: -2
+
+  - id: s15a_ambition_end
+    type: narration
+    chapter: 3
+    chapterTitle: 高处不胜寒
+    text: 你决定重返朝堂。你相信变法能改变这个国家，你愿意做那颗过河的卒子。只是后来的事，谁也说不准——也许你会名垂青史，也许你会摔得粉身碎骨。
+    speaker: 旁白
+    nextNodeId: end_gaochu
+
+  - id: s15b_family_end
+    type: narration
+    chapter: 2
+    chapterTitle: 但愿人长久
+    text: 你望着月亮，想起了子由。千里之外，他是不是也在看着同一轮月亮？你放下笔，忽然就笑了。不能相见又如何？至少，你们共享着同一轮明月。
+    speaker: 旁白
+    nextNodeId: end_changjiu
+
+  - id: s15c_ease_end
+    type: narration
+    chapter: 4
+    chapterTitle: 归去
+    text: 你忽然觉得，做官有什么意思呢？不如归去，寻一片田园，和弟弟比邻而居，喝酒、作诗、看月亮。人生不过百年，何苦难为自己？
+    speaker: 旁白
+    nextNodeId: end_guiqu
+
+  # ============== 三个真结局（gameOver + endingId） ==============
+  - id: end_changjiu
+    type: gameOver
+    chapter: 2
+    chapterTitle: 结局·但愿人长久
+    endingId: ending_changjiu
+    text: 你选择了亲情。仕途算什么？天下算什么？只要弟弟还在，只要月亮还在，就够了。你提笔写下：但愿人长久，千里共婵娟。这是你留给世人的，也是你留给子由的。
+    speaker: 旁白
+    portrait: sushi
+
+  - id: end_gaochu
+    type: gameOver
+    chapter: 3
+    chapterTitle: 结局·高处不胜寒
+    endingId: ending_gaochu
+    text: 你选择了仕途。你在朝堂上殚精竭虑，与苏辙政见渐渐不同，兄弟之间的话也越来越少。许多年后，你被贬到更偏远的地方，一个人看着中秋的月亮，忽然想起了子由。高处不胜寒，起舞弄清影，何似在人间。
+    speaker: 旁白
+    portrait: sushi
+
+  - id: end_guiqu
+    type: gameOver
+    chapter: 4
+    chapterTitle: 结局·归去
+    endingId: ending_guiqu
+    text: 你选择了归去。你辞了官，在颍川找了一块地，和子由做了邻居。你们每天喝酒、作诗、晒太阳。日子过得平淡，却也安稳。只是，少了那些宦海沉浮，便也少了那些传世的名篇。后人说起苏轼，只道是个写词不错的隐士。
+    speaker: 旁白
+    portrait: zhe

@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "请求不完整或答案过长" }, { status: 400 });
   }
 
-  const dlc = loadCompiledDlc(parsed.data.dlcId);
+  const dlc = await loadCompiledDlc(parsed.data.dlcId);
   if (!dlc) {
     return NextResponse.json({ error: "找不到对应的 DLC" }, { status: 404 });
   }

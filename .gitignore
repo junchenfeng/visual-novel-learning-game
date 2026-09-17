@@ -47,6 +47,9 @@ next-env.d.ts
 /public/dlc/
 .cozeproj/
 
+# PM2 logs
+/logs/
+
 # local-only helpers (not used by Coze .coze deploy)
 /.npmrc
 /scripts/dev-local.sh
@@ -56,3 +59,6 @@ next-env.d.ts
 .preview
 .cozeproj/reduction
 .codegraph
+
+# local VS Code / Cursor launch (not shared)
+.vscode/

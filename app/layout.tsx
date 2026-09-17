@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import { Ma_Shan_Zheng, Noto_Sans_SC, Noto_Serif_SC } from "next/font/google";
+import { publicAssetUrl } from "../src/assets/cdn";
 import "./globals.css";
 
 const serif = Noto_Serif_SC({
@@ -25,10 +27,12 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  const paperTexture = publicAssetUrl("/xuanzhi-bg.webp") || "/xuanzhi-bg.webp";
   return (
     <html
       lang="zh-CN"
       className={`${serif.className} ${sans.variable} ${handwriting.variable}`}
+      style={{ "--paper-texture": `url("${paperTexture}")` } as CSSProperties}
     >
       <body>{children}</body>
     </html>

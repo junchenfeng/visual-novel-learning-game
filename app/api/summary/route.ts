@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { HeaderUtils } from "coze-coding-dev-sdk";
 import { loadCompiledDlc } from "../../../src/dlc/loadCompiled";
-import { teacherSummarySchema } from "../../../src/server/ai/AIProvider";
+import { isChoiceQuestion } from "../../../src/dlc/quizHelpers";
+import { createAIProvider } from "../../../src/server/ai/createProvider";
+import { teacherSummarySchema, type SummaryRequest } from "../../../src/server/ai/AIProvider";
 
 const attemptSchema = z.object({
   answer: z.string().min(1).max(400),
@@ -30,18 +33,46 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "请求不完整" }, { status: 400 });
   }
 
-  const dlc = loadCompiledDlc(parsed.data.dlcId);
+  const dlc = await loadCompiledDlc(parsed.data.dlcId);
   if (!dlc) {
     return NextResponse.json({ error: "找不到对应的 DLC" }, { status: 404 });
   }
 
+  const answers: SummaryRequest["answers"] = [];
   for (const item of parsed.data.answers) {
-    if (!dlc.quiz.questions.some((question) => question.id === item.questionId)) {
+    const question = dlc.quiz.questions.find((entry) => entry.id === item.questionId);
+    if (!question) {
       return NextResponse.json({ error: `找不到题目：${item.questionId}` }, { status: 400 });
     }
+    const payload: SummaryRequest["answers"][number] = {
+      questionId: item.questionId,
+      prompt: question.prompt,
+      questionType: item.questionType,
+      attempts: item.attempts,
+    };
+    if (isChoiceQuestion(question)) {
+      payload.correctOptionId = question.correctOptionId;
+      payload.options = question.options.map((option) => ({
+        id: option.id,
+        label: option.label,
+      }));
+    }
+    answers.push(payload);
   }
 
-  // 作业：接回 createAIProvider().summarize()，把作答轨迹 attempts 交给总评 LLM。
-  // 现在先去掉总结 LLM，固定返回「待完成」。
-  return NextResponse.json(teacherSummarySchema.parse({ remark: "待完成" }));
+  try {
+    const customHeaders = HeaderUtils.extractForwardHeaders(request.headers);
+    const summary = await createAIProvider(customHeaders).summarize({
+      poet: dlc.manifest.poet,
+      workTitle: dlc.manifest.workTitle,
+      summaryPrompt: dlc.quiz.summaryPrompt,
+      answers,
+    });
+    return NextResponse.json(teacherSummarySchema.parse(summary));
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "老师暂时无法写总评" },
+      { status: 502 },
+    );
+  }
 }

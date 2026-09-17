@@ -1,15 +1,41 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
+import { isAdminUsername } from "../src/auth/admin";
+import { USERNAME_COOKIE, decodeCookieUsername, normalizeUsername } from "../src/auth/username";
 import { buildCatalogPoets } from "../src/dlc/catalog";
 import { loadCompiledCatalog } from "../src/dlc/loadCompiled";
+import { loadRoster } from "../src/roster/store";
+import { UserBar } from "./UserBar";
+import { UsernameGate } from "./UsernameGate";
 import styles from "./page.module.css";
 
-export default function HomePage() {
-  const poets = buildCatalogPoets(loadCompiledCatalog());
+export const dynamic = "force-dynamic";
+
+type HomePageProps = {
+  searchParams: Promise<{ needLogin?: string }>;
+};
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const params = await searchParams;
+  const jar = await cookies();
+  const username = normalizeUsername(decodeCookieUsername(jar.get(USERNAME_COOKIE)?.value ?? ""));
+  if (!username) {
+    return <UsernameGate needLogin={params.needLogin === "1"} />;
+  }
+  if (isAdminUsername(username)) {
+    redirect("/admin");
+  }
+
+  const catalog = await loadCompiledCatalog();
+  const roster = await loadRoster();
+  const poets = buildCatalogPoets(catalog, roster);
 
   return (
     <main className={styles.catalog}>
       <section className={styles.hero}>
         <h1>选择穿越对象</h1>
+        <UserBar username={username} />
       </section>
       <section className={styles.grid}>
         {poets.map((poet) => (
