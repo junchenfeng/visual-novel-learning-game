@@ -74,7 +74,7 @@ YAML 规范：https://poem.aibeaver.cn/dlc-spec
 说明页：https://poem.aibeaver.cn/mcp-how-to
 
 - 只向用户要两样：`userId`、DLC 目录（里面有 `manifest.yaml`）。**不要让用户自己打 zip**，也不要问 poetId / 诗人中文名 / 篇名 —— 从 `manifest.yaml` 读。不要向用户要 token。
-- 工具：`list_roster`（先看诗人与篇目）→ 诗人不在名册时 `upsert_poet`（正方形 png/jpg/webp，边长 512–1024px，≤2MB；远程传 `portraitBase64`，本机 stdio 可传 `portraitPath`）→ `ingest_dlc`（zip ≤30MB；远程传 `zipBase64`，本机 stdio 可传 `zipPath`）。
+- 工具：`list_roster`（先看诗人与篇目）→ 诗人不在名册时 `upsert_poet`（正方形 png/jpg/webp，边长 512–1024px，≤2MB，传 `portraitBase64`）→ `ingest_dlc`（zip ≤30MB，传 `zipBase64`）。
 - 打包排除 `.DS_Store`、`.git`、`node_modules`、`__MACOSX`。诗人头像是公共资源，**不要放进 zip**。
 - 审核 = 机器校验 + 对照 https://poem.aibeaver.cn/dlc-spec 的评审，可能要几分钟，别中途取消。
 - `verdict: accept` → 把返回的 `playUrl` 给用户，结束；`verdict: reject` → 按 `issues[].message` / `fixHint` 改 YAML，**你自己重新打包**再 `ingest_dlc`，不要让用户手动重压。
@@ -87,7 +87,7 @@ YAML 规范：https://poem.aibeaver.cn/dlc-spec
 - 只向用户要 `userId`，**不要问要哪个课包** —— 先 `list_my_dlc` 列出来让他挑。
 - 工具：`list_my_dlc`（自己已上架、未被隐藏的课包 + 试玩地址）→ `usage_manifest`（使用数据清单：每个文件带相对落盘路径、字节数、更新时间、sha256）→ `download_usage_files`（按清单 `path` 取内容，一次最多 25 个）。
 - **只导出「课包归属人 = 本人」的数据**：对局记录按 `sessions`、行为事件流按 `dlcId` 逐条过滤后才输出；请求不属于清单的路径，整单拒绝。
-- 默认落到本机 `assets/user_data/`，增量更新：拿清单的 `sha256` 与本机文件比对，只下载缺失或变更的文件。目录约定：
+- 默认落到本机 `assets/user_data/`，增量更新：拿清单的 `sha256` 与本机已有文件比对，只下载缺失或变更的文件。目录约定：
 
   ```text
   assets/user_data/
@@ -96,9 +96,8 @@ YAML 规范：https://poem.aibeaver.cn/dlc-spec
     <dlcId>/events/<玩家 slug>.json
   ```
 
-- 远程 MCP 返回 `contentBase64`，由你写盘；本机 stdio（`pnpm mcp:ingest`）会直接写入 `targetDir`。落盘时**保持清单里的 `path` 原样**，改文件名会让下次增量重复下载。
-- 一条命令跑完增量同步：`node scripts/usage-sync.mjs --userId hh_学号`（或 `pnpm usage:sync -- --userId hh_学号`），可选 `--dlc <dlcId>` / `--base <url>` / `--out <dir>`。
-- 同源 HTTP：`GET /api/usage?userId=hh_学号` 取清单，`POST /api/usage`（`{"userId":"…","paths":["…"]}`）取内容。
+- 远程 MCP 返回 `contentBase64`，由你写盘：**保持清单里的 `path` 原样**，改文件名会让下次增量重复下载。
+- 全程 HTTPS，**没有本地脚本可用**：远程 MCP `https://poem.aibeaver.cn/mcp`，或同源 HTTP —— `GET /api/usage?userId=hh_学号` 取清单，`POST /api/usage`（`{"userId":"…","paths":["…"]}`）取内容。不要去找 `scripts/` 下的工具或 `pnpm` 脚本。
 
 ### 禁止
 
