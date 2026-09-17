@@ -159,6 +159,22 @@ export function ClassroomFrame({
     status === "idle" && beat === "classmate" ? classmateLine(question) : "",
   );
   const spokenTw = useTypewriter(status === "success" && choiceQuestion ? spokenLine : "");
+  // 回看按钮与提交按钮同排（动作区），比主按钮弱一档，但用描边保证醒目。
+  const canGoBack = status === "idle" && (beat === "classmate" || beat === "student");
+  const backButton = canGoBack ? (
+    <button
+      className={styles.navBack}
+      data-testid="quiz-back"
+      onClick={() => {
+        playSfx("click");
+        setBeat((current) =>
+          current === "student" ? (showHint ? "classmate" : "teacher") : "teacher",
+        );
+      }}
+    >
+      ← 回看上一段
+    </button>
+  ) : null;
 
   return (
     <div className={styles.shell} data-testid="quiz-stage">
@@ -213,20 +229,6 @@ export function ClassroomFrame({
           key={`${question.id}-${speaker}-${status}`}
         >
           <p className={`${styles.speaker} ${speakerColor[speaker]}`}>{portraits[speaker].name}</p>
-          {status === "idle" && (beat === "classmate" || beat === "student") ? (
-            <button
-              className={styles.navBack}
-              data-testid="quiz-back"
-              onClick={() => {
-                playSfx("click");
-                setBeat((current) =>
-                  current === "student" ? (showHint ? "classmate" : "teacher") : "teacher",
-                );
-              }}
-            >
-              ← 回看上一段
-            </button>
-          ) : null}
           <div className={styles.dialogueBody}>
             {status === "idle" && beat === "teacher" ? (
               <TypedParagraph tw={promptTw} className={styles.promptText} testId="quiz-prompt" />
@@ -373,40 +375,47 @@ export function ClassroomFrame({
             </div>
           ) : null}
 
-          {status === "idle" && beat === "classmate" && classmateTw.done ? (
+          {status === "idle" && beat === "classmate" ? (
             <div className={styles.actions}>
-              <button
-                className={styles.primary}
-                data-testid="student-turn"
-                onClick={() => {
-                  playSfx("click");
-                  setBeat("student");
-                }}
-              >
-                轮到我答
-              </button>
+              {backButton}
+              {classmateTw.done ? (
+                <button
+                  className={styles.primary}
+                  data-testid="student-turn"
+                  onClick={() => {
+                    playSfx("click");
+                    setBeat("student");
+                  }}
+                >
+                  轮到我答
+                </button>
+              ) : null}
             </div>
           ) : null}
 
           {(status === "idle" && beat === "student") || status === "error" ? (
             choiceQuestion ? (
-              <div className={styles.choices}>
-                {choiceQuestion.options.map((option, optionIndex) => (
-                  <button
-                    key={option.id}
-                    className={styles.choice}
-                    data-testid={`quiz-choice-${optionIndex}`}
-                    onClick={() => {
-                      playSfx("click");
-                      onSubmitChoice(option.id);
-                    }}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
+              <>
+                {backButton ? <div className={styles.actions}>{backButton}</div> : null}
+                <div className={styles.choices}>
+                  {choiceQuestion.options.map((option, optionIndex) => (
+                    <button
+                      key={option.id}
+                      className={styles.choice}
+                      data-testid={`quiz-choice-${optionIndex}`}
+                      onClick={() => {
+                        playSfx("click");
+                        onSubmitChoice(option.id);
+                      }}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </>
             ) : (
               <div className={styles.actions}>
+                {backButton}
                 <button
                   className={styles.primary}
                   data-testid="submit-answer"
