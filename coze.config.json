@@ -82,6 +82,7 @@
     "tests/ingest-preview.test.ts",
     "tests/ingest-review.test.ts",
     "tests/ingest-user-audit.test.ts",
+    "tests/online-pack-music.test.ts",
     "tests/roster-store.test.ts",
     "tests/unpublished.test.ts",
     "tests/upload-validate.test.ts",
