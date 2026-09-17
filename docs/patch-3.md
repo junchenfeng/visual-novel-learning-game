@@ -75,12 +75,23 @@ YAML 规范：https://poem.aibeaver.cn/dlc-spec
 
 每个工具调用都必须带 `userId`。管理台人工上传不走这套校验。
 
+**探端点别用 GET**：`https://poem.aibeaver.cn/mcp` 是 MCP 的 HTTP JSON-RPC，只认 `POST`。`GET`（浏览器直接打开、`curl` 直接请求都一样）固定返回 **405 Method Not Allowed** —— 那是探测方式不对，不是端点挂了，别据此判定「MCP 不可用」。手工确认按 MCP 握手来，并且必须带 `Accept: application/json, text/event-stream`，少了它 `POST` 会返回 **406**：
+
+```bash
+curl -s https://poem.aibeaver.cn/mcp \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"probe","version":"0"}}}'
+```
+
+两个附带结论：响应是 **SSE 帧**（一行 `event: message` + 一行 `data: {...}`），不是裸 JSON，解析时按 SSE 拆；**HTTP 200 不代表调用成功** —— `userId` 不对、工具名写错这类错误是 JSON-RPC 的 `error`，HTTP 码照样是 200，成败看 `data` 里的 `result` / `error`。
+
 ### 1. 上传课包（poem-dlc-ingest）
 
 说明页：https://poem.aibeaver.cn/mcp-how-to
 
 - 只向用户要两样：`userId`、DLC 目录（里面有 `manifest.yaml`）。**不要让用户自己打 zip**，也不要问 poetId / 诗人中文名 / 篇名 —— 从 `manifest.yaml` 读。不要向用户要 token。
-- 工具：`list_roster`（先看诗人与篇目）→ 诗人不在名册时 `upsert_poet`（正方形 png/jpg/webp，边长 512–1024px，≤2MB，传 `portraitBase64`）→ `ingest_dlc`（zip ≤30MB，传 `zipBase64`）。
+- 工具：`list_roster`（先看诗人与篇目）→ 诗人不在名册时 `upsert_poet`（正方形 png/jpg/webp，边长 512–1024px，≤2MB，传 `portraitBase64`；几百 KB 的正方形 webp 本来就合规，不用先压缩、也不用为此改尺寸）→ `ingest_dlc`（zip ≤30MB，传 `zipBase64`）。
 - 打包排除 `.DS_Store`、`.git`、`node_modules`、`__MACOSX`。诗人头像是公共资源，**不要放进 zip**。
 - 审核 = 机器校验 + 对照 https://poem.aibeaver.cn/dlc-spec 的评审，可能要几分钟，别中途取消。
 - `verdict: accept` → 把返回的 `playUrl` 给用户，结束；`verdict: reject` → 按 `issues[].message` / `fixHint` 改 YAML，**你自己重新打包**再 `ingest_dlc`，不要让用户手动重压。
@@ -257,10 +268,11 @@ const backButton = canGoBack ? (
 1. `AGENTS.md` 末尾出现 `## 平台 MCP：上传课包与拿回使用数据`，且三个探针（`poem.aibeaver.cn/mcp`、`ingest_dlc`、`usage_manifest`）都在。
 2. 七个工具名一个没写错：`list_roster`、`upsert_poet`、`upsert_work`、`ingest_dlc`、`list_my_dlc`、`usage_manifest`、`download_usage_files`。
 3. 两个域名写对：MCP 是 `https://poem.aibeaver.cn/mcp`，不是 `/api/ingest`。
-4. 点一道**有提示的题**走一遍：老师提问 →「听{同学}说」→ 同学发言 →「轮到我答」→ 作答。这三页都能看到「← 回看上一段」，且它在**动作区**、与主按钮同一排（选择题那页在选项上方）。
-5. 点一次回看：打字机从头重播；再往前走能回到作答（**不需要**任何新增按钮）；已提交的作答与评分不变。
-6. 无提示的选择题：整题不出现回看按钮（预期）。
-7. 原有检查与改动前一致：
+4. MCP 探测方式对：`curl -s -o /dev/null -w '%{http_code}' https://poem.aibeaver.cn/mcp` 应当是 **405**（POST-only 的 JSON-RPC，GET 不通是正常的）；带 `Accept: application/json, text/event-stream` 发 `initialize` 应返回 `event: message` 的 SSE 帧。**别拿 GET 的 405 当成端点故障**。
+5. 点一道**有提示的题**走一遍：老师提问 →「听{同学}说」→ 同学发言 →「轮到我答」→ 作答。这三页都能看到「← 回看上一段」，且它在**动作区**、与主按钮同一排（选择题那页在选项上方）。
+6. 点一次回看：打字机从头重播；再往前走能回到作答（**不需要**任何新增按钮）；已提交的作答与评分不变。
+7. 无提示的选择题：整题不出现回看按钮（预期）。
+8. 原有检查与改动前一致：
 
 ```bash
 pnpm test
