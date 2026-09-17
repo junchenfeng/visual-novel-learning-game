@@ -47,6 +47,16 @@ describe("DLC schema and story graph", () => {
     ).toBeUndefined();
   });
 
+  it("compiles the 海棠海棠 v2 pack with BGM for both phases", () => {
+    const dlc = parseDlcDirectory("dlc/sushi/shuidiao-getou/hailao-v2");
+    // 只配 poem 会让剧情/开场/填词彩蛋全程静音（2026-09-17 线上就是这样没声音的），
+    // 这个课包两个区间都要有。parseDlcDirectory 已顺带校验音频文件真的在包里。
+    expect(dlc.manifest.assets?.music).toEqual({
+      story: "assets/backgrounds/bgm-poem.m4a",
+      poem: "assets/backgrounds/bgm-poem.m4a",
+    });
+  });
+
   it("treats easterEgg as optional and only accepts registered kinds", () => {
     const dlc = parseDlcDirectory("dlc/sushi/shuidiao-getou/hailao-shuidiao");
     expect(dlc.manifest.easterEgg).toBeUndefined();

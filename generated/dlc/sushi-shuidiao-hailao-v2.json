@@ -4,7 +4,7 @@
   "manifest": {
     "schemaVersion": 1,
     "id": "sushi-shuidiao-hailao-v2",
-    "version": "2.3.0",
+    "version": "2.4.0",
     "title": "水调歌头·明月几时有",
     "author": "海棠海棠",
     "poet": "苏轼",
@@ -50,6 +50,7 @@
     ],
     "assets": {
       "music": {
+        "story": "assets/backgrounds/bgm-poem.m4a",
         "poem": "assets/backgrounds/bgm-poem.m4a"
       }
     },
