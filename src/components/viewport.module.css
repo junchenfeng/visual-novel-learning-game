@@ -60,7 +60,7 @@
   flex-direction: column-reverse;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 600px), (pointer: coarse) {
   .desktopShell {
     min-height: 100dvh;
     display: block;
@@ -79,5 +79,15 @@
 
   .sideOrnament {
     display: none;
+  }
+
+  .canvas {
+    --type-body: clamp(16px, 4.2cqi, 18px);
+  }
+
+  .canvas button,
+  .canvas a {
+    min-height: 44px;
+    touch-action: manipulation;
   }
 }
