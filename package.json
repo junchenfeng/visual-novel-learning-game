@@ -15,7 +15,11 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "mcp:ingest": "tsx src/mcp/stdio.ts"
+    "mcp:ingest": "tsx src/mcp/stdio.ts",
+    "coze:sync": "node scripts/coze-sync.mjs",
+    "coze:sync:write": "node scripts/coze-sync.mjs --write",
+    "coze:check": "node scripts/coze-sync.mjs --check",
+    "coze:verify": "node scripts/coze-sync.mjs --verify"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0",

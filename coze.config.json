@@ -1,0 +1,123 @@
+{
+  "$comment": [
+    "扣子专用仓库（visual-novel-poem-coze）的分层策略，唯一事实源。",
+    "扣子编程只能同步仓库的 main 分支，所以扣子版必须是独立仓库的 main。",
+    "本文件决定：主仓库 main 上哪些文件可以单向灌进扣子仓库。",
+    "include/exclude 只是粗筛；真正的判定是 scripts/coze-sync.mjs 的 import 闭包检查——",
+    "任何直接或间接 import 到 exclude 路径的文件都会被拒绝同步。",
+    "quarantine 是临时名单：主仓库上这些文件处于自相矛盾（编译不过）的状态，",
+    "先从同步里摘出去，等主仓库修好再删掉条目。每一条都必须写清楚原因。"
+  ],
+  "cozeRepo": "../visual-novel-poem-coze",
+  "cozeRef": "main",
+  "sourceRef": "main",
+  "maxDepth": 8,
+
+  "include": [
+    "app/",
+    "src/",
+    "dlc/",
+    "tests/",
+    "public/",
+    "docs/",
+    "scripts/compile-dlc.ts",
+    "jest.config.cjs",
+    "tsconfig.json",
+    "eslint.config.mjs"
+  ],
+
+  "exclude": [
+    "generated/",
+    "public/dlc/",
+    "middleware.ts",
+    "ecosystem.config.cjs",
+    "codex-home/",
+
+    "app/UserBar.tsx",
+    "app/UsernameGate.tsx",
+    "app/admin/",
+    "app/api/admin/",
+    "app/api/auth/",
+    "app/api/events/",
+    "app/api/ingest/",
+    "app/api/likes/",
+    "app/api/prefs/",
+    "app/dlc-spec/",
+    "app/mcp/",
+    "app/mcp-how-to/",
+    "app/patch-1/",
+
+    "src/assets/",
+    "src/auth/",
+    "src/ingest/",
+    "src/mcp/",
+    "src/roster/",
+    "src/user/",
+    "src/dlc/publishUpload.ts",
+    "src/dlc/unpublished.ts",
+    "src/dlc/uploadIndex.ts",
+    "src/dlc/uploadPack.ts",
+    "src/server/galleryConfig.ts",
+    "src/server/markdownDoc.ts",
+    "src/server/poemStore.ts",
+    "src/server/siteUrl.ts",
+
+    "scripts/codex-exec.sh",
+    "scripts/sync-static-to-oss.ts",
+
+    "docs/coze-dev.md",
+    "docs/deploy-ecs.md",
+    "docs/mcp-how-to.md",
+    "docs/mcp-ingest.md",
+    "docs/patch-1.md",
+
+    "dlc/sushi/shuidiao-getou/hailao-v2/",
+
+    "tests/cdn.test.ts",
+    "tests/ingest-preview.test.ts",
+    "tests/ingest-review.test.ts",
+    "tests/ingest-user-audit.test.ts",
+    "tests/roster-store.test.ts",
+    "tests/unpublished.test.ts",
+    "tests/upload-validate.test.ts",
+    "tests/username.test.ts"
+  ],
+
+  "quarantine": [
+    "docs/dlc-spec.md",
+    "src/analytics/eventSchema.ts",
+    "src/components/GameOverModal.tsx",
+    "src/components/GamePlayer.tsx",
+    "src/components/GameViewport.tsx",
+    "src/components/phases/ExplorePhase.tsx",
+    "src/components/phases/explore.module.css",
+    "src/components/game-over.module.css",
+    "src/components/viewport.module.css",
+    "src/dlc/graphValidator.ts",
+    "src/dlc/schema.ts",
+    "src/easter-egg/FillInGame.tsx",
+    "src/easter-egg/fill-in.module.css",
+    "src/easter-egg/registry.ts",
+    "src/game/gameMachine.ts",
+    "tests/catalog.test.ts",
+    "tests/compiler.test.ts",
+    "tests/dlc-schema.test.ts",
+    "tests/eventSchema.test.ts",
+    "tests/gameMachine.test.ts"
+  ],
+
+  "bOwned": [
+    ".coze",
+    ".codegraph/",
+    ".cozeproj/",
+    "AGENTS.md",
+    "README.md",
+    "CLAUDE.md",
+    "DESIGN.md",
+    "package.json",
+    "pnpm-lock.yaml",
+    "next.config.ts",
+    "scripts/dev-preview.mjs",
+    "scripts/dev-local.sh"
+  ]
+}
