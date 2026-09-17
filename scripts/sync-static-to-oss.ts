@@ -103,7 +103,7 @@ async function main() {
     const kb = Math.round((existsSync(filePath) ? statSync(filePath).size : body.length) / 1024);
     console.log(`uploaded ${key} (${kb}KB)`);
   }
-  const cdn = gallery.cdnBaseUrl || "(无 cdn.baseUrl，仅写入 OSS)";
+  const cdn = process.env.CDN_BASE_URL?.trim() || "(未设置 CDN_BASE_URL，仅写入 OSS)";
   console.log(`已同步 ${uploaded} 个静态文件到 OSS，CDN 前缀：${cdn}/${STATIC_OSS_PREFIX}/`);
 }
 

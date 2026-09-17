@@ -4,30 +4,16 @@ function trimSlash(value: string) {
   return value.replace(/\/+$/, "");
 }
 
-function galleryCdnBaseUrl(): string {
-  if (typeof window !== "undefined") {
-    return "";
-  }
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require("../server/galleryConfig") as {
-      loadGalleryConfig: () => { cdnBaseUrl?: string } | null;
-    };
-    return trimSlash(mod.loadGalleryConfig()?.cdnBaseUrl ?? "");
-  } catch {
-    return "";
-  }
-}
-
+/**
+ * CDN 根地址只来自环境变量（线上 `.env.production` 的 `CDN_BASE_URL`）。
+ *
+ * 这里刻意不读 config.json：那会让这个「纯路径改写」工具反向依赖服务端配置，
+ * 于是所有 import 它的内核文件（loadCompiled / catalog / layout）都会被判定为
+ * 含宿主依赖，无法同步到扣子版。见 coze.config.json 与 scripts/coze-sync.mjs。
+ */
 export function getCdnBaseUrl(): string {
   const fromEnv = process.env.CDN_BASE_URL?.trim() || process.env.NEXT_PUBLIC_CDN_BASE_URL?.trim();
-  if (fromEnv) {
-    return trimSlash(fromEnv);
-  }
-  if (process.env.JEST_WORKER_ID || process.env.NODE_ENV !== "production") {
-    return "";
-  }
-  return galleryCdnBaseUrl();
+  return fromEnv ? trimSlash(fromEnv) : "";
 }
 
 export function isLocalPublicPath(pathname: string): boolean {
