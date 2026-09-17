@@ -10,7 +10,7 @@ YAML 规范：https://poem.aibeaver.cn/dlc-spec
 
 | 补丁 | 内容 | 地址 |
 | --- | --- | --- |
-| patch-3 | `AGENTS.md` 补上平台 MCP 说明（扫项目 `dlc/` 下全部合规包上传、跳过 `hailao-shuidiao`；拿回使用数据）+ 课堂「回看上一段」按钮归位到动作区；**累计补丁**，可跳过 patch-2 单独应用 | https://poem.aibeaver.cn/patch-3 |
+| patch-3 | `AGENTS.md` 补上平台通道说明（**优先走同源 HTTP** `POST /api/ingest`、`GET|POST /api/usage`；扫项目 `dlc/` 下全部合规包上传、跳过 `hailao-shuidiao`）+ 课堂「回看上一段」按钮归位到动作区；**累计补丁**，可跳过 patch-2 单独应用 | https://poem.aibeaver.cn/patch-3 |
 | patch-2 | 课堂「回看上一段」、读词节奏控制（每句锁 3 秒 + 环形读秒）、小说 / 读词分阶段 BGM | https://poem.aibeaver.cn/patch-2 |
 | patch-1 | 解谜关 `type: explore`、真结局 `endingId`、填词彩蛋 `easterEgg` | https://poem.aibeaver.cn/patch-1 |
 

@@ -1,7 +1,8 @@
-# poem-dlc-ingest：Agent 操作说明
+# 课包提交：Agent 操作说明
 
 永久地址：https://poem.aibeaver.cn/mcp-how-to  
-MCP 地址：https://poem.aibeaver.cn/mcp  
+提交接口（首选）：`POST https://poem.aibeaver.cn/api/ingest`  
+MCP 端点（可选）：https://poem.aibeaver.cn/mcp  
 YAML 规范：https://poem.aibeaver.cn/dlc-spec
 
 你的任务是帮学员把诗词 DLC **打包并提交审核**。先读完再动手。
@@ -23,7 +24,7 @@ find dlc -name manifest.yaml      # 每个命中目录就是一个包根
 - 没有 `manifest.yaml` 的目录（草稿、`assets/`）直接跳过，不必报错。
 - **跳过 `hailao-shuidiao`**：那是课堂课包，不归学员。判断口径是 `manifest.yaml` 里的 `id` 命中 `src/dlc/unpublished.ts` 的 `UNPUBLISHED_DLC_IDS`（本仓库当前就是 `hailao-shuidiao`）。传上去等于把老师的课包挂到学员 id 下 —— 服务端只挡精确 id 冲突，**挡不住这种挂靠**，所以必须由你不传。
 - 只有用户明确点名「只传某一个包」时，才只传那一个。
-- 多个包 = 多轮 `ingest_dlc`，逐个走下面的流程。
+- 多个包 = 多轮提交，逐个走下面的流程。
 
 包内典型结构（zip 解开后，根目录或唯一子目录里必须能看到 `manifest.yaml`；优先打成 zip 根上就是 `manifest.yaml`）：
 
@@ -38,11 +39,30 @@ assets/backgrounds/…
 
 诗人头像是公共资源，**不要放进 zip**。
 
-## 连接 MCP
+## 提交通道：优先同源 HTTP，不需要任何客户端配置
 
-这是**远程 MCP 服务** `https://poem.aibeaver.cn/mcp`，**不在学员的项目里、也不在本机** —— 不要去找端口、进程或本地脚本。远程不用 token，用学员 `userId` 开门。
+**首选 `POST https://poem.aibeaver.cn/api/ingest`。** 同源、无 token，`userId` 就是唯一凭证，multipart 和 JSON 两种都收：
 
-**工具列表里看不到 `list_roster` / `ingest_dlc`** 时，说明调用方还没配置它：把下面的配置交给用户，让他加进自己 agent 客户端，再重新发起请求。Cursor 配置：
+```bash
+curl -sS -X POST https://poem.aibeaver.cn/api/ingest \
+  -F userId=hh_11016863 \
+  -F poetId=sushi \
+  -F workTitle='水调歌头・明月几时有' \
+  -F zip=@/tmp/poem-dlc-pack.zip
+```
+
+JSON 形式：`{"userId":"…","poetId":"…","workTitle":"…","zipBase64":"…"}`（`zipBase64` 可带 `data:application/zip;base64,` 前缀）。
+
+返回 `{ verdict, playUrl?, pack?, issues[] }`：`accept` → HTTP **200**；`reject` → HTTP **400**，body 就是同一份 `issues`。**注意 HTTP 400 不等于请求失败**，照样读 body。
+
+HTTP 覆盖不到的地方是**名册**：`list_roster`、新诗人 `upsert_poet`（含头像）只有 MCP 有。HTTP 提交若被拒成「诗人不在名册中」，按下一节接上 MCP，或请老师用管理台加。
+
+## 可选：走 MCP（客户端已配好时才用）
+
+远程 MCP `https://poem.aibeaver.cn/mcp` —— **不在学员的项目里、也不在本机**，别去找端口、进程或本地脚本。
+
+- 它只认 `POST`：`GET` 固定 **405**，缺 `Accept: application/json, text/event-stream` 会 **406**，响应是 SSE 帧（`event: message` + 一行 `data: {...}`）。**MCP 不通不代表平台故障** —— 上面那条 HTTP 一直可用，换了通道再试即可。
+- **工具列表里看不到 `list_roster` / `ingest_dlc`** 时，说明调用方还没配置它：把下面的配置交给用户，让他加进自己 agent 客户端，**重连会话**后再发起请求（工具清单只在建立连接时拉取，改完不重连不生效）。Cursor 配置：
 
 ```json
 {
@@ -54,7 +74,9 @@ assets/backgrounds/…
 }
 ```
 
-每个工具调用都必须带学员 `userId`。格式不对或不在 L2 在读名单，工具会返回「user id不正确，需要咨询老师」。
+工具名：`list_roster`、`upsert_poet`、`upsert_work`、`ingest_dlc`、`list_my_dlc`、`usage_manifest`、`download_usage_files`。
+
+每个请求都必须带学员 `userId`。格式不对或不在 L2 在读名单，会返回「user id不正确，需要咨询老师」。
 
 ## 标准流程
 
@@ -64,9 +86,9 @@ assets/backgrounds/…
 
 从 `manifest.yaml` 读取：
 
-- `poetId` → `ingest_dlc.poetId`
-- `workTitle` → `ingest_dlc.workTitle`
-- `poet` → 新建诗人时给 `upsert_poet.poet`
+- `poetId`
+- `workTitle`
+- `poet` → 新建诗人时才用（只有 MCP 有这一步）
 
 ### 2. 你来打包 zip（用户不包）
 
@@ -79,11 +101,11 @@ rm -f "$OUT"
 (cd "$PACK" && zip -r "$OUT" . -x "*.DS_Store" -x "**/.git/**" -x "**/node_modules/**" -x "__MACOSX/**")
 ```
 
-- 把 zip 编成 base64，调用 `ingest_dlc` 的 `zipBase64`（可带 `data:application/zip;base64,` 前缀）
+### 3. 提交
 
-### 3. 调工具
+**走 HTTP**（上一节那条 curl，或 JSON 形式传 zip 的 base64），最省事，也不需要用户改任何配置。
 
-每个包都先看一眼名册；**同一位诗人只需 `upsert_poet` 一次**，后续包直接提交。先：
+只有客户端**已经配好 MCP** 时才走 MCP，顺序是 `list_roster` →（诗人不在名册时）`upsert_poet` → `ingest_dlc`：
 
 ```json
 { "name": "list_roster", "arguments": { "userId": "hh_学号" } }
@@ -97,7 +119,7 @@ rm -f "$OUT"
 2. 同名 `{poetId}.png` / `.jpg` / `.webp`
 3. 仍没有：只再问用户「诗人头像文件路径」
 
-头像用 base64 传 `portraitBase64`。
+头像用 base64 传 `portraitBase64`：
 
 ```json
 {
@@ -111,9 +133,7 @@ rm -f "$OUT"
 }
 ```
 
-篇目不在名册时不必先 `upsert_work`，审核通过会自动加。
-
-然后提交：
+篇目不在名册时不必先 `upsert_work`，审核通过会自动加。最后提交：
 
 ```json
 {
@@ -127,12 +147,13 @@ rm -f "$OUT"
 }
 ```
 
-审核可能要几分钟（机器校验 + Codex 对照 spec），不要中途取消。
+两条通道的提交是同一次审核，可能几分钟（机器校验 + Codex 对照 spec），不要中途取消。
 
 ### 4. 看返回
 
-- `verdict: accept`：把 `playUrl` 给用户，提交结束。
-- `verdict: reject`：按 `issues[].message` 和 `fixHint` 改 YAML（对照 https://poem.aibeaver.cn/dlc-spec），**你自己重新打包 zip** 再 `ingest_dlc`。不要让用户手动重压。
+- `verdict: accept`：把 `playUrl` 给用户，这个包结束。
+- `verdict: reject`：按 `issues[].message` 和 `fixHint` 改 YAML（对照 https://poem.aibeaver.cn/dlc-spec），**你自己重新打包 zip** 再提交。不要让用户手动重压。
+- 「诗人不在名册中」：HTTP 通道办不了，接上 MCP 走 `upsert_poet`，或请老师用管理台加。
 - 用户 id 错误：停止，咨询老师。
 
 多个包时，最后按包逐个汇报：包路径 → `verdict` → `playUrl` 或要改的 `issues`。别只报一个笼统的「都传完了」。
