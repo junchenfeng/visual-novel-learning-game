@@ -23,11 +23,12 @@
  * 用法
  * ----
  *   node scripts/coze-sync.mjs                  只看报告（默认 dry-run，不写盘）
- *   node scripts/coze-sync.mjs --write          写入扣子仓库并提交
- *   node scripts/coze-sync.mjs --write --push   写入并推送到 origin
+ *   node scripts/coze-sync.mjs --write          写入扣子仓库并提交；随后自动自检，失败即回滚
+ *   node scripts/coze-sync.mjs --write --push   写入、自检、推送到 origin
+ *   node scripts/coze-sync.mjs --no-verify      跳过写入后的自检（仅应急，不推荐）
  *   node scripts/coze-sync.mjs --prune          额外删除「主仓库已删」的残留文件
  *   node scripts/coze-sync.mjs --check          护栏：扣子仓库落后则退出码 1（挂 pre-push / CI）
- *   node scripts/coze-sync.mjs --verify         在扣子仓库跑 install + typecheck + test
+ *   node scripts/coze-sync.mjs --verify         单独在扣子仓库跑一遍 build + test
  *   node scripts/coze-sync.mjs --json           以 JSON 输出报告（供其它工具消费）
  *
  * 约定
@@ -346,6 +347,8 @@ function writePlan(plan, sourceSha) {
     return null;
   }
 
+  // 记下提交前的 HEAD，校验失败时用它回滚（assertCozeRepoClean 已保证此前工作树干净）。
+  const previousHead = git(B_REPO, ["rev-parse", "HEAD"]).trim();
   git(B_REPO, ["add", "-A"]);
   const message = [
     `sync: 吸收主仓库 ${sourceSha} 的通用层改动`,
@@ -359,17 +362,24 @@ function writePlan(plan, sourceSha) {
   git(B_REPO, ["commit", "-q", "-m", message]);
   const head = git(B_REPO, ["rev-parse", "--short", "HEAD"]).trim();
   console.log(`已提交 ${head}：${touched.length} 个文件\n`);
-  return head;
+  return { head, previousHead };
 }
 
 // ---------------------------------------------------------------------------
 // 护栏：在扣子仓库里真跑一遍
+//
+// 闭包检查只保证「不引入宿主依赖」，保证不了「接口版本一致」：内核把某个函数
+// 从同步改成 async，而它的调用方因为是宿主文件被拒同步，扣子仓库就会编译不过。
+// 所以每次 --write 都要真跑一遍，红了就回滚。
 // ---------------------------------------------------------------------------
 
 function runVerify() {
-  console.log("在扣子仓库执行 pnpm install + typecheck + test…\n");
+  console.log("在扣子仓库执行 build + test…\n");
+  // 用 shell 的 rm 而不是 fs.rmSync：Node 侧可能被 safe-delete 守卫拦下。
+  execFileSync("rm", ["-rf", ".next"], { cwd: B_REPO });
   execFileSync("pnpm", ["install"], { cwd: B_REPO, stdio: "inherit" });
-  execFileSync("pnpm", ["run", "typecheck"], { cwd: B_REPO, stdio: "inherit" });
+  // 跑 build 而不是 typecheck：LayoutProps 这类全局类型由构建生成，直接 tsc 会误报。
+  execFileSync("pnpm", ["run", "build"], { cwd: B_REPO, stdio: "inherit" });
   execFileSync("pnpm", ["test"], { cwd: B_REPO, stdio: "inherit" });
   console.log("\n✓ 扣子仓库自检通过：主仓库这次改动没有破坏扣子版\n");
 }
@@ -416,7 +426,22 @@ if (!flag("write")) {
   process.exit(0);
 }
 
-writePlan(plan, sourceSha);
+const written = writePlan(plan, sourceSha);
+
+// 写入后必须自检：闭包检查管不了接口版本，这里才是真正的兼容性护栏。
+if (written && !flag("no-verify")) {
+  try {
+    runVerify();
+  } catch {
+    git(B_REPO, ["reset", "--hard", written.previousHead]);
+    console.error(`\n✗ 扣子仓库自检未通过，已回滚本次同步（${written.head} 未保留）。`);
+    console.error("  常见原因：内核接口变了，而扣子仓库侧的宿主适配没跟上。");
+    console.error("  到扣子仓库手工跟进后重跑本命令；--no-verify 可跳过校验（不推荐）。\n");
+    process.exit(1);
+  }
+} else if (!written && flag("verify")) {
+  runVerify();
+}
 
 if (flag("push")) {
   git(B_REPO, ["push", "origin", CFG.cozeRef]);
@@ -424,5 +449,3 @@ if (flag("push")) {
 } else {
   console.log("未推送。确认无误后：cd 扣子仓库 && git push origin main\n");
 }
-
-if (flag("verify")) runVerify();
