@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "mcp:ingest": "tsx src/mcp/stdio.ts",
+    "usage:sync": "node scripts/usage-sync.mjs",
     "coze:sync": "node scripts/coze-sync.mjs",
     "coze:sync:write": "node scripts/coze-sync.mjs --write",
     "coze:check": "node scripts/coze-sync.mjs --check",

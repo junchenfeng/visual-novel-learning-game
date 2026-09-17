@@ -5,6 +5,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
+// registerIngestTools 同时挂上「上传 DLC」与「回传自身上架 DLC 使用数据」两组工具。
 const mcpHandler = createMcpHandler(
   (server) => {
     registerIngestTools(server);

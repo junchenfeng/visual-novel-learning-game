@@ -2,7 +2,14 @@ import type { PoemStore } from "../server/poemStore";
 import { safeWriteIngestAudit, sha256Hex } from "./audit";
 import { ingestUserReject, parseIngestUserId, type IngestUser } from "./userId";
 
-export type IngestToolName = "list_roster" | "upsert_poet" | "upsert_work" | "ingest_dlc";
+export type IngestToolName =
+  | "list_roster"
+  | "upsert_poet"
+  | "upsert_work"
+  | "ingest_dlc"
+  | "list_my_dlc"
+  | "usage_manifest"
+  | "download_usage_files";
 
 export type IngestGateOptions = {
   store?: PoemStore;
@@ -72,6 +79,23 @@ export function portraitQueryMeta(portrait: Buffer | null, extras: Record<string
     ...extras,
     portraitBytes: portrait.byteLength,
     portraitSha256: sha256Hex(portrait),
+  };
+}
+
+/**
+ * 下载类工具的审计 query：只记路径、条数与目标目录，**不记 base64 正文**。
+ * 与 zipQueryMeta / portraitQueryMeta 同风格。
+ */
+export function usageDownloadQueryMeta(input: {
+  userId: string;
+  paths: string[];
+  targetDir?: string;
+}) {
+  return {
+    userId: input.userId,
+    targetDir: input.targetDir,
+    fileCount: input.paths.length,
+    paths: input.paths,
   };
 }
 

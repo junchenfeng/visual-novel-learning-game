@@ -7,6 +7,7 @@ import {
   upsertPoetTool,
   upsertWorkTool,
 } from "./tools";
+import { downloadUsageFilesTool, listMyDlcTool, usageManifestTool } from "./usageTools";
 
 const userIdField = z
   .string()
@@ -72,5 +73,62 @@ export function registerIngestTools(server: McpServer): void {
       }),
     },
     async (input) => jsonText(await ingestDlcTool(input)),
+  );
+
+  const targetDirField = z
+    .string()
+    .optional()
+    .describe("落盘根目录，默认 assets/user_data；相对调用方仓库根");
+  const cacheTtlField = z
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("清单缓存毫秒数，默认 60000；传 0 强制刷新");
+
+  server.registerTool(
+    "list_my_dlc",
+    {
+      title: "列出我上架的 DLC",
+      description:
+        "查看自己已通过审核上架的 DLC（课包），含 dlcId 与试玩地址。导出使用数据前先看这里。必须提供本人 userId。",
+      inputSchema: z.object({
+        userId: userIdField,
+        origin: z.string().optional().describe("站点 origin，用于拼 playUrl；省略则用线上地址"),
+      }),
+    },
+    async (input) => jsonText(await listMyDlcTool(input)),
+  );
+
+  server.registerTool(
+    "usage_manifest",
+    {
+      title: "我的 DLC 使用数据清单",
+      description:
+        "返回自己上架 DLC 的游玩数据清单（对局记录 sessions / 行为事件流 events）。每个文件带相对落盘路径、字节数、更新时间和 sha256。拿它和本机 assets/user_data/ 比对，只下载缺失或变更的文件。必须提供本人 userId。",
+      inputSchema: z.object({
+        userId: userIdField,
+        dlcId: z.string().optional().describe("只导出某一个课包；省略则全部"),
+        targetDir: targetDirField,
+        cacheTtlMs: cacheTtlField,
+      }),
+    },
+    async (input) => jsonText(await usageManifestTool(input)),
+  );
+
+  server.registerTool(
+    "download_usage_files",
+    {
+      title: "下载使用数据文件",
+      description:
+        "按 usage_manifest 返回的 path 取文件内容。只接受清单里的路径，越权路径整单拒绝。远程返回 base64 由你写盘；本机 stdio 直接写入 targetDir。paths 一次最多 25 个。必须提供本人 userId。",
+      inputSchema: z.object({
+        userId: userIdField,
+        paths: z.array(z.string()).min(1).max(25).describe("usage_manifest 里的 path 列表"),
+        targetDir: targetDirField,
+        cacheTtlMs: cacheTtlField,
+      }),
+    },
+    async (input) => jsonText(await downloadUsageFilesTool(input)),
   );
 }

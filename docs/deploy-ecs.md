@@ -119,14 +119,18 @@ pm2 restart poem-rpg
 
 用户数据写在 OSS：`poem-rpg/{用户名}/...` 与 `poem-rpg/likes/{dlcId}/{用户名}.json`，与作业文件隔离。本机无 OSS 时落到仓库 `assets/poem-rpg/`（已 gitignore）。
 
+「拿回自己 DLC 使用数据」是**只读**导出：按 `poem-rpg/uploads/index.json` 的 `userId` 找出本人课包，再扫 `poem-rpg/{玩家}/sessions/*.json` 与 `poem-rpg/{玩家}/events.json`，按课包归属过滤后回传。不写任何新 OSS key；导出请求本身照旧落 `poem-rpg/ingest-audit/`。
+
 静态资源前缀：`poem-rpg/static/`（CDN `https://cdn.aibeaver.cn/poem-rpg/static/...`）。学生上传的 DLC 索引在 `poem-rpg/uploads/`。诗人名册在 `poem-rpg/roster.json`（首次从仓库 seed）。仓库课包 `hailao-shuidiao`（海狸老师）不进线上目录。
 
 对方 agent 先读公开说明，再连 MCP：
 
 - 操作说明（用户只给 userId + DLC 目录，zip 由 agent 打）：https://poem.aibeaver.cn/mcp-how-to
+- 使用数据回传（用户只给 userId，默认落到 `assets/user_data/`，增量）：https://poem.aibeaver.cn/mcp-usage
 - YAML 规范：https://poem.aibeaver.cn/dlc-spec
 - MCP：`https://poem.aibeaver.cn/mcp`（不用 token，工具参数带 `userId`）
-- 服务端细节见 [mcp-ingest.md](mcp-ingest.md)
+- 同源 HTTP：`POST /api/ingest`（上传）、`GET|POST /api/usage`（清单 / 下载）
+- 服务端细节见 [mcp-ingest.md](mcp-ingest.md)、[mcp-usage.md](mcp-usage.md)
 
 ECS 上 `codex` 需要在 `poem-rpg` 进程 PATH 里可执行（与 grading-agent 同一份 CLI）。
 

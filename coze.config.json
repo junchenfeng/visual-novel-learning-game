@@ -48,9 +48,11 @@
     "app/api/ingest/",
     "app/api/likes/",
     "app/api/prefs/",
+    "app/api/usage/",
     "app/dlc-spec/",
     "app/mcp/",
     "app/mcp-how-to/",
+    "app/mcp-usage/",
     "app/patch*/**",
 
     "src/assets/webp.ts",
@@ -58,6 +60,7 @@
     "src/ingest/",
     "src/mcp/",
     "src/roster/",
+    "src/usage/",
     "src/user/",
     "src/dlc/publishUpload.ts",
     "src/dlc/uploadIndex.ts",
@@ -69,11 +72,13 @@
 
     "scripts/codex-exec.sh",
     "scripts/sync-static-to-oss.ts",
+    "scripts/usage-sync.mjs",
 
     "docs/coze-dev.md",
     "docs/deploy-ecs.md",
     "docs/mcp-how-to.md",
     "docs/mcp-ingest.md",
+    "docs/mcp-usage.md",
     "docs/patch*.md",
 
     "dlc/sushi/shuidiao-getou/hailao-v2/",
@@ -82,6 +87,7 @@
     "tests/ingest-preview.test.ts",
     "tests/ingest-review.test.ts",
     "tests/ingest-user-audit.test.ts",
+    "tests/mcp-usage.test.ts",
     "tests/online-pack-music.test.ts",
     "tests/roster-store.test.ts",
     "tests/unpublished.test.ts",

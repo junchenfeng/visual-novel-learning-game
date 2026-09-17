@@ -1,5 +1,5 @@
 import sharp from "sharp";
-import type { PoemStore } from "../src/server/poemStore";
+import { groupKeysByDelimiter, type PoemStore } from "../src/server/poemStore";
 import { SEED_ROSTER } from "../src/dlc/roster";
 import { preparePoetPortrait } from "../src/roster/portrait";
 import { loadRoster, upsertPoet, upsertWork } from "../src/roster/store";
@@ -22,6 +22,12 @@ function memoryStore(): PoemStore {
     },
     async writeJson(key, value) {
       files.set(key, Buffer.from(`${JSON.stringify(value)}\n`, "utf8"));
+    },
+    async listObjects(prefix, options) {
+      const keys = [...files.entries()]
+        .filter(([key]) => key.startsWith(prefix))
+        .map(([key, body]) => ({ key, size: body.byteLength }));
+      return groupKeysByDelimiter(prefix, keys, options?.delimiter);
     },
   };
 }
