@@ -3,7 +3,89 @@
 课堂教学继续用 `coze-demo` 分支 + 扣子沙盒，见 [coze-dev.md](coze-dev.md)。  
 公网站点只跑 `main`：同一台 ECS 上**另起** PM2 进程，**不要**挂到 ai-gallery 的路径下。
 
-只复用 `/root/ai-gallery/config.json` 里的 OSS 凭证和 DeepSeek `llm` 密钥，不读主站 Session / `students` 表。
+## 本机直达（开发环境已配好）
+
+登录信息在**开发环境**里，不在仓库：
+
+| 项 | 值 |
+| --- | --- |
+| SSH 别名 | `aliyun-ecs`（`~/.ssh/config` → `47.121.121.244`，密钥登录，用户 `root`） |
+| 登录 | `ssh aliyun-ecs` |
+| 仓库 | `/root/visual-novel-learning-game`（分支 `main`） |
+| 进程 | PM2 应用名 `poem-rpg`（id 5），`next start` 监听 `127.0.0.1:3010` |
+| 同机其它应用 | `gemini-app-gallery*` 占 **3000**（ai-gallery）。**别动它们**：不改端口、不 `pm2 delete`、不动 `/root/ai-gallery` |
+
+三条容易踩的：
+
+- 首次远程命令会打印 post-quantum key exchange 警告 —— 服务器 OpenSSH 版本旧，可忽略。
+- `deploy:build` 里 `sync:cdn` 会打印「未设置 CDN_BASE_URL，仅写入 OSS」：该变量在 `scripts/sync-static-to-oss.ts` 里**只用于那句日志**，不影响上传；构建期 CDN 前缀由 Next 读 `.env.production`。判断有没有生效看页面里有没有 `cdn.aibeaver.cn`，别看这行日志。
+- 本机 `pnpm run dev` 起的是 `scripts/dev-preview.mjs`，公开端口取 `DEPLOY_RUN_PORT`（默认 3000，被占就换，如 `DEPLOY_RUN_PORT=5100 pnpm run dev`）。**生产不用它**，也没有它的地址。
+
+## 常用地址
+
+| 用途 | 地址 |
+| --- | --- |
+| 主站 | https://poem.aibeaver.cn/ |
+| 本机上游（绕过 Nginx，排查用） | http://127.0.0.1:3010/ |
+| 补丁入口 / 各补丁 | `/patch`、`/patch-1`、`/patch-2` |
+| YAML 规范 | `/dlc-spec` |
+| MCP 接入说明 / 使用数据回传 | `/mcp-how-to`、`/mcp-usage` |
+| MCP 端点 | `https://poem.aibeaver.cn/mcp`（不用 token，工具参数带 `userId`） |
+| 同源 HTTP | `POST /api/ingest`（上传）、`GET\|POST /api/usage`（清单 / 下载） |
+| CDN 静态资源 | `https://cdn.aibeaver.cn/poem-rpg/static/...` |
+| 管理台 | 首页用户名填 `nova-admin`，密码见服务器 `.env.production` 的 `POEM_ADMIN_PASSWORD` |
+
+补丁与规范页的正文是**运行时读仓库里的 markdown**（`src/server/markdownDoc.ts`），所以改 `docs/patch*.md` 也要走一次「更新」才生效，光 commit 不算。
+
+## 常用命令
+
+以下都在本机执行，远程工作目录固定 `/root/visual-novel-learning-game`。
+
+**看状态与日志**
+
+```bash
+ssh aliyun-ecs 'pm2 list'
+ssh aliyun-ecs 'pm2 describe poem-rpg | head -20'
+ssh aliyun-ecs 'cd /root/visual-novel-learning-game && tail -50 logs/err.log'      # PM2 error_file
+ssh aliyun-ecs 'tail -50 /root/.pm2/logs/poem-rpg-out.log'
+```
+
+**看线上版本**（= 服务器上的 git HEAD，没有别的版本号）
+
+```bash
+ssh aliyun-ecs 'cd /root/visual-novel-learning-game && git log --oneline -1 && git status --porcelain | head'
+```
+
+只应看到 `codex-home/*.sqlite*` 这类未跟踪的运行时文件；出现 tracked 的 `M` 就先查清楚，别硬 pull。
+
+**发布**：见下面「更新」。
+**重启**（已授权，见「授权边界」）：
+
+```bash
+ssh aliyun-ecs 'pm2 restart poem-rpg'
+```
+
+**回滚到某个 sha**
+
+```bash
+ssh aliyun-ecs 'cd /root/visual-novel-learning-game && git fetch origin && git checkout <sha> && pnpm run deploy:build && pm2 restart poem-rpg'
+```
+
+回滚后是 detached HEAD，下次发布前记得 `git checkout main && git pull origin main`。
+
+**探活三连**
+
+```bash
+curl -sS -o /dev/null -w '%{http_code}\n' https://poem.aibeaver.cn/
+curl -sS -o /dev/null -w '%{http_code}\n' https://poem.aibeaver.cn/patch-2
+curl -sSI https://cdn.aibeaver.cn/poem-rpg/static/portraits/teacher.webp | head -1
+```
+
+## 授权边界
+
+- ✅ **重启 PM2**（`pm2 restart poem-rpg`）：用户已授权，agent **不必**再问人。
+- ✅ 只读侦察（`pm2 list/describe`、读日志、`git log/status`、`curl` 探活）：直接做。
+- ⛔ 仍要人工确认：改 DNS / Nginx / `.env.production`、改端口或 `pm2 delete`、动 `/root/ai-gallery/config.json` 的 OSS/LLM 凭证、`git push`、以及回滚到旧 sha 之外的数据写操作。
 
 ## 人工清单（控制台，代码代替不了）
 
@@ -106,12 +188,21 @@ curl -sSI https://poem.aibeaver.cn/
 ## 更新
 
 ```bash
-cd /root/visual-novel-learning-game
-git pull origin main
-pnpm install --frozen-lockfile
-pnpm run deploy:build
-pm2 restart poem-rpg
+ssh aliyun-ecs 'cd /root/visual-novel-learning-game && git pull origin main && pnpm run deploy:build && pm2 restart poem-rpg'
 ```
+
+`deploy:build` = `pnpm install --frozen-lockfile && next build && sync:cdn`，所以**不必**再单独跑 install。构建要几分钟，中途断线会中断，建议甩到后台再轮询：
+
+```bash
+ssh aliyun-ecs 'cd /root/visual-novel-learning-game && nohup bash -c "git pull origin main && export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true && pnpm run deploy:build && pm2 restart poem-rpg" > /tmp/poem-deploy.log 2>&1 & echo kicked'
+ssh aliyun-ecs 'tail -20 /tmp/poem-deploy.log'
+```
+
+发布后三条都要过，缺一条就不算换版：
+
+1. `pm2 list` 里 `poem-rpg` 为 `online`，且 `↺` 计数比发布前 +1。
+2. **用本次改动的文案 grep 公网页面**，例如改 `docs/patch-2.md` 后：`curl -s https://poem.aibeaver.cn/patch-2 | grep -c '<新写的句子>'` ≥ 1。只看 HTTP 200 不算数 —— 200 只说明进程活着。
+3. `ssh aliyun-ecs 'cd /root/visual-novel-learning-game && tail -20 logs/err.log'` 无新报错。
 
 改 `.env.production` 或 `config.json` 的 OSS/LLM 后也要 `pm2 restart poem-rpg`。
 
@@ -133,4 +224,3 @@ pm2 restart poem-rpg
 - 服务端细节见 [mcp-ingest.md](mcp-ingest.md)、[mcp-usage.md](mcp-usage.md)
 
 ECS 上 `codex` 需要在 `poem-rpg` 进程 PATH 里可执行（与 grading-agent 同一份 CLI）。
-
