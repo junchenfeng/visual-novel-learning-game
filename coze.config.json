@@ -47,7 +47,7 @@
     "app/mcp-how-to/",
     "app/patch-1/",
 
-    "src/assets/",
+    "src/assets/webp.ts",
     "src/auth/",
     "src/ingest/",
     "src/mcp/",
