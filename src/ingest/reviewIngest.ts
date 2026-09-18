@@ -1,4 +1,5 @@
 import { playUrl } from "../server/siteUrl";
+import type { RosterPoet } from "../dlc/roster";
 import type { UploadedPack } from "../dlc/uploadIndex";
 import type { UploadFormInput } from "../dlc/uploadPack";
 import { publishUploadedDlc } from "../dlc/publishUpload";
@@ -11,6 +12,7 @@ import {
 } from "./codexReview";
 import { hasBlocking, machineIssue, type IngestResult, type ReviewIssue } from "./issues";
 import { disposeMachineReview, machineReviewZip } from "./machineReview";
+import type { PoemStore } from "../server/poemStore";
 
 export type SpecReviewer = (options: {
   packRoot?: string;
@@ -59,10 +61,16 @@ export async function reviewAndIngestDlc(options: {
   zipBuffer: Buffer;
   origin?: string;
   specReviewer?: SpecReviewer;
+  /** 默认取宿主注入的 store；测试里注入内存 store，避免读写真实环境。 */
+  store?: PoemStore;
+  /** 默认读名册 store；测试里直接给 seed 名册，连读盘都省掉。 */
+  roster?: RosterPoet[];
 }): Promise<IngestResult> {
   const machine = await machineReviewZip({
     form: options.form,
     zipBuffer: options.zipBuffer,
+    store: options.store,
+    roster: options.roster,
   });
   try {
     // 幂等短路：线上那份与这次提交「版本 + 内容指纹」都一致 → 线上本来就是这个内容，判 skip。

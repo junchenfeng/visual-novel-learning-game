@@ -191,6 +191,7 @@ export async function ingestDlcTool(
           form: { userId: user.canonical, poetId, workTitle },
           zipBuffer,
           origin: input.origin,
+          store: options.store,
         });
         await safeUpsertPreviewEntry(
           {

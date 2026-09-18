@@ -13,9 +13,10 @@ import JSZip from "jszip";
 import { fingerprintPackDir } from "../src/dlc/packFingerprint";
 import { parseDlcDirectory } from "../src/dlc/parser";
 import { SEED_ROSTER } from "../src/dlc/roster";
+import { loadUploadIndex } from "../src/dlc/uploadIndex";
 import { extractZipBuffer, resolveUploadTarget } from "../src/dlc/uploadPack";
 import { disposeMachineReview, machineReviewZip } from "../src/ingest/machineReview";
-import { shouldSkipReview } from "../src/ingest/reviewIngest";
+import { reviewAndIngestDlc, shouldSkipReview } from "../src/ingest/reviewIngest";
 import { groupKeysByDelimiter, uploadsIndexKey, type PoemStore } from "../src/server/poemStore";
 
 const ROOT = path.join(__dirname, "..");
@@ -192,7 +193,7 @@ describe("shouldSkipReview：四态", () => {
   });
 });
 
-describe("machineReviewZip 给出的 skip 依据", () => {
+describe("skip 依据：从机器评审到最终判决", () => {
   const manifest = parseDlcDirectory(REPO_PACK).manifest;
   const form = { userId: USER, poetId: manifest.poetId, workTitle: manifest.workTitle };
   const targetId = resolveUploadTarget({ userId: USER, shortId: manifest.id }).targetId;
@@ -287,6 +288,60 @@ describe("machineReviewZip 给出的 skip 依据", () => {
     } finally {
       disposeMachineReview(review);
     }
+  });
+
+  it("版本与指纹都一致 → 直接 skip：评审器一次都不跑、索引不被改写", async () => {
+    const store = seedIndex(fingerprintPackDir(REPO_PACK));
+    let reviewerCalls = 0;
+    const result = await reviewAndIngestDlc({
+      form,
+      zipBuffer: await zipDir(REPO_PACK),
+      roster: SEED_ROSTER,
+      store,
+      specReviewer: async () => {
+        reviewerCalls += 1;
+        return [];
+      },
+    });
+
+    expect(result.verdict).toBe("skip");
+    expect(result.issues).toEqual([]);
+    expect(result.reason).toMatch(/未变化|保持原样/);
+    expect(result.playUrl?.endsWith(`/play/${targetId}`)).toBe(true);
+    // 短路必须在 Codex 之前：跑评审就谈不上「秒回」，也白烧一次 LLM
+    expect(reviewerCalls).toBe(0);
+    // 不重写索引 → 已上架时间不因重复提交而抖动
+    const index = await loadUploadIndex(store);
+    expect(index).toHaveLength(1);
+    expect(index[0]?.uploadedAt).toBe("2026-09-17T00:00:00.000Z");
+    expect(index[0]?.contentSha256).toBe(fingerprintPackDir(REPO_PACK));
+  });
+
+  it("版本一致但内容变了 → 不 skip，照常进评审（忘升版本不会漏更新）", async () => {
+    const store = seedIndex("f".repeat(64));
+    let reviewerCalls = 0;
+    const result = await reviewAndIngestDlc({
+      form,
+      zipBuffer: await zipDir(REPO_PACK),
+      roster: SEED_ROSTER,
+      store,
+      // 评审故意报 blocking：走到评审就算这条用例成功，同时把流程挡在 upsertWork/发布之前，
+      // 免得单测真的往 store 里写一份课包。
+      specReviewer: async () => {
+        reviewerCalls += 1;
+        return [
+          {
+            severity: "blocking",
+            source: "spec",
+            rule: "测试拦截",
+            message: "评审被调用即证明没有走 skip 短路",
+          },
+        ];
+      },
+    });
+
+    expect(result.verdict).toBe("reject");
+    expect(reviewerCalls).toBe(1);
   });
 
   it("夹具自检：仓库课包能被 parse 且文件齐全", () => {
