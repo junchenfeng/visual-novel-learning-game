@@ -66,3 +66,6 @@ next-env.d.ts
 
 # local VS Code / Cursor launch (not shared)
 .vscode/
+
+# CodeBuddy local plans
+/.codebuddy/plans/
