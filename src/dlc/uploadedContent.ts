@@ -13,6 +13,11 @@ export type UploadedPack = {
   version: string;
   summary: string;
   uploadedAt: string;
+  /**
+   * 包内容指纹（`fingerprintPackDir`，算在解压后的原始目录上）。
+   * 缺省表示这是加指纹之前的老条目，不参与「版本与内容都没变就跳过审核」的判定。
+   */
+  contentSha256?: string;
 };
 
 /**

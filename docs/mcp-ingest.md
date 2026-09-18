@@ -23,6 +23,7 @@
 | --- | --- |
 | 远程 Streamable HTTP MCP | `https://poem.aibeaver.cn/mcp` |
 | 同源 multipart / JSON | `POST https://poem.aibeaver.cn/api/ingest` |
+| 对账：我已上架的课包与版本（同源 HTTP） | `GET https://poem.aibeaver.cn/api/my-dlc?userId=hh_学号` |
 | 本机 stdio | `pnpm mcp:ingest` |
 | 使用数据清单 / 下载（同源 HTTP） | `GET` / `POST https://poem.aibeaver.cn/api/usage` |
 
@@ -83,7 +84,8 @@
 
 ```json
 {
-  "verdict": "accept | reject",
+  "verdict": "accept | skip | reject",
+  "reason": "版本 1.2.0 与内容指纹均未变化：线上保持原样，未重新审核",
   "playUrl": "https://poem.aibeaver.cn/play/...",
   "auditId": "hh_11016863_20260911T102648Z",
   "issues": [
@@ -100,6 +102,10 @@
 ```
 
 `source: machine` 来自编译器 / 图检查 / 名册；`source: spec` 来自 Codex 对照 `docs/dlc-spec.md`。改 spec 文档后，下一单审核自动用新规则。
+
+**`verdict` 三态与 HTTP 码**：`accept`（本轮上架）与 `skip` 都是 **200**；只有 `reject` 是 **400**（400 的语义是「按 issues 改 YAML 再来」）。
+
+`skip` = 与线上那份**「版本 + 内容指纹」都相同**，服务端什么都没做（不跑 Codex、不写 OSS、不动上传索引），线上保持原样并带上 `reason`。判据是 `manifest.version` 与包内容指纹（解压后**原始**目录的 sha256 —— 不能对 zip 字节算，重打包会变；也不能对编译产物算，发布侧会先 png→webp）同时相等。**老上传索引条目没有指纹字段，一律照常重新审核**，发布后自动补上指纹。
 
 ## 使用数据回传
 
@@ -138,6 +144,15 @@ curl -sS -X POST https://poem.aibeaver.cn/api/ingest \
 ```
 
 也可以 JSON：`userId`、`poetId`、`workTitle`、`zipBase64`。
+
+提交前对账、确认哪些包不用重传：
+
+```bash
+curl -sS "https://poem.aibeaver.cn/api/my-dlc?userId=hh_11016863"
+# → { userId, nickname, dlcs: [{ dlcId, poetId, workTitle, version, uploadedAt, playUrl }] }
+```
+
+版本一致、内容也没动过的包可以不传；传了也不会重复上架 —— 服务端会返回 `verdict: "skip"`。
 
 ## Codex
 

@@ -22,9 +22,9 @@ find dlc -name manifest.yaml      # 每个命中目录就是一个包根
 ```
 
 - 没有 `manifest.yaml` 的目录（草稿、`assets/`）直接跳过，不必报错。
-- **跳过 `hailao-shuidiao`**：那是课堂课包，不归学员。判断口径是 `manifest.yaml` 里的 `id` 命中 `src/dlc/unpublished.ts` 的 `UNPUBLISHED_DLC_IDS`（本仓库当前就是 `hailao-shuidiao`）。传上去等于把老师的课包挂到学员 id 下 —— 服务端只挡精确 id 冲突，**挡不住这种挂靠**，所以必须由你不传。
+- **跳过 `hailao-shuidiao`**：那是课堂课包，不归学员 —— **名字就是判据**（目录名或 `manifest.yaml` 里的 `id` 都算）。**别只按 `src/dlc/unpublished.ts` 的 `UNPUBLISHED_DLC_IDS` 判断**：那份名单各仓库不同，扣子版是空集，只认它就会漏；名单里另有 id 时也一并跳过。传上去等于把老师的课包挂到学员 id 下 —— 服务端只挡精确 id 冲突，**挡不住这种挂靠**，所以必须由你不传。
 - 只有用户明确点名「只传某一个包」时，才只传那一个。
-- 多个包 = 多轮提交，逐个走下面的流程。
+- 多个包 = 多轮提交，逐个走下面的流程。**提交前先对账**（见下一节），没变的包不用传。
 
 包内典型结构（zip 解开后，根目录或唯一子目录里必须能看到 `manifest.yaml`；优先打成 zip 根上就是 `manifest.yaml`）：
 
@@ -38,6 +38,12 @@ assets/backgrounds/…
 ```
 
 诗人头像是公共资源，**不要放进 zip**。
+
+## 先对账：哪些包根本不用重传
+
+`GET https://poem.aibeaver.cn/api/my-dlc?userId=hh_学号` → `{ userId, nickname, dlcs[{ dlcId, poetId, workTitle, version, uploadedAt, playUrl }] }`（MCP 侧等价物是 `list_my_dlc`，返回同样的字段）。
+
+把本地每个包的 `manifest.version` 与它对一遍：**版本一致、内容也没动过的直接跳过不传**，只提交新增或改过的包。对账只是省流量 —— 传了也不会重复上架：服务端拿「版本 + 内容指纹」比对，没变就返回 `skip`（见下）。
 
 ## 提交通道：优先同源 HTTP，不需要任何客户端配置
 
@@ -53,7 +59,11 @@ curl -sS -X POST https://poem.aibeaver.cn/api/ingest \
 
 JSON 形式：`{"userId":"…","poetId":"…","workTitle":"…","zipBase64":"…"}`（`zipBase64` 可带 `data:application/zip;base64,` 前缀）。
 
-返回 `{ verdict, playUrl?, pack?, issues[] }`：`accept` → HTTP **200**；`reject` → HTTP **400**，body 就是同一份 `issues`。**注意 HTTP 400 不等于请求失败**，照样读 body。
+返回 `{ verdict, reason?, playUrl?, pack?, issues[] }`，三态只对两个 HTTP 码：
+
+- `accept` → HTTP **200**：本轮通过审核并（重新）上架。
+- `skip` → HTTP **200**：**与线上那份的「版本 + 内容指纹」都一样，服务端什么都没做**（线上保持原样，还省掉几分钟评审）。把 `playUrl` 照常报给用户，**不要改 YAML**；`reason` 会说明原因。
+- `reject` → HTTP **400**：body 就是同一份 `issues`，按它改 YAML 再传。**只有 reject 才是 400**。
 
 HTTP 覆盖不到的地方是**名册**：`list_roster`、新诗人 `upsert_poet`（含头像）只有 MCP 有。HTTP 提交若被拒成「诗人不在名册中」，按下一节接上 MCP，或请老师用管理台加。
 
@@ -103,7 +113,7 @@ rm -f "$OUT"
 
 ### 3. 提交
 
-**走 HTTP**（上一节那条 curl，或 JSON 形式传 zip 的 base64），最省事，也不需要用户改任何配置。
+**走 HTTP**（上一节那条 curl，或 JSON 形式传 zip 的 base64），最省事，也不需要用户改任何配置。提交前先按「先对账」那一节比对版本，没变的包直接跳过；传了也没关系 —— 服务端会返回 `skip` 而不是重复上架。
 
 只有客户端**已经配好 MCP** 时才走 MCP，顺序是 `list_roster` →（诗人不在名册时）`upsert_poet` → `ingest_dlc`：
 
@@ -152,11 +162,12 @@ rm -f "$OUT"
 ### 4. 看返回
 
 - `verdict: accept`：把 `playUrl` 给用户，这个包结束。
+- `verdict: skip`：**线上已经是这份，没做任何改动**（版本与内容指纹都一样）。把 `playUrl` 报给用户，**别去改 YAML**。
 - `verdict: reject`：按 `issues[].message` 和 `fixHint` 改 YAML（对照 https://poem.aibeaver.cn/dlc-spec），**你自己重新打包 zip** 再提交。不要让用户手动重压。
 - 「诗人不在名册中」：HTTP 通道办不了，接上 MCP 走 `upsert_poet`，或请老师用管理台加。
 - 用户 id 错误：停止，咨询老师。
 
-多个包时，最后按包逐个汇报：包路径 → `verdict` → `playUrl` 或要改的 `issues`。别只报一个笼统的「都传完了」。
+多个包时，最后按包逐个汇报：包路径 → 版本 → `accept`（新上架）/ `skip`（已是最新）/ `reject`（待改）→ `playUrl` 或要改的 `issues`。别只报一个笼统的「都传完了」。
 
 同一 `userId` + 同一 short-id 会覆盖你上次的包。别人用同一个教学 short-id 互不影响；线上试玩地址是 `/play/{short-id}-{userId}`。
 

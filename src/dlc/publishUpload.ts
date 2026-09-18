@@ -5,6 +5,7 @@ import { STATIC_OSS_PREFIX } from "../assets/cdn";
 import { getPoemStore, uploadedCompiledKey } from "../server/poemStore";
 import { reservedGitDlcIds } from "./loadCompiled";
 import { parseDlcDirectory } from "./parser";
+import { fingerprintPackDir } from "./packFingerprint";
 import {
   collectPackAssetFiles,
   convertPackRastersToWebp,
@@ -46,6 +47,9 @@ export async function publishUploadedDlc(options: {
   try {
     await extractZipBuffer(options.zipBuffer, tempRoot);
     const packRoot = findPackRoot(tempRoot);
+    // 指纹必须在 convertPackRastersToWebp 之前算：那一步会把 png 转 webp 并改写 yaml，
+    // 与审核侧算指纹的时点必须一致，否则下次提交永远对不上、退化成每次都全量审核。
+    const contentSha256 = fingerprintPackDir(packRoot);
     const firstPass = parseDlcDirectory(packRoot);
     const reserved = reservedGitDlcIds();
     const index = await loadUploadIndex();
@@ -91,6 +95,7 @@ export async function publishUploadedDlc(options: {
       version: compiled.manifest.version,
       summary: compiled.manifest.summary,
       uploadedAt: new Date().toISOString(),
+      contentSha256,
     };
     const withoutSlot = index.filter(
       (item) => !isSameUploadSlot(item, options.form.userId, firstPass.manifest.id),

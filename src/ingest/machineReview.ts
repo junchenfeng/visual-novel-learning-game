@@ -13,9 +13,11 @@ import {
   validateUploadManifest,
   type UploadFormInput,
 } from "../dlc/uploadPack";
-import { findUploadedPack, loadUploadIndex } from "../dlc/uploadIndex";
+import { findUploadedPack, loadUploadIndex, type UploadedPack } from "../dlc/uploadIndex";
+import { fingerprintPackDir } from "../dlc/packFingerprint";
 import { portraitHint } from "../roster/portrait";
 import { loadRoster } from "../roster/store";
+import type { PoemStore } from "../server/poemStore";
 import { machineIssue, type ReviewIssue } from "./issues";
 
 export type MachineReview = {
@@ -26,6 +28,10 @@ export type MachineReview = {
   issues: ReviewIssue[];
   poetMissing: boolean;
   allowUnknownWork: boolean;
+  /** 本次提交的包内容指纹（解压后、转 webp 前算），供上层判「要不要跳过审核」。 */
+  contentSha256?: string;
+  /** 同一个上架槽位上已有的条目（同 userId + 同 short-id），有才能比版本与指纹。 */
+  existing?: UploadedPack;
 };
 
 function classifyMachineMessage(message: string): ReviewIssue {
@@ -59,6 +65,8 @@ export async function machineReviewZip(options: {
   form: UploadFormInput;
   zipBuffer: Buffer;
   roster?: RosterPoet[];
+  /** 默认取宿主注入的 store；测试里注入内存 store，避免读写真实环境。 */
+  store?: PoemStore;
 }): Promise<MachineReview> {
   const tempRoot = mkdtempSync(path.join(tmpdir(), "poem-dlc-ingest-"));
   const issues: ReviewIssue[] = [];
@@ -72,6 +80,9 @@ export async function machineReviewZip(options: {
   try {
     await extractZipBuffer(options.zipBuffer, tempRoot);
     const packRoot = findPackRoot(tempRoot);
+    // 与发布侧（publishUploadedDlc）同一时点取值：必须早于 convertPackRastersToWebp，
+    // 否则 png→webp 之后两侧指纹永远对不上，skip 会退化成每次全量审核。
+    const contentSha256 = fingerprintPackDir(packRoot);
     let compiled: CompiledDlc | undefined;
     try {
       compiled = parseDlcDirectory(packRoot);
@@ -92,7 +103,7 @@ export async function machineReviewZip(options: {
     const roster = options.roster ?? (await loadRoster());
     const poetMissing = !roster.some((item) => item.poetId === options.form.poetId);
     const reserved = reservedGitDlcIds();
-    const index = await loadUploadIndex();
+    const index = await loadUploadIndex(options.store);
     const { targetId } = resolveUploadTarget({
       userId: options.form.userId,
       shortId: compiled.manifest.id,
@@ -115,6 +126,8 @@ export async function machineReviewZip(options: {
       issues,
       poetMissing,
       allowUnknownWork: !poetMissing,
+      contentSha256,
+      existing,
     };
   } catch (error) {
     if (error instanceof DlcValidationError) {

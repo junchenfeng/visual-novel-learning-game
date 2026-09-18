@@ -58,5 +58,8 @@ export async function POST(request: NextRequest) {
   }
 
   const verdict = "verdict" in result ? result.verdict : "reject";
-  return NextResponse.json(result, { status: verdict === "accept" ? 200 : 400 });
+  // 只有 reject 是 400：400 的语义是「按 issues 改 YAML 再来」。
+  // accept（本轮上架）与 skip（版本与内容都没变、线上保持原样）都是成功，必须 200，
+  // 否则 agent 会把 skip 当失败去乱改 YAML。
+  return NextResponse.json(result, { status: verdict === "reject" ? 400 : 200 });
 }

@@ -26,6 +26,7 @@ function asUploadedPack(value: unknown): UploadedPack | null {
     version: String(record.version ?? "").trim(),
     summary: String(record.summary ?? "").trim(),
     uploadedAt: String(record.uploadedAt ?? "").trim(),
+    contentSha256: String(record.contentSha256 ?? "").trim() || undefined,
   };
 }
 

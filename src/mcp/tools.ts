@@ -195,7 +195,9 @@ export async function ingestDlcTool(
         await safeUpsertPreviewEntry(
           {
             ...previewBase,
-            status: result.verdict === "accept" ? "published" : "rejected",
+            // skip 复用 published：线上本来就是这一份，管理台上仍应显示「上架成功」并带试玩链接。
+            // 只有真正的 reject 才是“审核失败”。
+            status: result.verdict === "reject" ? "rejected" : "published",
             dlcId: result.pack?.dlcId,
           },
           options.store,

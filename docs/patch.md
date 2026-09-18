@@ -10,7 +10,7 @@ YAML 规范：https://poem.aibeaver.cn/dlc-spec
 
 | 补丁 | 内容 | 地址 |
 | --- | --- | --- |
-| patch-3 | `AGENTS.md` 补上平台通道说明（**优先走同源 HTTP** `POST /api/ingest`、`GET|POST /api/usage`；扫项目 `dlc/` 下全部合规包上传、跳过 `hailao-shuidiao`）+ 课堂「回看上一段」按钮归位到动作区；**累计补丁**，可跳过 patch-2 单独应用 | https://poem.aibeaver.cn/patch-3 |
+| patch-3 | `AGENTS.md` 补上平台通道说明（**优先走同源 HTTP**：`POST /api/ingest` 提交、`GET /api/my-dlc` 先对账、`GET|POST /api/usage` 拿回数据；扫项目 `dlc/` 下全部合规包、跳过 `hailao-shuidiao`；版本与内容没变服务端返回 `skip`）+ 课堂「回看上一段」按钮归位到动作区；**累计补丁**，可跳过 patch-2 单独应用 | https://poem.aibeaver.cn/patch-3 |
 | patch-2 | 课堂「回看上一段」、读词节奏控制（每句锁 3 秒 + 环形读秒）、小说 / 读词分阶段 BGM | https://poem.aibeaver.cn/patch-2 |
 | patch-1 | 解谜关 `type: explore`、真结局 `endingId`、填词彩蛋 `easterEgg` | https://poem.aibeaver.cn/patch-1 |
 
@@ -18,7 +18,7 @@ YAML 规范：https://poem.aibeaver.cn/dlc-spec
 
 patch-3 是**累计补丁**，可以单独应用、**不要求先打过 patch-2**，两件事：
 
-1. 往 `AGENTS.md` 追加一节，让项目里的 agent 知道两个平台 MCP 的入口与规矩：提交课包（https://poem.aibeaver.cn/mcp-how-to）和拿回自己课包的使用数据（https://poem.aibeaver.cn/mcp-usage）。上传范围不用再问用户 —— **扫项目 `dlc/` 下所有合规包逐个提交，跳过 `hailao-shuidiao`（课堂课包，不归学员）**。这部分只改文档。
+1. 往 `AGENTS.md` 追加一节，让项目里的 agent 知道两条平台通道的地址与规矩：**首选同源 HTTP** —— `POST /api/ingest` 提交课包、`GET /api/my-dlc` 先对账、`GET|POST /api/usage` 拿回自己课包的使用数据；MCP `https://poem.aibeaver.cn/mcp` 是客户端已配好时的备选（名册类工具只有它有）。上传范围不用再问用户 —— **扫项目 `dlc/` 下所有合规包逐个提交，跳过 `hailao-shuidiao`（课堂课包，不归学员）**；版本与内容都没变的包服务端返回 `skip`（不是失败、不用改 YAML）。说明页：https://poem.aibeaver.cn/mcp-how-to 与 https://poem.aibeaver.cn/mcp-usage。这部分只改文档。
 2. 把课堂「回看上一段」按钮从气泡右上角的绝对定位**归位到动作区、与提交按钮同排**（改 `ClassroomFrame.tsx` + `classroom.module.css`）。
 
 第 2 件事分两种起点，最终收敛到同一份代码：打过 patch-2 的项目只需搬位置 + 换样式；没打过 patch-2 的项目按 patch-3 里给的完整规格一次做全（回看是 `ClassroomFrame` 内部的本地 UI 状态，不需要碰 `gameMachine`）。patch-3 与 patch-2 动同一个文件，**先后顺序随意**：先 patch-2 再 patch-3，就按「只归位」做；只打 patch-3，就按「一次做全」做。
