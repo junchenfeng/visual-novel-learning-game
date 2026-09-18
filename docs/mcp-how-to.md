@@ -23,7 +23,8 @@ find dlc -name manifest.yaml      # 每个命中目录就是一个包根
 ```
 
 - 没有 `manifest.yaml` 的目录（草稿、`assets/`）直接跳过，不必报错。
-- **跳过 `hailao-shuidiao`**：那是课堂课包，不归学员 —— **名字就是判据**（目录名或 `manifest.yaml` 里的 `id` 都算）。**别只按 `src/dlc/unpublished.ts` 的 `UNPUBLISHED_DLC_IDS` 判断**：那份名单各仓库不同，扣子版是空集，只认它就会漏；名单里另有 id 时也一并跳过。传上去等于把老师的课包挂到学员 id 下 —— 服务端只挡精确 id 冲突，**挡不住这种挂靠**，所以必须由你不传。
+- **跳过 `hailao-shuidiao`：判据只有「包 id」** —— 目录名是它、或 `manifest.yaml` 的 `id` 是它，才跳过。**不要按 `author` / 创作者 / 诗人名判**：学员的包多半是照抄模板改出来的，`manifest.author` 很可能仍写着「海狸老师」—— 那是**学员自己的作品，照传不误**；按作者忽略会把学员的作品一起丢掉。**别只按 `src/dlc/unpublished.ts` 的 `UNPUBLISHED_DLC_IDS` 判断**：那份名单各仓库不同，扣子版是空集，只认它就会漏；名单里另有 id 时也一并跳过。传上去等于把老师的课包挂到学员 id 下 —— 服务端只挡精确 id 冲突，**挡不住这种挂靠**，所以必须由你不传。
+- **范围只认 `dlc/` 下真实存在的包**：名册（`GET /api/roster`、`list_roster`）里登记的篇目、对账（`GET /api/my-dlc`、`list_my_dlc`）里线上已有的包，都只是**查询参照**，**不是待办清单**。本地 `dlc/` 里没有的作品 —— 哪怕名册里登记了、线上也已经有 —— **都不算学员的任务**：不要替学员新建或补做，也不要提交、送审。提交与审核的对象 = `find dlc -name manifest.yaml` 命中的那些包。
 - 只有用户明确点名「只传某一个包」时，才只传那一个。
 - 多个包 = 多轮提交，逐个走下面的流程。**提交前先对账**（见下一节），没变的包不用传。
 
@@ -191,6 +192,8 @@ rm -f "$OUT"
 
 - 向用户只要 zip、poetId、篇名（除非 manifest 缺失）
 - 把 `hailao-shuidiao`（或 `src/dlc/unpublished.ts` 名单里的任何包）当学员的包传上去
+- 按 `manifest.author`（例如「海狸老师」）判断课堂课包 —— 判据只有包 id
+- 把名册 / 对账里、但本地 `dlc/` 里没有的作品当待办，或替学员新建、补做、送审这些作品
 - 伪造或借用别人的 userId
 - 忽略 blocking issue 反复硬传
 - 把诗人头像塞进 DLC zip

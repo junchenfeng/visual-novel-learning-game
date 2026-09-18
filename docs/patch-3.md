@@ -93,7 +93,8 @@ curl -sS -X POST https://poem.aibeaver.cn/api/roster \
 说明页：https://poem.aibeaver.cn/mcp-how-to
 
 - 只向用户要一样：`userId`。**不要再问「要传哪个包」「目录在哪」** —— 课包固定在项目根的 `dlc/` 下：`find dlc -name manifest.yaml`，每个命中目录就是一个包根。**不要让用户自己打 zip**，也不要问 poetId / 诗人中文名 / 篇名 —— 从 `manifest.yaml` 读。不要向用户要 token。
-- **跳过 `hailao-shuidiao`**：它是课堂课包，不归学员 —— **名字就是判据**（目录名或 `manifest.yaml` 的 `id` 都算）。**别只靠 `src/dlc/unpublished.ts`**：那份 `UNPUBLISHED_DLC_IDS` 是各仓库自有策略，主仓库列了 `hailao-shuidiao`，扣子版（课堂用的那份）是**空集**，只认名单会漏；名单里另有 id 时也一并跳过。传上去等于把老师的课包挂到学员 id 下：服务端只挡精确 id 冲突，**挡不住这种挂靠**（线上出现过学员上传副本 `hailao-shuidiao-hh_3408594`）。用户点名只传某一个包时才只传那一个。
+- **跳过 `hailao-shuidiao`：判据只有包 id**（目录名或 `manifest.yaml` 里的 `id` 是它才算），**不要按 `author` / 创作者 / 诗人名判** —— 学员的包多半是照抄模板改出来的，`manifest.author` 很可能还是「海狸老师」，那是学员自己的作品，要照传；按作者忽略会把学员的作品一起丢掉。**别只靠 `src/dlc/unpublished.ts`**：那份 `UNPUBLISHED_DLC_IDS` 是各仓库自有策略，主仓库列了 `hailao-shuidiao`，扣子版（课堂用的那份）是**空集**，只认名单会漏；名单里另有 id 时也一并跳过。传上去等于把老师的课包挂到学员 id 下：服务端只挡精确 id 冲突，**挡不住这种挂靠**（线上出现过学员上传副本 `hailao-shuidiao-hh_3408594`）。用户点名只传某一个包时才只传那一个。
+- **范围只认 `dlc/` 下真实存在的包**：名册（`GET /api/roster` / `list_roster`）与对账（`GET /api/my-dlc` / `list_my_dlc`）都只是**查询参照，不是待办清单**。本地 `dlc/` 里没有的作品，即使名册里登记了、线上也已经有，都不算学员的任务 —— **不要替学员新建或补做**，也不要提交、送审。提交与审核的对象就是 `find dlc -name manifest.yaml` 命中的那些包。
 - **先对账再提交**：`GET https://poem.aibeaver.cn/api/my-dlc?userId=hh_学号` → `{ userId, nickname, dlcs[{ dlcId, poetId, workTitle, version, uploadedAt, playUrl }] }`（MCP 侧等价物是 `list_my_dlc`）。把本地每个包的 `manifest.version` 与它对一遍，**版本一致、内容也没动过的直接跳过不传**，其余才提交。对账只省流量，权威判定在服务端。
 - 打包排除 `.DS_Store`、`.git`、`node_modules`、`__MACOSX`；zip ≤30MB。诗人头像是公共资源，**不要放进 zip**。
 - **HTTP（首选）**：先确认诗人在名册（`GET /api/roster?userId=hh_学号`；不在就 `POST /api/roster` 把诗人与头像建好），再 `curl -sS -X POST https://poem.aibeaver.cn/api/ingest -F userId=hh_学号 -F poetId=<manifest.poetId> -F workTitle='<manifest.workTitle>' -F zip=@/tmp/poem-dlc-pack.zip`；JSON 形式为 `{ "userId": …, "poetId": …, "workTitle": …, "zipBase64": … }`。
@@ -289,7 +290,7 @@ const backButton = canGoBack ? (
 
 肉眼核对 + 跑原有检查：
 
-1. `AGENTS.md` 末尾出现 `## 平台通道：提交课包与拿回使用数据`，六个探针（`/api/ingest`、`/api/my-dlc`、`/api/roster`、`/api/usage`、`hailao-shuidiao`、`poem.aibeaver.cn/mcp`）都在；提交那节写明「扫项目 `dlc/` 下全部合规包、跳过 `hailao-shuidiao`」「先对账」，并把 HTTP 写成首选通道。
+1. `AGENTS.md` 末尾出现 `## 平台通道：提交课包与拿回使用数据`，六个探针（`/api/ingest`、`/api/my-dlc`、`/api/roster`、`/api/usage`、`hailao-shuidiao`、`poem.aibeaver.cn/mcp`）都在；提交那节写明「扫项目 `dlc/` 下全部合规包、跳过 `hailao-shuidiao`（**只按包 id 判，不按 `author`**）」「范围只认 `dlc/` 下真实存在的包，名册与对账不是待办」「先对账」，并把 HTTP 写成首选通道。
 2. 两条通道的写法都对：HTTP 是 `POST /api/ingest`、`GET /api/my-dlc`、`GET|POST /api/roster`、`GET|POST /api/usage`（都挂在 `https://poem.aibeaver.cn`）；MCP 是 `https://poem.aibeaver.cn/mcp`（别把 MCP 写成 `/api/ingest`）。写了 MCP 那节的，七个工具名一个没写错：`list_roster`、`upsert_poet`、`upsert_work`、`ingest_dlc`、`list_my_dlc`、`usage_manifest`、`download_usage_files`。
 3. 名册闭环写到了：HTTP 也能查名册、建诗人与头像（`GET|POST /api/roster`），整条链（名册 → 提交 → 对账 → 拿回数据）不需要 MCP；并说明 `upsert_work` 不必有 HTTP 端点（审核通过自动加篇目）。
 4. 提交三态写对：`accept` 与 `skip` 都是 HTTP **200**、只有 `reject` 是 **400**；`skip` 明确写了「线上保持原样、不算失败、不要改 YAML」。
