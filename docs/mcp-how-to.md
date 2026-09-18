@@ -2,6 +2,7 @@
 
 永久地址：https://poem.aibeaver.cn/mcp-how-to  
 提交接口（首选）：`POST https://poem.aibeaver.cn/api/ingest`  
+对账 / 名册：`GET /api/my-dlc`、`GET|POST /api/roster`（同源 HTTPS）  
 MCP 端点（可选）：https://poem.aibeaver.cn/mcp  
 YAML 规范：https://poem.aibeaver.cn/dlc-spec
 
@@ -65,7 +66,19 @@ JSON 形式：`{"userId":"…","poetId":"…","workTitle":"…","zipBase64":"…
 - `skip` → HTTP **200**：**与线上那份的「版本 + 内容指纹」都一样，服务端什么都没做**（线上保持原样，还省掉几分钟评审）。把 `playUrl` 照常报给用户，**不要改 YAML**；`reason` 会说明原因。
 - `reject` → HTTP **400**：body 就是同一份 `issues`，按它改 YAML 再传。**只有 reject 才是 400**。
 
-HTTP 覆盖不到的地方是**名册**：`list_roster`、新诗人 `upsert_poet`（含头像）只有 MCP 有。HTTP 提交若被拒成「诗人不在名册中」，按下一节接上 MCP，或请老师用管理台加。
+**名册也有 HTTP 端点** —— 新诗人不必去配 MCP：
+
+```bash
+# 看诗人与篇目（= MCP 的 list_roster）
+curl -sS "https://poem.aibeaver.cn/api/roster?userId=hh_11016863"
+
+# 新建 / 更新诗人（含头像，= MCP 的 upsert_poet）；multipart 或 JSON 都收
+curl -sS -X POST https://poem.aibeaver.cn/api/roster \
+  -F userId=hh_11016863 -F poetId=dufu -F poet=杜甫 -F portrait=@dufu.webp
+# JSON 形式：{ "userId": …, "poetId": …, "poet": …, "portraitBase64": … }
+```
+
+头像要求：正方形 png/jpg/webp、边长 512–1024px、不超过 2MB（服务端转 webp 落 CDN）。**只有新增篇目（`upsert_work`）没有 HTTP 端点，也不需要**：篇目不在名册时 `POST /api/ingest` 审核通过会自动加。
 
 ## 可选：走 MCP（客户端已配好时才用）
 
@@ -113,7 +126,10 @@ rm -f "$OUT"
 
 ### 3. 提交
 
-**走 HTTP**（上一节那条 curl，或 JSON 形式传 zip 的 base64），最省事，也不需要用户改任何配置。提交前先按「先对账」那一节比对版本，没变的包直接跳过；传了也没关系 —— 服务端会返回 `skip` 而不是重复上架。
+**走 HTTP**（上一节那条 curl，或 JSON 形式传 zip 的 base64），最省事，也不需要用户改任何配置。提交前两件事：
+
+1. 按「先对账」比对版本，没变的包直接跳过（传了也没关系 —— 服务端会返回 `skip` 而不是重复上架）。
+2. `GET /api/roster` 确认诗人已在名册；不在就先 `POST /api/roster` 把诗人与头像建好，否则这次提交会被拒成「诗人不在名册中」。
 
 只有客户端**已经配好 MCP** 时才走 MCP，顺序是 `list_roster` →（诗人不在名册时）`upsert_poet` → `ingest_dlc`：
 
@@ -164,7 +180,7 @@ rm -f "$OUT"
 - `verdict: accept`：把 `playUrl` 给用户，这个包结束。
 - `verdict: skip`：**线上已经是这份，没做任何改动**（版本与内容指纹都一样）。把 `playUrl` 报给用户，**别去改 YAML**。
 - `verdict: reject`：按 `issues[].message` 和 `fixHint` 改 YAML（对照 https://poem.aibeaver.cn/dlc-spec），**你自己重新打包 zip** 再提交。不要让用户手动重压。
-- 「诗人不在名册中」：HTTP 通道办不了，接上 MCP 走 `upsert_poet`，或请老师用管理台加。
+- 「诗人不在名册中」：先 `POST /api/roster` 建诗人与头像再重传（MCP 侧的等价物是 `upsert_poet`）。
 - 用户 id 错误：停止，咨询老师。
 
 多个包时，最后按包逐个汇报：包路径 → 版本 → `accept`（新上架）/ `skip`（已是最新）/ `reject`（待改）→ `playUrl` 或要改的 `issues`。别只报一个笼统的「都传完了」。

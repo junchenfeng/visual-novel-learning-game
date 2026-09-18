@@ -24,6 +24,7 @@
 | 远程 Streamable HTTP MCP | `https://poem.aibeaver.cn/mcp` |
 | 同源 multipart / JSON | `POST https://poem.aibeaver.cn/api/ingest` |
 | 对账：我已上架的课包与版本（同源 HTTP） | `GET https://poem.aibeaver.cn/api/my-dlc?userId=hh_学号` |
+| 名册：诗人 / 篇目、建诗人+头像（同源 HTTP） | `GET` / `POST https://poem.aibeaver.cn/api/roster` |
 | 本机 stdio | `pnpm mcp:ingest` |
 | 使用数据清单 / 下载（同源 HTTP） | `GET` / `POST https://poem.aibeaver.cn/api/usage` |
 
@@ -153,6 +154,24 @@ curl -sS "https://poem.aibeaver.cn/api/my-dlc?userId=hh_11016863"
 ```
 
 版本一致、内容也没动过的包可以不传；传了也不会重复上架 —— 服务端会返回 `verdict: "skip"`。
+
+## HTTP 名册（`list_roster` / `upsert_poet` 的同源等价物）
+
+新诗人不必依赖 MCP 客户端，HTTP 侧同样能建：
+
+```bash
+# 看诗人与篇目
+curl -sS "https://poem.aibeaver.cn/api/roster?userId=hh_11016863"
+
+# 建 / 更新诗人（含头像）
+curl -sS -X POST https://poem.aibeaver.cn/api/roster \
+  -F userId=hh_11016863 \
+  -F poetId=dufu \
+  -F poet=杜甫 \
+  -F portrait=@dufu.webp
+```
+
+JSON 形式：`{ userId, poetId, poet, portraitBase64, portraitMime? }`（`portraitBase64` 可带 `data:` 前缀）。头像会被转成 webp 落到 `${STATIC_OSS_PREFIX}/poets/{poetId}.webp`；不合格（非正方形、边长不在 512–1024px、超 2MB、非 png/jpg/webp）返回 400 + `issues`。`upsert_work` 没有 HTTP 端点：篇目不在名册时 `POST /api/ingest` 通过审核会自动加。
 
 ## Codex
 

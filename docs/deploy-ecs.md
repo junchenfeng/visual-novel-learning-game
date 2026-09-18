@@ -31,7 +31,7 @@
 | YAML 规范 | `/dlc-spec` |
 | MCP 接入说明 / 使用数据回传 | `/mcp-how-to`、`/mcp-usage` |
 | MCP 端点 | `https://poem.aibeaver.cn/mcp`（不用 token，工具参数带 `userId`） |
-| 同源 HTTP | `POST /api/ingest`（上传）、`GET /api/my-dlc`（我已上架课包 + 版本，提交前对账）、`GET\|POST /api/usage`（清单 / 下载） |
+| 同源 HTTP | `POST /api/ingest`（上传）、`GET /api/my-dlc`（我已上架课包 + 版本，提交前对账）、`GET\|POST /api/roster`（诗人名册 / 建诗人+头像）、`GET\|POST /api/usage`（清单 / 下载） |
 | CDN 静态资源 | `https://cdn.aibeaver.cn/poem-rpg/static/...` |
 | 管理台 | 首页用户名填 `nova-admin`，密码见服务器 `.env.production` 的 `POEM_ADMIN_PASSWORD` |
 

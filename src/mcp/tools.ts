@@ -54,12 +54,17 @@ export async function upsertPoetTool(
     poet: string;
     portraitBase64?: string;
     portraitPath?: string;
+    /** 同源 HTTP 直接给二进制（multipart 文件），省掉一次 base64 编解码。 */
+    portraitBuffer?: Buffer;
     portraitMime?: string;
   },
   options: IngestGateOptions = {},
 ) {
   const fromPath = readOptionalPath(input.portraitPath);
-  const portrait = fromPath ?? (input.portraitBase64 ? decodeBase64Payload(input.portraitBase64) : null);
+  const portrait =
+    input.portraitBuffer ??
+    fromPath ??
+    (input.portraitBase64 ? decodeBase64Payload(input.portraitBase64) : null);
   return runWithIngestUser({
     tool: "upsert_poet",
     rawUserId: input.userId,
@@ -92,6 +97,9 @@ export async function upsertPoetTool(
         poet: input.poet,
         portrait,
         portraitMime: mime,
+        // 必须把注入的 store 传下去：不传会静默回落到进程级 store，
+        // 在测试里就是真 OSS（2026-09-18 因此写坏了生产头像与名册）。
+        store: options.store,
       });
     },
   });
@@ -111,7 +119,8 @@ export async function upsertWorkTool(
     },
     store: options.store,
     now: options.now,
-    run: async () => upsertWork(input.poetId, input.workTitle),
+    // 同上：store 必须往下传，否则测试里会写到真 OSS 的名册
+    run: async () => upsertWork(input.poetId, input.workTitle, options.store),
   });
 }
 

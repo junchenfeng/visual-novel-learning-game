@@ -22,17 +22,24 @@ export type GalleryConfig = {
   llm: GalleryLlmConfig | null;
 };
 
-function candidatePaths(): string[] {
+/**
+ * 显式设了 `AI_GALLERY_CONFIG` 就以它为准：设了但文件不存在 = 明确要「没有配置」。
+ *
+ * 这条「显式即权威」很关键：否则一个写错的路径会**静默回落到**其它候选
+ * （本机 `../ai-gallery/config.json` 往往真实存在），于是测试或本地脚本在毫不知情的情况下
+ * 连上生产 OSS —— 2026-09-18 就是这样把线上诗人头像与名册写坏的。测试环境用
+ * tests/setup-env.ts 把它指向不存在的路径来强制降级到本地 store。
+ */
+function firstExistingPath(): string | null {
   const fromEnv = process.env.AI_GALLERY_CONFIG?.trim();
-  return [
-    fromEnv,
+  if (fromEnv) {
+    return existsSync(fromEnv) ? fromEnv : null;
+  }
+  const fallbacks = [
     "/root/ai-gallery/config.json",
     path.resolve(process.cwd(), "../ai-gallery/config.json"),
-  ].filter((item): item is string => Boolean(item));
-}
-
-function firstExistingPath(): string | null {
-  for (const candidate of candidatePaths()) {
+  ];
+  for (const candidate of fallbacks) {
     if (existsSync(candidate)) {
       return candidate;
     }
