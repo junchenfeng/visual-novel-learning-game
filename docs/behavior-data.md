@@ -5,44 +5,44 @@
 拿回使用数据：https://poem.aibeaver.cn/mcp-usage  
 YAML 规范：https://poem.aibeaver.cn/dlc-spec
 
-你的任务：**发布 `data-demo` 课包 → 把 100 份行为数据绑定到它名下 → 在 demo 目录里分析**。
+**发布课包这一步老师已经在课上做过**（会给你一张截图）。你要做的是三件事：
+**从截图读出 `pack.dlcId` → 把 100 份行为数据绑定到它名下 → 在 demo 目录里分析**。
 
-**全程不改任何项目的代码**：课包直接用 zip 提交（不必解压进 `dlc/`），行为数据落在你自己新建的
-demo 目录（如 `~/poem-behavior-data/`），不往任何仓库里写文件。
+**全程不改任何项目的代码**：行为数据落在你自己新建的 demo 目录（如 `~/poem-behavior-data/`），
+不往任何仓库里写文件；课包也不需要你下载或提交。
 
-| 用什么 | 地址 |
+| 你要用的东西 | 地址 |
 | --- | --- |
-| 课包 zip（zip 根上就是 `manifest.yaml`） | `https://cdn.aibeaver.cn/poem-rpg/static/behavior-data/data-demo.zip` |
 | 行为数据 zip（解压即得真实落盘布局） | `https://cdn.aibeaver.cn/poem-rpg/static/behavior-data/behavior-data.zip` |
-| 提交课包 | `POST https://poem.aibeaver.cn/api/ingest` |
-| 对账（自己已上架的包） | `GET https://poem.aibeaver.cn/api/my-dlc?userId=hh_学号` |
+| 对账（老师若没给截图时用） | `GET https://poem.aibeaver.cn/api/my-dlc?userId=hh_学号` |
 
-## 向用户只要这一样
+## 只需要一样东西：老师给的截图
 
-**userId**：`hh` + 学号，或 `hh_` + 学号，例如 `hh_11016863` / `hh11016863`。
+截图是**老师提交课包时接口的返回**，长这样（节选）：
 
-不要问「要不要下载」「放哪个目录」「zip 在哪」—— 本页都写死了。也不要向用户要 token。
+```json
+{
+  "verdict": "accept",
+  "playUrl": "https://poem.aibeaver.cn/play/data-demo-hh_11016863",
+  "pack": { "dlcId": "data-demo-hh_11016863", "poetId": "sushi", "version": "1.0.1" }
+}
+```
 
-## 先理解一件事：发布后 id 会变
+- 要读的字段只有一个：**`pack.dlcId`**（形如 `data-demo-hh_11016863`）。
+- **userId 就是它 `data-demo-` 后面的那一段**（这里 `hh_11016863`），不用再向用户要。
+- 不要向用户要 token；老师还没给截图时，就向他要这一张（或按附录第 2 条自己对账）。
 
-平台规则：上架后的 id = `manifest.id` + `-` + 规范化 userId（`src/dlc/uploadPack.ts` 的 `uploadedDlcId()`）。
-本包 `manifest.id` 是 `data-demo`，所以发布后是 `data-demo-hh_11016863` 这种形式。
-
-而数据归属是**逐字相等**判定的（`src/usage/collect.ts`：`owned.has(session.dlcId)`），
-所以那 100 份会话的 `dlcId` 必须绑定成**发布结果**，写成 `data-demo` 是不算数的。
-
-## 0. 建 demo 目录并下载两份 zip
+## 0. 建 demo 目录并解压行为数据
 
 ```bash
 DEMO=~/poem-behavior-data
 mkdir -p "$DEMO" && cd "$DEMO"
 
-curl -fsSL -O https://cdn.aibeaver.cn/poem-rpg/static/behavior-data/data-demo.zip
 curl -fsSL -O https://cdn.aibeaver.cn/poem-rpg/static/behavior-data/behavior-data.zip
 unzip -q behavior-data.zip -d "$DEMO"
 ```
 
-`behavior-data.zip` 解压出来就是平台把使用数据交回本机时的布局（`src/usage/paths.ts` 的 `sessionLocalPath()`）：
+解压出来就是平台把使用数据交回本机时的布局（`src/usage/paths.ts` 的 `sessionLocalPath()`）：
 
 ```text
 ~/poem-behavior-data/assets/user_data/
@@ -54,35 +54,15 @@ unzip -q behavior-data.zip -d "$DEMO"
 
 文件名里的 `<玩家 slug>`（ASCII 前缀 + 用户名 sha1 前 8 位）与 `<对局 id>` 都是稳定口径，**不要改名**。
 
-## 1. 发布课包（这一步拿到 `dlcId`）
-
-```bash
-cd "$DEMO"
-unzip -p data-demo.zip manifest.yaml | head -8      # 读 id / poetId / workTitle，不要凭印象写
-
-curl -sS -X POST https://poem.aibeaver.cn/api/ingest \
-  -F userId=hh_学号 \
-  -F poetId=sushi \
-  -F workTitle='水调歌头·明月几时有' \
-  -F zip=@data-demo.zip
-```
-
-- 返回 `{ verdict, reason?, playUrl?, pack?, issues[] }`：
-  - `accept`（HTTP 200）：本轮上架，`pack.dlcId` 就是线上 id。
-  - `skip`（HTTP 200）：线上已经是这份（版本 + 内容指纹都没变），**什么都没改，不要去改 YAML**；`pack.dlcId` 同样在返回里。
-  - `reject`（HTTP 400）：按 `issues[].message` / `fixHint` 改 YAML 后重新打包再传。
-- **把 `pack.dlcId` 记下来**（下称 `$PACK_ID`），`playUrl` 报给用户。
-- 诗人 `sushi` 已在名册；篇目不在名册时审核通过会自动加。
-- 若返回「user id不正确，需要咨询老师」：立刻停止并原样转告用户，不要换 id 重试。
-
-## 2. 绑定到发布结果
+## 1. 绑定到发布结果
 
 只做两件事：把目录名 `data-demo` 改成 `$PACK_ID`，把文件里的 `data-demo` 字符串整体替换成 `$PACK_ID`。
 下面的脚本写在 demo 目录里、只动 demo 目录里的文件，不碰任何项目：
 
 ```bash
 cd "$DEMO"
-PACK_ID=data-demo-hh_学号      # ← 换成上一步返回的 pack.dlcId
+PACK_ID=data-demo-hh_学号      # ← 换成老师截图里 pack.dlcId 那个值
+USER_ID=${PACK_ID#data-demo-}  # userId 就是后缀，不用另外问
 
 cat > bind.mjs <<'EOF'
 // 把行为数据绑定到发布出来的课包 id：改目录名 + 整体替换 dlcId + 按改后的字节重算基线哈希。
@@ -137,15 +117,15 @@ writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 console.log(`已绑定 ${dlcId}：${manifest.files.length} 份会话 → assets/user_data/${dlcId}/sessions/`);
 EOF
 
-node bind.mjs --dlc "$PACK_ID" --userId hh_学号 --root "$DEMO"
+node bind.mjs --dlc "$PACK_ID" --userId "$USER_ID" --root "$DEMO"
 ```
 
 > `replaceAll("data-demo", …)` 只会命中课包 id 本身（会话里除了 `dlcId` 没有别处出现这个串，
 > 基线里的 `dlcIds` / `path` / `dlcId` 都要一起改），目标 id 本身含 `data-demo` 也不会重复替换（单遍替换）。
 > 换完 id 文件字节就变了，所以基线里的 `size` / `sha256` 会按改后的文件重算一遍。
-> 不必把 `dlcVersion` 改成别的：线上版本就是 manifest 里的 `1.0.1`。
+> 不必把 `dlcVersion` 改成别的：线上版本就是课包里的 `1.0.1`。
 
-## 3. 验收（四条都要过）
+## 2. 验收（四条都要过）
 
 ```bash
 cd "$DEMO"
@@ -158,15 +138,38 @@ node -e 'const m=require("./assets/user_data/manifest.json");console.log(m.userI
 | 检查 | 期望 |
 | --- | --- |
 | 会话份数 | 100（另加 1 个 `manifest.json`） |
-| 目录名 | 恰好是 `$PACK_ID`（带 `-<userId>` 后缀） |
+| 目录名 | 恰好是 `$PACK_ID`（形如 `data-demo-hh_11016863`） |
 | 会话里的 `dlcId` | 等于 `$PACK_ID`；`dlcVersion` 是 `1.0.1` |
-| `manifest.json` | `userId` = 你的 userId，`dlcIds` 只有 `$PACK_ID`，`files` 100 条（各带 `path/dlcId/kind/player/size/sha256`） |
+| `manifest.json` | `userId` = `$USER_ID`，`dlcIds` 只有 `$PACK_ID`，`files` 100 条（各带 `path/dlcId/kind/player/size/sha256`） |
 
-## 4. 分析（就是这次的正题）
+## 3. 分析（就是这次的正题）
 
 数据就在 `~/poem-behavior-data/assets/user_data/$PACK_ID/sessions/`，就地分析，别拷进项目去跑。
 100 个玩家应当能算出：从开局到通关的漏斗里第 1 章流失约 **35%**、第 2/3 章各在 **5%** 以内、
 进入答题后再流失约 **20%**；三道题的首答正确率约 **90% / 60% / 75%**。差得远说明绑定串了。
+
+## 附录：发布这一步（老师已在课上做过，你不用跑）
+
+1. **课包 zip**（zip 根上就是 `manifest.yaml`，`id: data-demo`）：
+   `https://cdn.aibeaver.cn/poem-rpg/static/behavior-data/data-demo.zip`
+2. 老师执行的是同源 HTTP 提交（不需要解压进任何项目，也不必走 MCP）：
+
+```bash
+curl -sS -X POST https://poem.aibeaver.cn/api/ingest \
+  -F userId=hh_学号 -F poetId=sushi -F workTitle='水调歌头·明月几时有' -F zip=@data-demo.zip
+# → { verdict, reason?, playUrl?, pack?, issues[] }
+#   accept / skip 都是 200 且都带 pack.dlcId；只有 reject 是 400（按 issues 改 YAML 再来）
+```
+
+3. **为什么数据里的 `dlcId` 必须等于 `pack.dlcId`**：平台规则是上架 id = `manifest.id` + `-` + 规范化
+   userId（`src/dlc/uploadPack.ts` 的 `uploadedDlcId()`），本包 `manifest.id` 是 `data-demo`，
+   所以线上 id 形如 `data-demo-hh_11016863`。而数据归属是**逐字相等**判定的
+   （`src/usage/collect.ts`：`owned.has(session.dlcId)`），写成 `data-demo` 是不算数的。
+4. 老师没给截图时，用对账接口自己查（字段与截图里的 `pack` 一致）：
+
+```bash
+curl -sS "https://poem.aibeaver.cn/api/my-dlc?userId=hh_学号"
+```
 
 ## 这批数据是什么
 
@@ -176,8 +179,7 @@ node -e 'const m=require("./assets/user_data/manifest.json");console.log(m.userI
 
 ## 边界与禁止
 
-- **不往任何仓库里写东西**：不解压课包进 `dlc/`（免得被别的 agent 当成学员自己的作品重传）、
-  不把数据写到项目的 `assets/user_data/`、不改任何代码。
+- **不往任何仓库里写东西**：不把数据写到项目的 `assets/user_data/`、不改任何代码。
 - 把这 100 份会话再当 DLC 传上去（`docs/mcp-usage.md` 已明令）。
 - 改 `dlcId` / `dlcVersion` 之外的字段（尤其别动 `id`、`sessionId`、事件时间戳）。
 - 改本地文件名或目录名。
