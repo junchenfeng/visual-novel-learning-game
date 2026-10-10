@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 使用本仓库隔离 CODEX_HOME 调用 codex exec，审核 DLC。
-# 密钥优先 DEEPSEEK_API_KEY，否则读 ai-gallery config.json 的 llm deepseek。
+# 密钥优先 TOKENHUB_API_KEY，否则读 ai-gallery config.json 的 llm tokenhub。
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -20,26 +20,27 @@ resolve_gallery_config() {
   fi
 }
 
-if [[ -z "${DEEPSEEK_API_KEY:-}" ]]; then
+if [[ -z "${TOKENHUB_API_KEY:-}" ]]; then
   CONFIG="$(resolve_gallery_config || true)"
   if [[ -n "${CONFIG:-}" ]]; then
-    DEEPSEEK_API_KEY="$(node -e "
+    TOKENHUB_API_KEY="$(node -e "
       const c=require(process.argv[1]);
       const list=Array.isArray(c.llm)?c.llm:[c.llm].filter(Boolean);
-      const e=list.find(x=>String(x.name||'').toLowerCase()==='deepseek');
+      const key=x=>String(x['api-key']||x.apiKey||x.api_key||'');
+      const e=list.find(x=>String(x.name||'').toLowerCase()==='tokenhub'&&key(x))||list.find(x=>key(x));
       if(!e) process.exit(2);
-      process.stdout.write(String(e['api-key']||e.apiKey||e.api_key||''));
+      process.stdout.write(key(e));
     " "$CONFIG")" || true
-    export DEEPSEEK_API_KEY
+    export TOKENHUB_API_KEY
   fi
 fi
 
-if [[ -z "${DEEPSEEK_API_KEY:-}" ]]; then
-  echo "DEEPSEEK_API_KEY is not set. export it or put deepseek api-key in ai-gallery config.json" >&2
+if [[ -z "${TOKENHUB_API_KEY:-}" ]]; then
+  echo "TOKENHUB_API_KEY is not set. export it or put tokenhub api-key in ai-gallery config.json (llm[].api-key)" >&2
   exit 1
 fi
 
-CATALOG="$CODEX_HOME/model-catalog.deepseek.json"
+CATALOG="$CODEX_HOME/model-catalog.tokenhub.json"
 
 has_cd=false
 for arg in "$@"; do

@@ -2,7 +2,7 @@
 
 对方 **agent** 应先读 **https://poem.aibeaver.cn/mcp-how-to**。用户只提供 `userId` 和 DLC 目录，zip 由 agent 打包。YAML 规范：https://poem.aibeaver.cn/dlc-spec
 
-对方 agent 提交 `userId`、诗人、篇目和 DLC zip。先按 [dlc-spec.md](dlc-spec.md) 做机器校验，再用隔离的 Codex（DeepSeek V4.1 Flash，API id `deepseek-flash`）按同一份 spec 写审核意见。**有 blocking 意见就不入库**；全部通过才上架，返回 `playUrl`。
+对方 agent 提交 `userId`、诗人、篇目和 DLC zip。先按 [dlc-spec.md](dlc-spec.md) 做机器校验，再用隔离的 Codex（DeepSeek V4.1 Flash，腾讯云 TokenHub，模型 id `deepseek-v4.1-flash`）按同一份 spec 写审核意见。**有 blocking 意见就不入库**；全部通过才上架，返回 `playUrl`。
 
 线上课包 id 是 `{manifest.id}-{userId}`。同一学员同一 short-id 覆盖自己的包；教学模板 short-id 相同也不会互相覆盖，更不会盖掉仓库课包。
 
@@ -177,6 +177,6 @@ JSON 形式：`{ userId, poetId, poet, portraitBase64, portraitMime? }`（`portr
 
 ## Codex
 
-审核走 `scripts/codex-exec.sh`，配置在仓库 `codex-home/`（与 `~/.codex`、ai-gallery 批改工位隔离）。密钥从 `DEEPSEEK_API_KEY` 或 ai-gallery `config.json` 的 `llm` deepseek `api-key` 读取。模型：`deepseek-flash`。
+审核走 `scripts/codex-exec.sh`，配置在仓库 `codex-home/`（与 `~/.codex`、ai-gallery 批改工位隔离）。模型接入与 ai-gallery 同口径走**腾讯云 TokenHub**：密钥取 `TOKENHUB_API_KEY`，否则读 ai-gallery `config.json` 的 `llm` 里 `name=tokenhub`（或任意一条带 `api-key`）的条目。模型：`deepseek-v4.1-flash`（catalog 见 `codex-home/model-catalog.tokenhub.json`）。
 
 Codex 挂掉时，机器意见照样返回，并多一条 blocking「审核引擎不可用」，**不会静默放行**。

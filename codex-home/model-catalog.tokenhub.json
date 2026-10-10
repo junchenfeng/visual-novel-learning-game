@@ -1,12 +1,12 @@
 {
   "models": [
     {
-      "slug": "deepseek-flash",
-      "display_name": "DeepSeek V4.1 Flash",
-      "description": "poem-dlc-ingest spec review. API id for DeepSeek-V4.1-Flash.",
-      "name": "deepseek-flash",
-      "model": "deepseek-flash",
-      "provider": "deepseek",
+      "slug": "deepseek-v4.1-flash",
+      "display_name": "DeepSeek V4.1 Flash (TokenHub)",
+      "description": "poem-dlc-ingest spec review. Same upstream model as before, now served by Tencent TokenHub.",
+      "name": "deepseek-v4.1-flash",
+      "model": "deepseek-v4.1-flash",
+      "provider": "tokenhub",
       "context_window": 1000000,
       "max_output_tokens": 384000,
       "truncation_policy": {

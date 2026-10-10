@@ -3,11 +3,14 @@
 #
 # 用法：
 #   export CODEX_HOME="$(pwd)/codex-home"
-#   ./scripts/codex-exec.sh '只回复：DeepSeek OK'
+#   ./scripts/codex-exec.sh '只回复：TokenHub OK'
+#
+# 模型走腾讯云 TokenHub（与 ai-gallery 同一口径）：DeepSeek 直连口径已下线，
+# 密钥取 TOKENHUB_API_KEY 或 ai-gallery config.json 的 llm tokenhub api-key。
 
-model = "deepseek-flash"
-model_provider = "deepseek"
-model_catalog_json = "model-catalog.deepseek.json"
+model = "deepseek-v4.1-flash"
+model_provider = "tokenhub"
+model_catalog_json = "model-catalog.tokenhub.json"
 
 approval_policy = "never"
 sandbox_mode = "workspace-write"
@@ -15,12 +18,12 @@ sandbox_mode = "workspace-write"
 [sandbox_workspace_write]
 network_access = false
 
-[model_providers.deepseek]
-name = "DeepSeek"
-base_url = "https://api.deepseek.com/v1"
-env_key = "DEEPSEEK_API_KEY"
+[model_providers.tokenhub]
+name = "Tencent TokenHub"
+base_url = "https://tokenhub.tencentmaas.com/v1"
+env_key = "TOKENHUB_API_KEY"
 wire_api = "responses"
-env_key_instructions = "Set DEEPSEEK_API_KEY (same value as ai-gallery config.json llm deepseek api-key)"
+env_key_instructions = "Set TOKENHUB_API_KEY (same value as ai-gallery config.json llm tokenhub api-key)"
 
 [features]
 memories = false
@@ -35,4 +38,7 @@ trust_level = "trusted"
 trust_level = "trusted"
 
 [projects."/var/tmp"]
+trust_level = "trusted"
+
+[projects."/private/var/folders/8d/n039kw09427b6w3g3nxz0f6m0000gn/T/poem-dlc-ingest-codex-empty"]
 trust_level = "trusted"

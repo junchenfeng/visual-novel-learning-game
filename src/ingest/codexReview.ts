@@ -4,7 +4,8 @@ import { spawn } from "node:child_process";
 import type { ReviewIssue } from "./issues";
 import { machineIssue } from "./issues";
 
-export const CODEX_MODEL = "deepseek-flash";
+/** 与 codex-home/model-catalog.tokenhub.json 的 slug 必须一致（codex exec -m 会覆盖 config.toml 默认值）。 */
+export const CODEX_MODEL = "deepseek-v4.1-flash";
 const CODEX_TIMEOUT_MS = 180_000;
 const STDOUT_CAP = 200_000;
 const LAST_MESSAGE_CAP = 100_000;
