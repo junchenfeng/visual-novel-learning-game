@@ -20,8 +20,23 @@ export type IngestAuditRecord = {
   transcript?: unknown;
 };
 
+/**
+ * 审计目录名用的紧凑时间戳：`20261010T051211123Z`（**含毫秒**）。
+ *
+ * 为什么必须带毫秒：同一学员在同一秒内连续两次工具调用（提交完立刻查 `list_my_dlc`
+ * 是常见姿势）会算出同一个目录前缀，后写的 `record.json` 会把前一次的
+ * `verdict/issues` 覆盖掉，只留下 `pack.zip`、`transcript.json` 这些不同名的文件——
+ * 事故取证时最关键的「这次提交到底报了什么」就没了。2026-10-10 e2e 验证集首跑撞上：
+ * 4 个 accept 的 record.json 全被随后的 list_my_dlc 覆盖。
+ */
 export function compactAuditTimestamp(iso: string): string {
-  return iso.replace(/[-:]/g, "").replace(/\.\d+/, "");
+  const match = iso.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?/);
+  if (!match) {
+    return iso.replace(/[-:]/g, "").replace(/\.\d+/, "");
+  }
+  const [, year, month, day, hour, minute, second, fraction] = match;
+  const millis = (fraction ?? "").padEnd(3, "0");
+  return `${year}${month}${day}T${hour}${minute}${second}${millis}Z`;
 }
 
 export function ingestAuditPrefix(canonicalUserId: string, timestamp: string): string {

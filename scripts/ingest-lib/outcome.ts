@@ -44,6 +44,12 @@ export type OutcomeInput = {
   expectedDlcId?: string;
   /** 是否把 skip 视作通过（默认否：e2e 每次改版本就是为了不 skip） */
   allowSkip?: boolean;
+  /**
+   * 内容结论浮动时把「reject 且不是引擎故障」降级成提示（默认否）。
+   * 用于那些会被审核员审出真实内容问题、但**引擎本身健康**的用例：
+   * 验证集的职责是「引擎有没有坏」，不是替学员改 YAML。
+   */
+  allowContentReject?: boolean;
 };
 
 export type Outcome = {
@@ -94,7 +100,11 @@ export function evaluateIngestOutcome(input: OutcomeInput): Outcome {
       problems.push("verdict=skip：说明版本/指纹与线上一致，Codex 根本没跑（e2e 的版本改写没生效？）");
     }
   } else if (verdict === "reject") {
-    problems.push(`verdict=reject：${issueSummaries(result.issues) || "无 issues 文本"}`);
+    if (input.allowContentReject && engineIssues(result).length === 0) {
+      notes.push(`verdict=reject（内容结论浮动，非引擎故障，按通过计）：${issueSummaries(result.issues)}`);
+    } else {
+      problems.push(`verdict=reject：${issueSummaries(result.issues) || "无 issues 文本"}`);
+    }
   } else {
     problems.push(`verdict 异常：${verdict || "(空)"}`);
   }

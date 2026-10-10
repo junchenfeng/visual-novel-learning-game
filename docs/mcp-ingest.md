@@ -90,7 +90,7 @@
   "verdict": "accept | skip | reject",
   "reason": "版本 1.2.0 与内容指纹均未变化：线上保持原样，未重新审核",
   "playUrl": "https://poem.aibeaver.cn/play/...",
-  "auditId": "hh_11016863_20260911T102648Z",
+  "auditId": "hh_11016863_20260911T102648123Z",
   "issues": [
     {
       "severity": "blocking",
@@ -125,7 +125,7 @@
 每一次工具调用（含认证失败）按 `userId_timestamp` 写到 OSS，目录：
 
 ```
-poem-rpg/ingest-audit/hh_11016863_20260911T102648Z/
+poem-rpg/ingest-audit/hh_11016863_20260911T102648123Z/
   query.json         # 工具名、规范化学员、参数（不含 zip/头像 base64，只记体积和 sha256）
   response.json      # 返回给调用方的 verdict / issues / playUrl
   transcript.json    # 若跑了 Codex：prompt、last-message、review.json、stdout
@@ -135,6 +135,8 @@ poem-rpg/ingest-audit/hh_11016863_20260911T102648Z/
 ```
 
 认证失败时目录前缀是 `invalid_<原始userId>_<timestamp>`。一轮 MCP 工具调用对应一份 audit：原始 query 和这次审核对话挂在同一个文件夹。
+
+时间戳**精确到毫秒**（`...T102648123Z`）：秒级精度下，同一学员在同一秒内连续两次调用（提交完立刻查 `list_my_dlc` 很常见）会写进同一个目录，后写的 `record.json` 覆盖前一次的 verdict/issues，只留下 `pack.zip`、`transcript.json`，事故取证时最关键的结论就丢了（2026-10-10 e2e 首跑实测 4 单被覆盖）。
 
 ## HTTP 上传 zip
 
@@ -195,6 +197,7 @@ pnpm poem-dlc-review-e2e-test --case 望岳 --json
 - 提交身份是 e2e 专用学员 `hh_0000000`…`hh_0000004`（`src/ingest/l2Students.ts` 末尾，昵称「e2e验证」，一个用例一个身份以避开同 short id 的槽位冲突）。用例发布到独立 dlcId（`<shortId>-hh_000000X`），**不碰学生线上包**；这些提交会以「e2e验证」出现在管理台/预览台，属预期。
 - 每轮把包内 `manifest.version` 改写成 `<原值>+e2e.<时间戳>`：版本与内容指纹都变了，`shouldSkipReview` 不会命中，**Codex 一定跑**（否则第二次起会被 skip 短路，等于没验）。
 - 判定口径：`verdict=accept`、issues 里**没有 `rule=审核引擎`**、单例耗时 < 300s（Nginx `proxy_read_timeout 330s` 是天花板）、dlcId 与 `list_my_dlc` 对账一致。命中「审核引擎」＝引擎故障（凭据 / 超时），**不是学员 YAML 问题**，按上面的 Codex 段落排查。
+- 个别用例（`expect: "either"`，如《池上》）会被审核员审出**真实内容问题**（它指出 gameOver 文案把矛头指向家长）。这种结论随模型浮动，且不属于「引擎坏没坏」，所以只断言「不是引擎故障」；`accept` 与「内容 reject」都算通过，报告里会打出来。新增用例若内容不稳，照此标注并写 `note` 说明原因。
 - **不进日常 `pnpm test`**（jest 只扫 `tests/`）；只在发布验证与故障排查时手动跑。
 
 排查与善后（同样本机执行）：

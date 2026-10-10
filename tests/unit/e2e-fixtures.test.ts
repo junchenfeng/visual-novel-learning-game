@@ -23,6 +23,19 @@ describe("e2e 验证集配置", () => {
     expect(new Set(dataDemo.map((item) => item.e2eUserId)).size).toBe(2);
   });
 
+  it("内容结论浮动的用例必须写明原因，默认一律 accept 口径", () => {
+    for (const item of E2E_CASES) {
+      expect([undefined, "accept", "either"]).toContain(item.expect);
+      if (item.expect === "either") {
+        expect(String(item.note ?? "").length).toBeGreaterThan(0);
+      }
+    }
+    // 池上：审核员会审出 gameOver 文案问题（真实内容结论，非引擎故障）
+    const chishang = E2E_CASES.find((item) => item.name === "池上");
+    expect(chishang?.expect).toBe("either");
+    expect(E2E_CASES.filter((item) => item.expect === "either")).toHaveLength(1);
+  });
+
   it("e2e 身份已在 L2 名单里登记且能通过鉴权解析", () => {
     for (const studentId of E2E_STUDENT_IDS) {
       expect(L2_STUDENT_BY_ID.get(studentId)?.nickname).toBe(E2E_INGEST_STUDENT.nickname);

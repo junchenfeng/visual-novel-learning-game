@@ -52,6 +52,34 @@ describe("审核结果判定", () => {
     expect(outcome.problems.some((item) => item.includes(ENGINE_RULE))).toBe(false);
   });
 
+  it("内容结论浮动：reject 但非引擎故障在 allowContentReject 下按通过计（并留提示）", () => {
+    const contentReject: IngestResultLike = {
+      verdict: "reject",
+      issues: [{ severity: "blocking", rule: "story.yaml（故事图）→ 结局 gameOver 节点的 text 字段", message: "文案把矛头指向家长" }],
+    };
+    const strict = evaluateIngestOutcome({ result: contentReject, elapsedMs: 90_000, maxElapsedMs: 300_000 });
+    expect(strict.ok).toBe(false);
+
+    const lenient = evaluateIngestOutcome({
+      result: contentReject,
+      elapsedMs: 90_000,
+      maxElapsedMs: 300_000,
+      allowContentReject: true,
+    });
+    expect(lenient.ok).toBe(true);
+    expect(lenient.notes.join()).toContain("内容结论浮动");
+
+    // 引擎故障永远是硬失败，即便 allowContentReject
+    const brokenEngine = evaluateIngestOutcome({
+      result: { verdict: "reject", issues: [{ severity: "blocking", rule: ENGINE_RULE, message: "审核引擎不可用" }] },
+      elapsedMs: 1_000,
+      maxElapsedMs: 300_000,
+      allowContentReject: true,
+    });
+    expect(brokenEngine.ok).toBe(false);
+    expect(brokenEngine.problems.some((item) => item.includes(ENGINE_RULE))).toBe(true);
+  });
+
   it("skip 默认算失败（说明版本改写没生效、Codex 没跑），--allow-skip 才放行", () => {
     const skipped: IngestResultLike = { verdict: "skip", issues: [], reason: "版本与内容指纹均未变化" };
     expect(evaluateIngestOutcome({ result: skipped, elapsedMs: 1_000, maxElapsedMs: 300_000 }).ok).toBe(false);

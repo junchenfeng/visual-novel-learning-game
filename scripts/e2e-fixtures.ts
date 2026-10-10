@@ -47,6 +47,15 @@ export type E2eCase = {
   expectedShortId: string;
   /** e2e 身份，决定发布出来的 dlcId = `<shortId>-<e2eUserId>` */
   e2eUserId: string;
+  /**
+   * 期望的审核结论。
+   * - `accept`（默认）：内容稳定通过，返回 reject 就是失败。
+   * - `either`：内容结论会浮动（审核员可能审出真实内容问题），**只要不是引擎故障**就算通过；
+   *   返回 accept 也正常。
+   */
+  expect?: "accept" | "either";
+  /** 说明为什么用 `either`，出现在 --json 与报告里，便于新人理解。 */
+  note?: string;
 };
 
 const AUDIT = "poem-rpg/ingest-audit/";
@@ -81,6 +90,11 @@ export const E2E_CASES: E2eCase[] = [
     sourceDlcId: "baijuyi-chishang-hh_1983356",
     expectedShortId: "baijuyi-chishang",
     e2eUserId: "hh_0000002",
+    // 2026-10-10 实测：换 TokenHub 后审核员会指出 ch2_over_blame 这个 gameOver 文案
+    // 「你妈太较真…」把矛头指向家长（真实内容问题，非引擎故障）。这种结论会随模型浮动，
+    // 所以本用例只保证「引擎健康」：reject 但 issues 不含「审核引擎」即算通过。
+    expect: "either",
+    note: "内容结论浮动：审核员可能审出 gameOver 文案问题，只要不是引擎故障就算通过",
   },
   {
     name: "水调歌头-张星泽",
@@ -152,6 +166,12 @@ export function assertFixtureConfig(cases: E2eCase[] = E2E_CASES): string[] {
       problems.push(`auditKey 形状不对（应为 ${AUDIT}<canonical>_<ts>/）：${testCase.auditKey}`);
     }
     if (!testCase.poetId || !testCase.workTitle) problems.push(`${testCase.name} 缺 poetId/workTitle`);
+    if (testCase.expect && testCase.expect !== "accept" && testCase.expect !== "either") {
+      problems.push(`${testCase.name} 的 expect 只能是 accept / either，实际 ${testCase.expect}`);
+    }
+    if (testCase.expect === "either" && !testCase.note) {
+      problems.push(`${testCase.name} 标了 expect=either，必须写 note 说明原因`);
+    }
     if (!testCase.expectedShortId) problems.push(`${testCase.name} 缺 expectedShortId`);
     if (!testCase.sourceDlcId.endsWith(`-${testCase.canonicalUser}`)) {
       problems.push(`${testCase.name} 的 sourceDlcId（${testCase.sourceDlcId}）与 canonicalUser（${testCase.canonicalUser}）对不上`);

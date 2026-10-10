@@ -134,6 +134,9 @@ async function main(): Promise<void> {
   console.log(`端点：${endpoint}`);
   console.log(`用例：${cases.map((item) => item.name).join(" / ")}${args.dryRun ? "（dry-run：只做 fixture 与握手，不提交）" : ""}`);
   console.log(`预算：单例 < ${Math.round(args.maxMs / 1000)}s`);
+  for (const item of cases.filter((row) => row.expect === "either")) {
+    console.log(`注意：${item.name} 标为内容结论浮动 —— ${item.note}`);
+  }
 
   const handshake = await client.initialize();
   const tools = await client.listTools();
@@ -220,7 +223,11 @@ async function main(): Promise<void> {
       maxElapsedMs: args.maxMs,
       expectedDlcId,
       allowSkip: args.allowSkip,
+      allowContentReject: testCase.expect === "either",
     });
+    if (testCase.expect === "either") {
+      outcome.notes.push(`expect=either：${testCase.note ?? "内容结论浮动"}`);
+    }
     outcome.problems.push(...evaluated.problems);
     outcome.notes.push(...evaluated.notes);
     outcome.verdict = String(result?.verdict ?? "");
