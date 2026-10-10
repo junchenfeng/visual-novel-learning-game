@@ -12,6 +12,11 @@ model = "deepseek-v4.1-flash"
 model_provider = "tokenhub"
 model_catalog_json = "model-catalog.tokenhub.json"
 
+# 降低思考预算：实测（2026-10-10）同一份评审提示词，默认 effort 在 TokenHub 上会生成
+# ≥20k token 的思维链（102.5s，还被 max_output 截断），effort=low 约 11.3k（72.7s）。
+# 线上评审 74–200s 几乎全是 thinkMs，所以这里显式降到 low。
+model_reasoning_effort = "low"
+
 approval_policy = "never"
 sandbox_mode = "workspace-write"
 
