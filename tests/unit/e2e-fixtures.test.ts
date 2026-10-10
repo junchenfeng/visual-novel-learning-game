@@ -30,10 +30,12 @@ describe("e2e 验证集配置", () => {
         expect(String(item.note ?? "").length).toBeGreaterThan(0);
       }
     }
-    // 池上：审核员会审出 gameOver 文案问题（真实内容结论，非引擎故障）
-    const chishang = E2E_CASES.find((item) => item.name === "池上");
-    expect(chishang?.expect).toBe("either");
-    expect(E2E_CASES.filter((item) => item.expect === "either")).toHaveLength(1);
+    // 内容结论会浮动的两例：审核员对文案/字段给出真实内容意见，轮次之间 accept/reject 会变
+    const floating = E2E_CASES.filter((item) => item.expect === "either").map((item) => item.name).sort();
+    expect(floating).toEqual(["赋得古原草送别", "池上"].sort());
+    // 其余用例仍按严格 accept 断言：它们的结论在多次运行里稳定通过
+    const strict = E2E_CASES.filter((item) => (item.expect ?? "accept") === "accept").map((item) => item.name).sort();
+    expect(strict).toEqual(["水调歌头-CICI", "水调歌头-张星泽", "望岳"].sort());
   });
 
   it("e2e 身份已在 L2 名单里登记且能通过鉴权解析", () => {

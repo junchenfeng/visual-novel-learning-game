@@ -80,6 +80,10 @@ export const E2E_CASES: E2eCase[] = [
     sourceDlcId: "baijuyi-fudecao-hh_1983356",
     expectedShortId: "baijuyi-fudecao",
     e2eUserId: "hh_0000001",
+    // 内容结论浮动：内联提示词上线后，审核员开始指出 ch3_open 把白居易写成「太白」（李白的字）
+    // 与 q_fude 的 hint.isCorrect 标反（真内容问题，非引擎故障）；轮次之间 accept/reject 会变。
+    expect: "either",
+    note: "内容结论浮动：审核员可能指出 ch3_open 诗人称字错误与 q_fude hint.isCorrect 标反",
   },
   {
     name: "池上",
