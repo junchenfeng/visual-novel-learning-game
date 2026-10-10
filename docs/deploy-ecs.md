@@ -190,14 +190,16 @@ curl -sSI https://poem.aibeaver.cn/
 ## 更新
 
 ```bash
-ssh aliyun-ecs 'cd /root/visual-novel-learning-game && git pull origin main && pnpm run deploy:build && pm2 restart poem-rpg'
+ssh aliyun-ecs 'cd /root/visual-novel-learning-game && git pull origin main && pnpm run deploy:build && pm2 startOrReload ecosystem.config.cjs --update-env && pm2 save'
 ```
+
+⚠️ **必须用 `pm2 startOrReload ecosystem.config.cjs --update-env`，不要只 `pm2 restart poem-rpg`**：审核现在是异步的，`poem-ingest-worker` 是**独立进程**，只重启 Web 会让它继续跑旧代码（2026-10-10 实测：改了 `src/ingest/codexReview.ts` 的超时上限后，worker 仍在用旧值，正常单子被 180s 上限杀掉）。`--update-env` 同时负责 `INGEST_ASYNC_ENABLED` / `INGEST_DATA_DIR` 这类 env 变更，`pm2 save` 让重启机器后也生效。
 
 `deploy:build` = `pnpm install --frozen-lockfile && next build && sync:cdn`，所以**不必**再单独跑 install。构建要几分钟，中途断线会中断，建议甩到后台再轮询：
 
 ```bash
-ssh aliyun-ecs 'cd /root/visual-novel-learning-game && nohup bash -c "git pull origin main && export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true && pnpm run deploy:build && pm2 restart poem-rpg" > /tmp/poem-deploy.log 2>&1 & echo kicked'
-ssh aliyun-ecs 'tail -20 /tmp/poem-deploy.log'
+ssh aliyun-ecs 'cd /root/visual-novel-learning-game && nohup bash -c "git pull origin main && export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true && pnpm run deploy:build && pm2 startOrReload ecosystem.config.cjs --update-env && pm2 save" > /tmp/poem-deploy.log 2>&1 & echo kicked'
+ssh aliyun-ecs 'tail -20 /tmp/poem-deploy.log; pm2 list | grep poem'
 ```
 
 发布后四条都要过，缺一条就不算换版：
@@ -213,6 +215,13 @@ pnpm poem-dlc-review-e2e-test          # 5 个用例；失败时打印证据与�
 
 它把 5 份已上架学员包以 e2e 学员身份重提交，强制跑完整 Codex 审核，断言 `verdict=accept` 且 issues 里没有 `rule=审核引擎`。
 **这条是唯一能抓住「审核引擎不可用 / agent 超时 → 全部审核失败」的检查**（2026-10-09 事故：ai-gallery 切 TokenHub 后 poem 侧仍读 `name=deepseek` 条目，每一单都被拒；单测全绿也发现不了）。
+
+判读要点：
+
+- 报 `审核引擎不可用` / `codex exec 超时` ⇒ 引擎故障（凭据或超时），不是学员 YAML 问题。
+- 报 `enqueue_failed // 提交未受理` ⇒ Web 侧受理挂了，先看 Web 日志 `ingest_enqueue_error`（2026-10-10 实测：`require("node:sqlite")` 被 Next 打成 URL 型 external，Web 全挂而 worker 正常）。
+- 报 `verdict=skip` ⇒ 版本没改动，Codex 根本没跑（e2e 的版本改写没生效）。
+- 返回「内容 reject」是合法结论（用例标了 `expect: "either"`），报告里会单独打出来，别当引擎故障处理。
 前提是服务端代码里有 e2e 学员（`src/ingest/l2Students.ts` 末尾的 `hh_0000000`…`hh_0000004`）——没有就先发布再跑。
 
 改 `.env.production` 或 `config.json` 的 OSS/LLM 后也要 `pm2 restart poem-rpg`。
