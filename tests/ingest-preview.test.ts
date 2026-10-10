@@ -8,6 +8,7 @@ import {
 } from "../src/ingest/preview";
 import { loadPreviewIndex, upsertPreviewEntry } from "../src/ingest/previewIndex";
 import { ingestDlcTool } from "../src/mcp/tools";
+import { describeWithSqlite } from "./helpers/sqlite";
 
 function memoryStore(): PoemStore & { files: Map<string, Buffer> } {
   const files = new Map<string, Buffer>();
@@ -41,7 +42,7 @@ function memoryStore(): PoemStore & { files: Map<string, Buffer> } {
   };
 }
 
-describe("ingest preview board", () => {
+describeWithSqlite("ingest preview board", () => {
   it("looks up L2 nicknames from hh ids and bare student numbers", () => {
     expect(nicknameForUserId("hh_1578")).toBe("小马");
     expect(nicknameForUserId("11016863")).toBe("李晓满");

@@ -27,6 +27,40 @@ export type CodexTranscript = {
   reviewJson?: unknown;
   stdout?: string;
   error?: string;
+  /** codex 内部的耗时分解；超时/失败也带上，便于回答「时间到底花在哪」 */
+  metrics?: CodexMetrics;
+};
+
+/**
+ * codex 侧耗时分解的一个片段。
+ *
+ * `codex exec --json` 只吐事件流、**不带时间戳**，这次实测连 usage 也没有；所以按**事件到达时刻**
+ * 切段：相邻两个事件之间的间隔归属「后到达事件代表的活动」——
+ * 推理完成(reasoning) / 最终消息(agent_message) 算 `think`（模型在生成），
+ * 命令完成(command_execution) 算 `tool`（命令在跑）。
+ * 这样即使一次评审超时被 SIGTERM 杀掉，也能看清时间花在模型推理、shell 命令还是 CLI 启动上。
+ */
+export type CodexSegment = { kind: "startup" | "think" | "tool" | "tail"; ms: number; detail?: string };
+
+export type CodexMetrics = {
+  model: string;
+  promptBytes: number;
+  totalMs: number;
+  /** CLI 启动到 thread.started/turn.started */
+  startupMs: number;
+  /** 模型推理累计（事件间隔近似） */
+  thinkMs: number;
+  /** shell 命令累计（started→completed 的到达间隔） */
+  toolMs: number;
+  reasoningCount: number;
+  commandCount: number;
+  agentMessageCount: number;
+  /** 命令原文（截断，最多 10 条）——看它到底读了什么、写了什么 */
+  commands: string[];
+  usage?: Record<string, number>;
+  /** 事件时间线（截断到 60 段） */
+  segments: CodexSegment[];
+  truncatedSegments?: number;
 };
 
 export type SpecReviewOutcome = {
@@ -201,17 +235,41 @@ export async function runCodexSpecReview(options: {
   }
 
   let stdout = "";
+  let metrics: CodexMetrics | undefined;
+  /** codex 内部耗时分解：一行日志 + 落进 transcript（audit 里能直接看到） */
+  const withMetrics = (transcript: CodexTranscript): CodexTranscript => (metrics ? { ...transcript, metrics } : transcript);
+  const logMetrics = (outcome: string) => {
+    if (!metrics) return;
+    console.info(JSON.stringify({
+      event: "ingest_codex_metrics",
+      outcome,
+      model: metrics.model,
+      promptBytes: metrics.promptBytes,
+      totalMs: metrics.totalMs,
+      startupMs: metrics.startupMs,
+      thinkMs: metrics.thinkMs,
+      toolMs: metrics.toolMs,
+      reasoning: metrics.reasoningCount,
+      commands: metrics.commandCount,
+      agentMessages: metrics.agentMessageCount,
+      usage: metrics.usage,
+      segments: metrics.segments.map((s) => `${s.kind}:${s.ms}`).join(","),
+    }));
+  };
   try {
     const spawned = await ingestStage("agentMs", () => spawnCodex(workspace));
     stdout = spawned.stdout;
+    metrics = spawned.metrics;
   } catch (error) {
-    const spawned = error as { stdout?: string; stderr?: string };
+    const spawned = error as { stdout?: string; stderr?: string; metrics?: CodexMetrics };
     stdout = spawned.stdout ?? stdout;
+    metrics = spawned.metrics;
+    logMetrics("error");
     const recovered = readReviewJson(workspace);
     if (recovered) {
       return {
         issues: asIssues(recovered),
-        transcript: readTranscript(workspace, { stdout, reviewJson: recovered }),
+        transcript: withMetrics(readTranscript(workspace, { stdout, reviewJson: recovered })),
       };
     }
     return {
@@ -224,13 +282,14 @@ export async function runCodexSpecReview(options: {
           fixHint: "机器校验结果仍然有效；修好 YAML 后可再提交",
         },
       ],
-      transcript: readTranscript(workspace, {
+      transcript: withMetrics(readTranscript(workspace, {
         stdout,
         error: error instanceof Error ? error.message : String(error),
-      }),
+      })),
     };
   }
 
+  logMetrics("ok");
   const reviewJson = readReviewJson(workspace);
   if (!reviewJson) {
     const reviewFile = path.join(workspace, "review.json");
@@ -245,15 +304,15 @@ export async function runCodexSpecReview(options: {
             : "审核引擎没有写出 review.json，请稍后重试",
         },
       ],
-      transcript: readTranscript(workspace, {
+      transcript: withMetrics(readTranscript(workspace, {
         stdout,
         error: existsSync(reviewFile) ? "invalid review.json" : "missing review.json",
-      }),
+      })),
     };
   }
   return {
     issues: asIssues(reviewJson),
-    transcript: readTranscript(workspace, { stdout, reviewJson }),
+    transcript: withMetrics(readTranscript(workspace, { stdout, reviewJson })),
   };
 }
 
@@ -316,7 +375,7 @@ export function buildReviewPrompt(workspace: string): string {
   })}\n`;
 }
 
-function spawnCodex(workspace: string): Promise<{ stdout: string; stderr: string }> {
+function spawnCodex(workspace: string): Promise<{ stdout: string; stderr: string; metrics: CodexMetrics }> {
   return new Promise((resolve, reject) => {
     const child = spawn(
       execScript(),
@@ -343,8 +402,43 @@ function spawnCodex(workspace: string): Promise<{ stdout: string; stderr: string
     let stderr = "";
     let settled = false;
     const started = Date.now();
+    const prompt = buildReviewPrompt(workspace);
+    const promptBytes = Buffer.byteLength(prompt);
     let firstEvent = false, firstMessage = false, eventBuffer = "", commandCount = 0, commandMs = 0;
     const commandStarts = new Map<string, number>();
+    let reasoningCount = 0, agentMessageCount = 0;
+    let lastSegmentAt = 0;
+    let usage: Record<string, number> | undefined;
+    const commands: string[] = [];
+    const segments: CodexSegment[] = [];
+    /** 把「距上一个事件的间隔」记到后到达事件代表的活动上；超时被杀时这段就是答案 */
+    const markSegment = (kind: CodexSegment["kind"], at: number, detail?: string) => {
+      segments.push({
+        kind,
+        ms: Math.max(0, at - lastSegmentAt),
+        detail: detail ? String(detail).replace(/\s+/g, " ").slice(0, 120) : undefined,
+      });
+      lastSegmentAt = at;
+    };
+    const buildMetrics = (): CodexMetrics => {
+      const sum = (kind: CodexSegment["kind"]) => segments.filter((s) => s.kind === kind).reduce((acc, s) => acc + s.ms, 0);
+      const cap = 60;
+      return {
+        model: CODEX_MODEL,
+        promptBytes,
+        totalMs: Date.now() - started,
+        startupMs: sum("startup"),
+        thinkMs: sum("think"),
+        toolMs: sum("tool"),
+        reasoningCount,
+        commandCount,
+        agentMessageCount,
+        commands,
+        usage,
+        segments: segments.slice(0, cap),
+        ...(segments.length > cap ? { truncatedSegments: segments.length - cap } : {}),
+      };
+    };
     const terminate = () => {
       const signal = (sig: NodeJS.Signals) => {
         try {
@@ -360,9 +454,10 @@ function spawnCodex(workspace: string): Promise<{ stdout: string; stderr: string
         return;
       }
       settled = true;
-      const error = new Error(message) as Error & { stdout?: string; stderr?: string };
+      const error = new Error(message) as Error & { stdout?: string; stderr?: string; metrics?: CodexMetrics };
       error.stdout = stdout;
       error.stderr = stderr;
+      error.metrics = buildMetrics();
       reject(error);
     };
     const succeed = (value: { stdout: string; stderr: string }) => {
@@ -370,7 +465,8 @@ function spawnCodex(workspace: string): Promise<{ stdout: string; stderr: string
         return;
       }
       settled = true;
-      resolve(value);
+      markSegment("tail", Date.now() - started, "review.json 检测到 → 结束");
+      resolve({ ...value, metrics: buildMetrics() });
     };
     child.stdout.on("data", (chunk) => {
       eventBuffer += String(chunk);
@@ -379,19 +475,35 @@ function spawnCodex(workspace: string): Promise<{ stdout: string; stderr: string
       for (const line of lines) {
         try {
           const event = JSON.parse(line);
-          if (!firstEvent) { ingestMetric("agentFirstEventMs", Date.now() - started); firstEvent = true; }
+          const at = Date.now() - started;
+          if (!firstEvent) { ingestMetric("agentFirstEventMs", at); firstEvent = true; }
+          if (event.type === "thread.started") markSegment("startup", at, "thread.started");
+          else if (event.type === "turn.started") markSegment("startup", at, "turn.started");
+          else if (event.type === "item.completed" && event.item?.type === "reasoning") {
+            reasoningCount += 1;
+            markSegment("think", at, `reasoning#${reasoningCount}：${String(event.item.text ?? "").slice(0, 60)}`);
+          } else if (event.type === "item.started" && event.item?.type === "command_execution") {
+            markSegment("think", at, "→ 发起命令");
+          } else if (event.type === "item.completed" && event.item?.type === "command_execution") {
+            if (commands.length < 10) commands.push(String(event.item.command ?? ""));
+            markSegment("tool", at, `命令 ${++commandCount}`);
+          } else if (event.type === "item.completed" && event.item?.type === "agent_message") {
+            agentMessageCount += 1;
+            markSegment("think", at, `agent_message#${agentMessageCount}`);
+          }
           if (!firstMessage && event.item?.type === "agent_message") {
-            ingestMetric("agentFirstMessageMs", Date.now() - started); firstMessage = true;
+            ingestMetric("agentFirstMessageMs", at); firstMessage = true;
           }
           if (event.type === "item.started" && event.item?.type === "command_execution") commandStarts.set(event.item.id, Date.now());
           if (event.type === "item.completed" && event.item?.type === "command_execution") {
-            ingestMetric("agentCommandCount", ++commandCount);
-            const at = commandStarts.get(event.item.id);
-            if (at !== undefined) { commandMs += Date.now() - at; ingestMetric("agentCommandsMs", commandMs); commandStarts.delete(event.item.id); }
+            ingestMetric("agentCommandCount", commandCount);
+            const commandStartedAt = commandStarts.get(event.item.id);
+            if (commandStartedAt !== undefined) { commandMs += Date.now() - commandStartedAt; ingestMetric("agentCommandsMs", commandMs); commandStarts.delete(event.item.id); }
           }
           if (event.usage) {
+            usage = { ...(usage ?? {}) };
             for (const key of ["input_tokens", "output_tokens", "cached_input_tokens"]) {
-              if (typeof event.usage[key] === "number") ingestMetric(key, event.usage[key]);
+              if (typeof event.usage[key] === "number") { usage[key] = event.usage[key]; ingestMetric(key, event.usage[key]); }
             }
           }
         } catch { /* non-JSON stdout is retained in the transcript */ }
@@ -408,7 +520,7 @@ function spawnCodex(workspace: string): Promise<{ stdout: string; stderr: string
     child.stdin.on("error", () => {
       // 进程可能已退出，忽略 EPIPE
     });
-    child.stdin.end(buildReviewPrompt(workspace));
+    child.stdin.end(prompt);
     const stopWatching = () => {
       clearTimeout(timer);
       clearInterval(poll);

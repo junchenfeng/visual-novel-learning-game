@@ -2,6 +2,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { openStateDb, transaction } from "../../src/ingest/state";
+import { SQLITE_SKIP_REASON, hasNodeSqlite } from "../helpers/sqlite";
 
 /**
  * `node:sqlite` 的取法有个只能在 Next 打包产物里才暴露的坑：写成
@@ -11,7 +12,11 @@ import { openStateDb, transaction } from "../../src/ingest/state";
  * 单测也全绿 —— 所以这里额外加一条源码级护栏。
  */
 describe("state.ts 的 node:sqlite 取法", () => {
-  it("能开库、建表、跑事务", () => {
+  (hasNodeSqlite() ? it : it.skip)("能开库、建表、跑事务", () => {
+    if (!hasNodeSqlite()) {
+      // 没有 node:sqlite 时跳过（Node < 22.5）：理由写进测试名，CI 上能看到
+      console.warn(SQLITE_SKIP_REASON);
+    }
     const dir = mkdtempSync(path.join(tmpdir(), "poem-state-test-"));
     try {
       const db = openStateDb(dir);

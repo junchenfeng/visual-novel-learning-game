@@ -42,3 +42,9 @@ trust_level = "trusted"
 
 [projects."/private/var/folders/8d/n039kw09427b6w3g3nxz0f6m0000gn/T/poem-dlc-ingest-codex-empty"]
 trust_level = "trusted"
+
+[projects."/private/var/folders/8d/n039kw09427b6w3g3nxz0f6m0000gn/T/codex-probe-OqumoV/codex-job"]
+trust_level = "trusted"
+
+[projects."/private/var/folders/8d/n039kw09427b6w3g3nxz0f6m0000gn/T/codex-probe-PTNP6t/codex-job"]
+trust_level = "trusted"

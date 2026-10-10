@@ -187,6 +187,27 @@ JSON 形式：`{ userId, poetId, poet, portraitBase64, portraitMime? }`（`portr
 
 Codex 挂掉时，机器意见照样返回，并多一条 blocking「审核引擎不可用」，**不会静默放行**。
 
+### 评审耗时分解（codex 内部走了哪一步）
+
+每次评审都会把 `transcript.metrics` 写进 audit（`record.json` / `transcript.json`），同时向 worker / Web 日志打一行 `ingest_codex_metrics`：
+
+- `startupMs`：CLI 启动到 `thread.started` / `turn.started`
+- `thinkMs` / `toolMs`：模型侧累计时间 / shell 命令累计时间（按事件到达时刻切段）
+- `reasoning` / `commands` / `agentMessages`：推理完成次数、命令次数、最终消息数
+- `segments`：逐段事件时间线（**超时被 SIGTERM 杀掉时这是唯一的现场证据**）
+- `commands`：命令原文（正常只有两条：一次批量读材料、一次写 `review.json`）
+
+2026-10-10 实测经验值：CLI 启动 ~0.5s、shell 命令合计 <200ms、**其余全是模型侧**。
+小请求基线（`./scripts/codex-exec.sh '只回复：OK'`）稳定 12–13s ⇒ provider 侧有十几秒固定开销；
+真实评审正常 80–200s，偶发「`turn.started` 之后 240s 一个事件都没有」（`stdoutBytes≈252`）⇒ 上游没回数据，
+除了超时兜底（`CODEX_TIMEOUT_MS`）本地无可优化空间。
+
+本机复现一次（用 e2e 验证集里钉死的学员包，走与线上相同的评审路径）：
+
+```bash
+pnpm probe:codex-review 望岳      # 打印上面的全部指标
+```
+
 ## 发布验证集（e2e）
 
 发布后**必须**跑一遍（本机执行，走线上 MCP 全链路）：

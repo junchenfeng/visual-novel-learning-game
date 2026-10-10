@@ -15,6 +15,7 @@ import { INGEST_USER_ID_HINT } from "../src/ingest/l2Students";
 import { listRosterTool, upsertPoetTool } from "../src/mcp/tools";
 import { loadRoster } from "../src/roster/store";
 import { loadGalleryConfig } from "../src/server/galleryConfig";
+import { describeWithSqlite } from "./helpers/sqlite";
 import { getPoemStore, groupKeysByDelimiter, type PoemStore } from "../src/server/poemStore";
 
 const ROOT = path.join(__dirname, "..");
@@ -57,7 +58,7 @@ async function png(width: number, height: number, color = "#334455"): Promise<Bu
     .toBuffer();
 }
 
-describe("upsertPoetTool：HTTP 用二进制头像也能建诗人", () => {
+describeWithSqlite("upsertPoetTool：HTTP 用二进制头像也能建诗人", () => {
   it("给出正方形头像 → 诗人进名册，头像落成 webp", async () => {
     const store = memoryStore();
     const result = (await upsertPoetTool(
@@ -131,7 +132,7 @@ describe("upsertPoetTool：HTTP 用二进制头像也能建诗人", () => {
   });
 });
 
-describe("listRosterTool：HTTP 侧的对账入口", () => {
+describeWithSqlite("listRosterTool：HTTP 侧的对账入口", () => {
   it("返回诗人与篇目，并带上头像要求提示", async () => {
     const result = (await listRosterTool({ userId: USER }, { store: memoryStore() })) as unknown as {
       poets: Array<{ poetId: string; poet: string; works: string[] }>;

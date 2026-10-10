@@ -3,6 +3,7 @@ import { groupKeysByDelimiter, type PoemStore } from "../src/server/poemStore";
 import { SEED_ROSTER } from "../src/dlc/roster";
 import { preparePoetPortrait } from "../src/roster/portrait";
 import { loadRoster, upsertPoet, upsertWork } from "../src/roster/store";
+import { describeWithSqlite } from "./helpers/sqlite";
 
 function memoryStore(): PoemStore {
   const files = new Map<string, Buffer>();
@@ -43,7 +44,7 @@ async function squarePng(size: number): Promise<Buffer> {
     .toBuffer();
 }
 
-describe("poet portrait size", () => {
+describeWithSqlite("poet portrait size", () => {
   it("rejects a small or non-square image", async () => {
     const small = await squarePng(64);
     const smallCheck = await preparePoetPortrait(small);
@@ -69,7 +70,7 @@ describe("poet portrait size", () => {
   });
 });
 
-describe("roster store", () => {
+describeWithSqlite("roster store", () => {
   it("seeds the built-in poets then adds a work and a poet", async () => {
     const store = memoryStore();
     const seeded = await loadRoster(store);

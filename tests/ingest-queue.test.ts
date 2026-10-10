@@ -4,13 +4,14 @@ import path from "node:path";
 import { IngestQueue, QueueFullError } from "../src/ingest/queue";
 import { acquireIngestLock } from "../src/ingest/state";
 import { processNextJob } from "../src/ingest/worker";
+import { itWithSqlite } from "./helpers/sqlite";
 
 const input = { userId: "hh_11016863", poetId: "sushi", workTitle: "水调歌头" };
 let dir: string;
 beforeEach(() => { dir = mkdtempSync(path.join(tmpdir(), "ingest-queue-")); });
 afterEach(() => { rmSync(dir, { recursive: true, force: true }); });
 
-it("persists across reopen, deduplicates inflight uploads, and isolates student queries", () => {
+itWithSqlite("persists across reopen, deduplicates inflight uploads, and isolates student queries", () => {
   let q = new IngestQueue(dir);
   const job = q.enqueue(input, Buffer.from("zip"));
   expect(q.enqueue(input, Buffer.from("zip")).jobId).toBe(job.jobId);
@@ -28,7 +29,7 @@ it("persists across reopen, deduplicates inflight uploads, and isolates student 
   other.close(); q.close();
 });
 
-it("bounds admission and distinguishes worker interruption from content rejection", async () => {
+itWithSqlite("bounds admission and distinguishes worker interruption from content rejection", async () => {
   const q = new IngestQueue(dir);
   for (let i=0;i<100;i++) q.enqueue(input,Buffer.from(String(i)));
   expect(() => q.enqueue(input,Buffer.from("overflow"))).toThrow(QueueFullError);
@@ -40,7 +41,7 @@ it("bounds admission and distinguishes worker interruption from content rejectio
   q.close();
 });
 
-it("worker saves timings and a rejection result without treating it as an execution failure", async () => {
+itWithSqlite("worker saves timings and a rejection result without treating it as an execution failure", async () => {
   const q = new IngestQueue(dir), job = q.enqueue(input,Buffer.from("zip"));
   const handler = jest.fn(async () => ({ verdict: "reject" as const, issues: [] }));
   expect(await processNextJob(q,handler)).toBe(true);
@@ -56,7 +57,7 @@ it("worker saves timings and a rejection result without treating it as an execut
   q.close();
 });
 
-it("does not steal live process locks, but recovers a dead owner transactionally", async () => {
+itWithSqlite("does not steal live process locks, but recovers a dead owner transactionally", async () => {
   const release = await acquireIngestLock("worker",0,dir);
   await expect(acquireIngestLock("worker",0,dir)).rejects.toThrow(/busy/);
   release();
@@ -66,7 +67,7 @@ it("does not steal live process locks, but recovers a dead owner transactionally
   recovered(); q.close();
 });
 
-it("processes versions of the same work in order while allowing other works to run", () => {
+itWithSqlite("processes versions of the same work in order while allowing other works to run", () => {
   const q = new IngestQueue(dir);
   const first = q.enqueue(input, Buffer.from("v1"));
   const second = q.enqueue(input, Buffer.from("v2"));

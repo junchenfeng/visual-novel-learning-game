@@ -23,7 +23,8 @@
     "coze:verify": "node scripts/coze-sync.mjs --verify",
     "worker:ingest": "tsx scripts/ingest-worker.ts",
     "poem-dlc-review-e2e-test": "tsx scripts/poem-dlc-review-e2e-test.ts",
-    "ingest:ops": "tsx scripts/ingest-ops.ts"
+    "ingest:ops": "tsx scripts/ingest-ops.ts",
+    "probe:codex-review": "tsx scripts/codex-review-probe.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0",
