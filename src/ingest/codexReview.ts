@@ -6,7 +6,13 @@ import { machineIssue } from "./issues";
 
 /** 与 codex-home/model-catalog.tokenhub.json 的 slug 必须一致（codex exec -m 会覆盖 config.toml 默认值）。 */
 export const CODEX_MODEL = "deepseek-v4.1-flash";
-const CODEX_TIMEOUT_MS = 180_000;
+/**
+ * 单次 agent 评审的上限。180s 太紧：切 TokenHub 后正常单子就要 120–175s，稍大的包会被
+ * 卡在 180s 上杀掉并记成「审核引擎不可用」（2026-10-10 重审时 6/12 单这样失败）。
+ * 上限要配合 Nginx：poem.aibeaver.cn 的 proxy_read_timeout 是 330s，而总耗时 =
+ * 机器校验 + agent + 发布，所以这里留 240s 而不是更长。
+ */
+const CODEX_TIMEOUT_MS = 240_000;
 const STDOUT_CAP = 200_000;
 const LAST_MESSAGE_CAP = 100_000;
 
