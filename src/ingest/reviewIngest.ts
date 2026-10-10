@@ -1,4 +1,4 @@
-import { ingestStage } from "./timing";
+import { ingestMetric, ingestStage } from "./timing";
 import { playUrl } from "../server/siteUrl";
 import type { RosterPoet } from "../dlc/roster";
 import type { UploadedPack } from "../dlc/uploadIndex";
@@ -6,12 +6,20 @@ import type { UploadFormInput } from "../dlc/uploadPack";
 import { publishUploadedDlc } from "../dlc/publishUpload";
 import { upsertWork } from "../roster/store";
 import {
+  clearReviewArtifacts,
   ingestCodexWorkspace,
   runCodexSpecReview,
   type CodexTranscript,
   type SpecReviewOutcome,
 } from "./codexReview";
-import { hasBlocking, machineIssue, type IngestResult, type ReviewIssue } from "./issues";
+import {
+  ENGINE_ISSUE_RULE,
+  hasBlocking,
+  isEngineFailure,
+  machineIssue,
+  type IngestResult,
+  type ReviewIssue,
+} from "./issues";
 import { disposeMachineReview, machineReviewZip } from "./machineReview";
 import type { PoemStore } from "../server/poemStore";
 
@@ -31,6 +39,73 @@ function normalizeSpecReview(output: ReviewIssue[] | SpecReviewOutcome): SpecRev
 function siteOrigin(origin?: string): string {
   const fromEnv = process.env.PUBLIC_SITE_URL?.trim();
   return (origin || fromEnv || "https://poem.aibeaver.cn").replace(/\/+$/, "");
+}
+
+/**
+ * 引擎故障最多跑几次（含首次）。默认 2 = 失败后自动重跑 1 次。
+ *
+ * 为什么值得重跑：2026-10-10 的实测里，同一份学员包在不同时段的 Agent 耗时在 66s–202s 之间浮动
+ * （provider 侧排队/吞吐抖动），撞上 `CODEX_TIMEOUT_MS=240s` 的那一单，重跑一次基本都能过；
+ * 而这类失败跟学员的 YAML 毫无关系，直接判 reject 只会让学生白改一遍配置文件。
+ *
+ * 内容结论（真的审出 YAML 问题）**绝不重试**：那是审核意见，重跑只会把同一件事算两遍钱。
+ */
+export function reviewAttempts(): number {
+  const raw = Number(process.env.INGEST_REVIEW_ATTEMPTS ?? 2);
+  if (!Number.isFinite(raw)) return 2;
+  return Math.min(3, Math.max(1, Math.round(raw)));
+}
+
+/** 两次尝试之间的等待（默认 3s）：上游正卡着的时候立刻重试往往还是撞同一堵墙。 */
+export function reviewRetryDelayMs(): number {
+  const raw = Number(process.env.INGEST_REVIEW_RETRY_DELAY_MS ?? 3000);
+  if (!Number.isFinite(raw)) return 3000;
+  return Math.min(60_000, Math.max(0, Math.round(raw)));
+}
+
+/**
+ * 跑评审，引擎故障就重跑。
+ *
+ * 预算：单次上限 `CODEX_TIMEOUT_MS=240s`，2 次尝试最坏 ~500s（含机器校验与发布）。
+ * 线上是异步队列（`INGEST_ASYNC_ENABLED=1`：先 202 再轮询 get_ingest_job），不受 Nginx
+ * `proxy_read_timeout=330s` 约束；但**同步调用方**要把预算放到 600s 以上（e2e 脚本的
+ * `--max-ms` 默认值已按此调整）。
+ */
+export async function runSpecReviewWithRetry(options: {
+  reviewer: SpecReviewer;
+  packRoot: string;
+  machineIssues: ReviewIssue[];
+  workspace: string;
+}): Promise<SpecReviewOutcome> {
+  const attempts = reviewAttempts();
+  const delayMs = reviewRetryDelayMs();
+  let outcome: SpecReviewOutcome = { issues: [] };
+  let used = 0;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    used = attempt;
+    if (attempt > 1) {
+      clearReviewArtifacts(options.workspace);
+      ingestMetric("reviewRetryCount", attempt - 1);
+      console.warn(JSON.stringify({
+        event: "ingest_review_retry",
+        attempt,
+        attempts,
+        delayMs,
+        reason: outcome.issues.find((issue) => issue.rule === ENGINE_ISSUE_RULE)?.message?.slice(0, 200),
+      }));
+      if (delayMs > 0) await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+    outcome = normalizeSpecReview(await options.reviewer({
+      packRoot: options.packRoot,
+      machineIssues: options.machineIssues,
+      workspace: options.workspace,
+    }));
+    if (!isEngineFailure(outcome.issues)) break;
+  }
+  return {
+    ...outcome,
+    transcript: outcome.transcript ? { ...outcome.transcript, attempts: used } : outcome.transcript,
+  };
 }
 
 /**
@@ -111,13 +186,12 @@ export async function reviewAndIngestDlc(options: {
     let transcript: CodexTranscript | undefined;
     if (machine.packRoot) {
       const reviewer = options.specReviewer ?? runCodexSpecReview;
-      const spec = normalizeSpecReview(
-        await reviewer({
-          packRoot: machine.packRoot,
-          machineIssues: machine.issues,
-          workspace: ingestCodexWorkspace(machine.tempRoot),
-        }),
-      );
+      const spec = await ingestStage("specReviewMs", () => runSpecReviewWithRetry({
+        reviewer,
+        packRoot: machine.packRoot!,
+        machineIssues: machine.issues,
+        workspace: ingestCodexWorkspace(machine.tempRoot),
+      }));
       specIssues = spec.issues;
       transcript = spec.transcript;
     }

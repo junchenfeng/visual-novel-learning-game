@@ -262,7 +262,9 @@ pm2 save
 ```
 
 - PM2 为 Web 设置 `INGEST_ASYNC_ENABLED=1`；未设置保留同步兼容。异步提交 HTTP 202，最终结果走状态查询，不能把 202 当作上架成功。
-- **审核引擎的模型密钥**：worker 机器上必须能取到腾讯云 TokenHub 的 key——`TOKENHUB_API_KEY` 环境变量，或同机 `/root/ai-gallery/config.json` 的 `llm[].api-key`（`scripts/codex-exec.sh` 会兜底读取）。**取不到 key 时 codex exec 立刻退出，每一单都会记成 blocking「审核引擎不可用」→ 预览台显示「审核失败」**（2026-10-09 ai-gallery 切 TokenHub 后 poem 侧仍读 `name=deepseek` 条目，就是这样全线失败的）。另外聊天里的报错只说明密钥缺失，排查时先看 `logs/ingest-worker-err.log` 与 OSS `poem-rpg/ingest-audit/<id>/record.json` 的 `transcript.error`。
+- **引擎故障自动重试**：`INGEST_REVIEW_ATTEMPTS`（默认 2 = 失败后重跑 1 次，夹在 1..3）、`INGEST_REVIEW_RETRY_DELAY_MS`（默认 3000，夹在 0..60000）。只重试 `rule='审核引擎'` 的失败（codex 超时 / 取不到密钥 / 进程退出 / review.json 写坏）；学员 YAML 的结论是终局，不重试。重跑前会清掉上一轮可能写坏的 `review.json` / `last-message.txt`，次数写进 audit 的 `transcript.attempts` 与 `timings.reviewRetryCount`。
+  - 预算：单次上限 240s ⇒ 2 次尝试最坏 ~500s（含机器校验与发布）。异步链路不受 Nginx `proxy_read_timeout=330s` 约束；**同步调用方**（e2e 的 `--max-ms`、直连 MCP 的脚本）要把预算放到 600s 以上，否则会把「重试救回来的成功」误报成超时。
+- **审核引擎的模型密钥**：worker 机器上必须能取到腾讯云 TokenHub 的 key——`TOKENHUB_API_KEY` 环境变量，或同机 `/root/ai-gallery/config.json` 的 `llm[].api-key`（`scripts/codex-exec.sh` 会兜底读取）。**取不到 key 时 codex exec 立刻退出，每一单都会记成 blocking「审核引擎不可用」→ 预览台显示「审核失败」**（2026-10-09 ai-gallery 切 TokenHub 后 poem 侧仍读 `name=deepseek` 条目，就是这样全线失败的）。另外聊天里的报错只说明密钥缺失，排查时先看 `logs/ingest-worker-err.log` 与 OSS `poem-rpg/ingest-audit/<id>/record.json` 的 `transcript.error`。注意重试**救不了**这类确定性故障：密钥缺失时两次都会立刻失败（只是多花几百毫秒）。
 - Web / worker 的 `INGEST_DATA_DIR` 必须指向同一个本机持久目录，默认 `<repo>/.cache/ingest`；滚动发布、清理目录和备份时保留该目录。SQLite WAL 存任务及待处理 ZIP，完成后清除 ZIP，结果保留 7 天。不是多机共享队列，不放 NFS。
 - 单 worker 进程持有进程锁，内部默认并发 2，可设 `INGEST_WORKER_CONCURRENCY=1..8`。同一学员同一诗人篇目顺序处理；不同作品可并行审核。默认最多 100 个在途任务、512 MiB 压缩包总量，满则 429；这不是 QPS 10 的容量承诺。
 - 发布、预览和名册更新使用同一 SQLite 中的跨进程互斥锁；所有写入进程必须同机并共用 INGEST_DATA_DIR。旧版服务或外部脚本不遵守锁时仍不安全。

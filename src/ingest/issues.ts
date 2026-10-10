@@ -38,6 +38,17 @@ export function hasBlocking(issues: ReviewIssue[]): boolean {
   return issues.some((issue) => issue.severity === "blocking");
 }
 
+/**
+ * 引擎侧故障（codex 超时 / 取不到模型密钥 / 进程退出 / review.json 写坏）统一用这个 rule。
+ * 它只可能来自 `codexReview.ts` 的失败分支，所以「有没有这条」就等于「这次失败是不是引擎的锅」：
+ * 预览台据此区分「引擎坏了」与「学员 YAML 有问题」，`reviewIngest.ts` 据此自动重跑。
+ */
+export const ENGINE_ISSUE_RULE = "审核引擎";
+
+export function isEngineFailure(issues: ReviewIssue[]): boolean {
+  return issues.some((issue) => issue.rule === ENGINE_ISSUE_RULE);
+}
+
 export function machineIssue(
   message: string,
   extras: Partial<Pick<ReviewIssue, "path" | "rule" | "fixHint">> = {},

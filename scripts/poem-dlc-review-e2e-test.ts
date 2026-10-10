@@ -34,7 +34,12 @@ import {
 } from "./e2e-fixtures";
 
 const DEFAULT_BASE = "https://poem.aibeaver.cn";
-const DEFAULT_MAX_MS = 300_000;
+/**
+ * 单例客户端预算。必须容纳**一次引擎故障重试**：codex 单次上限 240s × 2 次 + 机器校验/发布，
+ * 最坏约 500s；给 540s 才不会把「重试救回来的成功」误报成轮询超时（2026-10-10 起 worker
+ * 默认 `INGEST_REVIEW_ATTEMPTS=2`）。
+ */
+const DEFAULT_MAX_MS = 540_000;
 
 type Args = {
   base: string;

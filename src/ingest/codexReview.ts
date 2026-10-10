@@ -1,9 +1,9 @@
 import { ingestMetric, ingestStage } from "./timing";
-import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import type { ReviewIssue } from "./issues";
-import { machineIssue } from "./issues";
+import { ENGINE_ISSUE_RULE, machineIssue } from "./issues";
 
 /** 与 codex-home/model-catalog.tokenhub.json 的 slug 必须一致（codex exec -m 会覆盖 config.toml 默认值）。 */
 export const CODEX_MODEL = "deepseek-v4.1-flash";
@@ -29,7 +29,22 @@ export type CodexTranscript = {
   error?: string;
   /** codex 内部的耗时分解；超时/失败也带上，便于回答「时间到底花在哪」 */
   metrics?: CodexMetrics;
+  /** 引擎故障自动重跑用了几次（1 = 一次就成）；审计里据此区分「本来就好」和「重试救回来的」 */
+  attempts?: number;
 };
+
+/**
+ * 重跑前清掉上一轮的产物。
+ *
+ * `spawnCodex` 见到 review.json 就收工（哪怕进程还没退出），所以被超时杀掉的那一轮**可能**在
+ * SIGTERM 之后又写了一份半成品 —— 不清掉的话，下一次尝试的轮询会立刻把残件当结论。
+ */
+export function clearReviewArtifacts(workspace: string): void {
+  for (const name of ["review.json", "last-message.txt"]) {
+    const file = path.join(workspace, name);
+    if (existsSync(file)) rmSync(file, { force: true });
+  }
+}
 
 /**
  * codex 侧耗时分解的一个片段。
@@ -224,7 +239,7 @@ export async function runCodexSpecReview(options: {
   if (!existsSync(execScript())) {
     const issues = [
       machineIssue("审核引擎不可用：找不到 scripts/codex-exec.sh", {
-        rule: "审核引擎",
+        rule: ENGINE_ISSUE_RULE,
         fixHint: "请稍后重试，或联系站点管理员检查 Codex",
       }),
     ].map((issue) => ({ ...issue, source: "spec" as const }));
@@ -277,7 +292,7 @@ export async function runCodexSpecReview(options: {
         {
           severity: "blocking",
           source: "spec",
-          rule: "审核引擎",
+          rule: ENGINE_ISSUE_RULE,
           message: `审核引擎不可用，请稍后重试。${error instanceof Error ? error.message : ""}`.trim(),
           fixHint: "机器校验结果仍然有效；修好 YAML 后可再提交",
         },
@@ -298,7 +313,7 @@ export async function runCodexSpecReview(options: {
         {
           severity: "blocking",
           source: "spec",
-          rule: "审核引擎",
+          rule: ENGINE_ISSUE_RULE,
           message: existsSync(reviewFile)
             ? "审核引擎返回的 review.json 无法解析，请稍后重试"
             : "审核引擎没有写出 review.json，请稍后重试",
@@ -571,7 +586,7 @@ export const specReviewerUnavailable: typeof runCodexSpecReview = async () => ({
     {
       severity: "blocking",
       source: "spec",
-      rule: "审核引擎",
+      rule: ENGINE_ISSUE_RULE,
       message: "审核引擎不可用，请稍后重试",
     },
   ],
