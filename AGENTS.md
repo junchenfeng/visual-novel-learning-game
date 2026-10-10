@@ -79,6 +79,7 @@ pnpm test        # 运行 Jest 测试
 - 故事结束到读词之间可在 `manifest.yaml` 配可选 `easterEgg`；不配则最后一页只有「开始读词」，不会出现「这是什么？」。字段见 `docs/dlc-spec.md`。
 - 试评轨迹 YAML 放 `docs/teaching/prompt-lab/cases/`（进 git，quiz-only）。开发环境进总结前会把完整对局（故事+课堂，不含读诗/彩蛋）写到 `assets/sessions/<dlcId>/`。总评走 `/api/summary`，把完整作答轨迹交给 LLM。方法见 `docs/teaching/README.md`。
 - 改 DLC 故事或题目时请升高 `manifest.yaml` 的 `version`。分析本机对局时丢掉 `dlcVersion` 对不上的文件。
+- 学生上传包的静态资源带**内容版本段**：`/dlc/<dlcId>/r-<包内容指纹前 8 位>/assets/...`（`src/assets/cdn.ts` 的 `packRevision` / `dlcAssetBasePath` / `staticDlcAssetKey`）。原因是资源写的是 `Cache-Control: immutable`，CDN 与浏览器按完整 URL 缓存一年，同名文件覆盖不会失效（表现是「传了新版本但图没变」），只能靠 URL 随内容变来解决。任何拼资源 URL 的代码都要从 `publicBasePath` 出发，别自己拼 `/dlc/<dlcId>`，也别把版本段丢掉——站点路径与 OSS key 是同一口径，差一层就是 404。
 
 ## 新增 DLC（带练创作）
 

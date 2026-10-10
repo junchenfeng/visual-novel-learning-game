@@ -1,3 +1,5 @@
+import { withIngestLock } from "./state";
+import { ingestStage } from "./timing";
 import { getPoemStore, ingestPreviewIndexKey, type PoemStore } from "../server/poemStore";
 import { asPreviewEntry, previewSlotKey, type PreviewEntry, type PreviewStatus } from "./preview";
 
@@ -31,6 +33,10 @@ export async function upsertPreviewEntry(
   input: UpsertPreviewInput,
   store: PoemStore = getPoemStore(),
 ): Promise<PreviewEntry> {
+  return ingestStage("previewMs", () => withIngestLock("preview", () => upsertPreviewUnlocked(input, store)));
+}
+
+async function upsertPreviewUnlocked(input: UpsertPreviewInput, store: PoemStore): Promise<PreviewEntry> {
   const userId = input.userId.trim();
   const poetId = input.poetId.trim();
   const workTitle = input.workTitle.trim();

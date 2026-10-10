@@ -1,4 +1,4 @@
-import { STATIC_OSS_PREFIX } from "../assets/cdn";
+import { staticDlcAssetKey } from "../assets/cdn";
 import { getPoemStore, uploadedCompiledKey, uploadsIndexKey, type PoemStore } from "../server/poemStore";
 import type { UploadedDlcSource, UploadedPack } from "./uploadedContent";
 
@@ -49,9 +49,9 @@ export async function loadUploadedCompiled(
   return store.readJson(uploadedCompiledKey(dlcId));
 }
 
-export function staticDlcObjectKey(dlcId: string, relativePath: string): string {
-  const cleaned = relativePath.replace(/^\/+/, "");
-  return `${STATIC_OSS_PREFIX}/dlc/${dlcId}/${cleaned}`;
+/** 见 src/assets/cdn.ts 的 staticDlcAssetKey：站点路径与 OSS key 必须同一个口径。 */
+export function staticDlcObjectKey(dlcId: string, relativePath: string, revision?: string): string {
+  return staticDlcAssetKey(dlcId, relativePath, revision);
 }
 
 /**

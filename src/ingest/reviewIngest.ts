@@ -1,3 +1,4 @@
+import { ingestStage } from "./timing";
 import { playUrl } from "../server/siteUrl";
 import type { RosterPoet } from "../dlc/roster";
 import type { UploadedPack } from "../dlc/uploadIndex";
@@ -66,12 +67,12 @@ export async function reviewAndIngestDlc(options: {
   /** 默认读名册 store；测试里直接给 seed 名册，连读盘都省掉。 */
   roster?: RosterPoet[];
 }): Promise<IngestResult> {
-  const machine = await machineReviewZip({
+  const machine = await ingestStage("machineMs", () => machineReviewZip({
     form: options.form,
     zipBuffer: options.zipBuffer,
     store: options.store,
     roster: options.roster,
-  });
+  }));
   try {
     // 幂等短路：线上那份与这次提交「版本 + 内容指纹」都一致 → 线上本来就是这个内容，判 skip。
     // 放在 Codex 之前是本轮最值钱的一步：不跑评审、不写 OSS、不动索引，已上架条目的
@@ -102,6 +103,9 @@ export async function reviewAndIngestDlc(options: {
         },
         issues: [],
       };
+    }
+    if (hasBlocking(machine.issues)) {
+      return { verdict: "reject", issues: machine.issues };
     }
     let specIssues: ReviewIssue[] = [];
     let transcript: CodexTranscript | undefined;
@@ -136,7 +140,7 @@ export async function reviewAndIngestDlc(options: {
       };
     }
 
-    const work = await upsertWork(options.form.poetId, options.form.workTitle);
+    const work = await ingestStage("rosterMs", () => upsertWork(options.form.poetId, options.form.workTitle, options.store));
     if ("issues" in work) {
       return {
         verdict: "reject",
@@ -145,10 +149,10 @@ export async function reviewAndIngestDlc(options: {
       };
     }
 
-    const published = await publishUploadedDlc({
+    const published = await ingestStage("publishMs", () => publishUploadedDlc({
       form: options.form,
       zipBuffer: options.zipBuffer,
-    });
+    }));
     if ("issues" in published) {
       return {
         verdict: "reject",

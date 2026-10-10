@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { MAX_ZIP_BYTES } from "../../../src/dlc/uploadPack";
 import { INGEST_USER_ID_HINT } from "../../../src/ingest/l2Students";
 import { isIngestUserIdReject } from "../../../src/ingest/userId";
-import { ingestDlcTool } from "../../../src/mcp/tools";
+import { submitIngestDlc, getIngestJob } from "../../../src/mcp/ingestJobs";
 import { requestOrigin } from "../../../src/server/siteUrl";
 
 export const runtime = "nodejs";
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const result = await ingestDlcTool({
+  const result = await submitIngestDlc({
     userId: userIdRaw,
     poetId,
     workTitle,
@@ -57,9 +57,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: INGEST_USER_ID_HINT, ...result }, { status: 400 });
   }
 
+  if ("jobId" in result) return NextResponse.json(result, { status: 202, headers: { "Retry-After": "3", "Cache-Control": "no-store" } });
+  if ("error" in result) return NextResponse.json(result, { status: result.error === "queue_full" ? 429 : 503, headers: { "Retry-After": "5" } });
   const verdict = "verdict" in result ? result.verdict : "reject";
   // 只有 reject 是 400：400 的语义是「按 issues 改 YAML 再来」。
   // accept（本轮上架）与 skip（版本与内容都没变、线上保持原样）都是成功，必须 200，
   // 否则 agent 会把 skip 当失败去乱改 YAML。
   return NextResponse.json(result, { status: verdict === "reject" ? 400 : 200 });
+}
+
+export async function GET(request: NextRequest) {
+  const result = getIngestJob({ userId: request.nextUrl.searchParams.get("userId") || "", jobId: request.nextUrl.searchParams.get("jobId") || "" });
+  return NextResponse.json(result, { status: "jobId" in result ? 200 : "error" in result ? 404 : isIngestUserIdReject(result) ? 400 : 200, headers: { "Cache-Control": "no-store" } });
 }

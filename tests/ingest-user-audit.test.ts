@@ -1,3 +1,4 @@
+import { withIngestTrace } from "../src/ingest/timing";
 import { groupKeysByDelimiter, type PoemStore } from "../src/server/poemStore";
 import { compactAuditTimestamp, writeIngestAudit } from "../src/ingest/audit";
 import { runWithIngestUser } from "../src/ingest/gate";
@@ -14,6 +15,9 @@ function memoryStore(): PoemStore & { files: Map<string, Buffer> } {
     },
     async putObject(key, body) {
       files.set(key, body);
+    },
+    async deleteObject(key) {
+      files.delete(key);
     },
     async readJson(key) {
       const body = files.get(key);
@@ -124,4 +128,13 @@ describe("ingest audit", () => {
     expect(record?.tool).toBe("list_roster");
     expect(record?.user.canonical).toBe("hh_1578");
   });
+});
+
+it("keeps concurrent worker audits distinct even for the same student and second", async () => {
+  const store = memoryStore(), now = new Date("2026-10-09T01:00:00Z");
+  const user = parseIngestUserId("hh_1578")!;
+  const ids = await Promise.all(["job-one", "job-two"].map((jobId) =>
+    withIngestTrace({ jobId, timings: {} }, () => writeIngestAudit({ tool: "ingest_dlc", rawUserId: user.raw, user, query: {}, response: {}, store, now }))));
+  expect(ids[0]).not.toBe(ids[1]);
+  for (const id of ids) expect(store.files.has(`poem-rpg/ingest-audit/${id}/record.json`)).toBe(true);
 });

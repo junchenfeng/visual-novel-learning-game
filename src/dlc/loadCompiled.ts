@@ -90,9 +90,13 @@ function parseCompiledJson(id: string, raw: unknown): CompiledDlc {
  * 而 assets.music 一直是包内相对路径，只靠 publicBasePath 拼接才碰巧对。这里显式
  * 改写，任何直接读 compiled.manifest.assets.music 的消费方（预览、审计、以后接的
  * 第三方）都能拿到可直接访问的地址。resolveMusicUrls 认绝对路径，不会再拼一遍前缀。
+ *
+ * 基点必须用 `dlc.publicBasePath`，**不能**自己拼 `/dlc/<id>`：上传包的资源路径里还有
+ * 一个内容版本段（`/dlc/<id>/r-xxxxxxxx`，见 src/assets/cdn.ts 的 packRevision），
+ * 自己拼出来的地址会少一层、稳定 404。
  */
 function rewriteMusicAssets(
-  dlcId: string,
+  publicBasePath: string,
   assets: CompiledDlc["manifest"]["assets"],
 ): CompiledDlc["manifest"]["assets"] {
   const music = assets?.music;
@@ -103,7 +107,7 @@ function rewriteMusicAssets(
     if (!relative) {
       return undefined;
     }
-    const sitePath = `/dlc/${dlcId}/${relative}`;
+    const sitePath = `${publicBasePath.replace(/\/+$/, "")}/${relative.replace(/^\/+/, "")}`;
     return publicAssetUrl(sitePath) || sitePath;
   };
   return {
@@ -121,7 +125,7 @@ function rewriteCompiledAssets(dlc: CompiledDlc): CompiledDlc {
     publicBasePath: publicAssetUrl(dlc.publicBasePath) || dlc.publicBasePath,
     manifest: {
       ...dlc.manifest,
-      assets: rewriteMusicAssets(dlc.manifest.id, dlc.manifest.assets),
+      assets: rewriteMusicAssets(dlc.publicBasePath, dlc.manifest.assets),
       characters: dlc.manifest.characters.map((character) => ({
         ...character,
         portraitUrl: character.portraitUrl ? publicAssetUrl(character.portraitUrl) : undefined,

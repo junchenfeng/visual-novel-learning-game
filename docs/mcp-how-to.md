@@ -61,11 +61,23 @@ curl -sS -X POST https://poem.aibeaver.cn/api/ingest \
 
 JSON 形式：`{"userId":"…","poetId":"…","workTitle":"…","zipBase64":"…"}`（`zipBase64` 可带 `data:application/zip;base64,` 前缀）。
 
-返回 `{ verdict, reason?, playUrl?, pack?, issues[] }`，三态只对两个 HTTP 码：
+异步部署下提交返回 **HTTP 202** 和 `{ jobId, status: "queued" | "running", pollAfterMs }`。
+这只表示已受理，**不是审核通过，不要向学员报告已上架，也不要立即重复提交**。
 
-- `accept` → HTTP **200**：本轮通过审核并（重新）上架。
-- `skip` → HTTP **200**：**与线上那份的「版本 + 内容指纹」都一样，服务端什么都没做**（线上保持原样，还省掉几分钟评审）。把 `playUrl` 照常报给用户，**不要改 YAML**；`reason` 会说明原因。
-- `reject` → HTTP **400**：body 就是同一份 `issues`，按它改 YAML 再传。**只有 reject 才是 400**。
+每隔 `pollAfterMs`（通常 3000 毫秒）查询一次：
+
+```bash
+curl -sS "https://poem.aibeaver.cn/api/ingest?userId=hh_学号&jobId=<返回的 jobId>"
+```
+
+- `queued` / `running`：继续等待并查询。
+- `completed`：读取 `result.verdict`。`accept` 本轮上架；`skip` 线上已有同版本同内容，照常返回 `result.playUrl`，不要改 YAML；`reject` 按 `result.issues` 修改后重传。查询 HTTP 200 表示查询成功，不表示审核通过。
+- `failed`：任务执行中断或异常，先用 `/api/my-dlc` 对账，再重试；不要把基础设施错误当作 YAML 不合格。
+- HTTP 429 `queue_full`：尚未受理，等待 `retryAfterMs` 后重试。
+- HTTP 503 `enqueue_failed`：未受理，稍后重试。
+- 不合法的身份、空文件或超限等会直接 HTTP 400 拒绝。
+
+未开启异步的旧部署仍直接返回 `{ verdict, reason?, playUrl?, pack?, issues[] }`：`accept/skip` 为 200，`reject` 为 400；调用方兼容两种返回，按有无 `jobId` 分支。
 
 **名册也有 HTTP 端点** —— 新诗人不必去配 MCP：
 
@@ -98,7 +110,7 @@ curl -sS -X POST https://poem.aibeaver.cn/api/roster \
 }
 ```
 
-工具名：`list_roster`、`upsert_poet`、`upsert_work`、`ingest_dlc`、`list_my_dlc`、`usage_manifest`、`download_usage_files`。
+工具名：`list_roster`、`upsert_poet`、`upsert_work`、`ingest_dlc`、`get_ingest_job`、`list_my_dlc`、`usage_manifest`、`download_usage_files`。
 
 每个请求都必须带学员 `userId`。格式不对或不在 L2 在读名单，会返回「user id不正确，需要咨询老师」。
 
@@ -125,7 +137,9 @@ rm -f "$OUT"
 (cd "$PACK" && zip -r "$OUT" . -x "*.DS_Store" -x "**/.git/**" -x "**/node_modules/**" -x "__MACOSX/**")
 ```
 
-### 3. 提交
+### 3. 提交与等待结果
+
+MCP 返回 jobId 后，用 `get_ingest_job({userId, jobId})` 按 pollAfterMs 轮询，直到 completed 或 failed；completed 时再按 result.verdict 处理。
 
 **走 HTTP**（上一节那条 curl，或 JSON 形式传 zip 的 base64），最省事，也不需要用户改任何配置。提交前两件事：
 
@@ -176,7 +190,9 @@ rm -f "$OUT"
 
 两条通道的提交是同一次审核，可能几分钟（机器校验 + Codex 对照 spec），不要中途取消。
 
-### 4. 看返回
+### 4. 看最终结果
+
+如果拿到 jobId，必须先轮询到 completed，下面字段取自 result；queued/running 不是最终结论。
 
 - `verdict: accept`：把 `playUrl` 给用户，这个包结束。
 - `verdict: skip`：**线上已经是这份，没做任何改动**（版本与内容指纹都一样）。把 `playUrl` 报给用户，**别去改 YAML**。

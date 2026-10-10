@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import JSZip from "jszip";
+import { dlcAssetBasePath, normalizeRevision } from "../assets/cdn";
 import { convertImageToWebp, isRasterImagePath, replaceExtWithWebp } from "../assets/webp";
 import { titlesMatch } from "./catalogShared";
 import { parseDlcDirectory } from "./parser";
@@ -214,17 +215,33 @@ export function validateUploadManifest(options: {
   return issues;
 }
 
-export function retargetCompiledDlc(compiled: CompiledDlc, targetId: string): CompiledDlc {
-  if (compiled.manifest.id === targetId) {
+/**
+ * 把编译产物里的资源地址从 `/dlc/<manifest.id>` 改写到 `/dlc/<targetId>[/<版本段>]`。
+ *
+ * 版本段（`r-<内容指纹>`）不是装饰：CDN 与浏览器按完整 URL 缓存上传包资源
+ * （`immutable` 一年不回源），同名文件覆盖后旧副本不会失效，学员就会看到
+ * 「传了新版本但图没变」。让 URL 随内容变是唯一的解法，见 src/assets/cdn.ts 的 packRevision。
+ *
+ * 注意 early return 的条件是**改写后的目标路径**，不是 id 是否相等：
+ * 学员的 manifest.id 本来就以 `-<自己 userId>` 结尾时（`uploadedDlcId` 会原样返回），
+ * id 相等但版本段仍然必须注入，否则这类包永远是老路径、永远吃旧缓存。
+ */
+export function retargetCompiledDlc(
+  compiled: CompiledDlc,
+  targetId: string,
+  revision?: string,
+): CompiledDlc {
+  const from = `/dlc/${compiled.manifest.id}`;
+  const to = dlcAssetBasePath(targetId, revision);
+  if (from === to) {
     return compiled;
   }
-  const from = `/dlc/${compiled.manifest.id}`;
   const rewrite = (url?: string) => {
     if (!url) {
       return url;
     }
     if (url === from || url.startsWith(`${from}/`)) {
-      return `/dlc/${targetId}${url.slice(from.length)}`;
+      return `${to}${url.slice(from.length)}`;
     }
     return url;
   };
@@ -257,9 +274,15 @@ export function publicDirForDlc(dlcId: string): string {
   return path.join(process.cwd(), "public", "dlc", dlcId);
 }
 
-export function syncPackAssetsToPublic(rootDir: string, dlcId: string): void {
+/**
+ * 把包内资源同步到 `public/dlc/<dlcId>/[<版本段>/]assets`。
+ *
+ * 目录结构必须跟 `dlcAssetBasePath` 完全一致：没有 CDN 的本地开发直接由 Next 从
+ * public/ 出图，少一层版本段就是整屏 404。
+ */
+export function syncPackAssetsToPublic(rootDir: string, dlcId: string, revision?: string): void {
   const source = path.join(rootDir, "assets");
-  const target = path.join(publicDirForDlc(dlcId), "assets");
+  const target = path.join(publicDirForDlc(dlcId), normalizeRevision(revision), "assets");
   rmSync(path.dirname(target), { recursive: true, force: true });
   if (!existsSync(source)) {
     return;

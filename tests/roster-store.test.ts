@@ -13,6 +13,9 @@ function memoryStore(): PoemStore {
     async putObject(key, body) {
       files.set(key, body);
     },
+    async deleteObject(key) {
+      files.delete(key);
+    },
     async readJson(key) {
       const body = files.get(key);
       if (!body) {

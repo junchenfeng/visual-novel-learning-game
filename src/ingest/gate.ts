@@ -1,3 +1,4 @@
+import { ingestStage } from "./timing";
 import type { PoemStore } from "../server/poemStore";
 import { safeWriteIngestAudit, sha256Hex } from "./audit";
 import { ingestUserReject, parseIngestUserId, type IngestUser } from "./userId";
@@ -28,7 +29,7 @@ export async function runWithIngestUser<T extends object>(options: {
   const user = parseIngestUserId(options.rawUserId);
   if (!user) {
     const response = ingestUserReject();
-    const auditId = await safeWriteIngestAudit({
+    const auditId = await ingestStage("auditMs", () => safeWriteIngestAudit({
       tool: options.tool,
       rawUserId: options.rawUserId,
       user: null,
@@ -38,14 +39,14 @@ export async function runWithIngestUser<T extends object>(options: {
       portraitBuffer: options.portraitBuffer,
       store: options.store,
       now: options.now,
-    });
+    }));
     return attachAuditId(response, auditId);
   }
 
   const result = await options.run(user);
   const transcript = options.extractTranscript?.(result);
   const publicResult = omitTranscript(result);
-  const auditId = await safeWriteIngestAudit({
+  const auditId = await ingestStage("auditMs", () => safeWriteIngestAudit({
     tool: options.tool,
     rawUserId: options.rawUserId,
     user,
@@ -56,7 +57,7 @@ export async function runWithIngestUser<T extends object>(options: {
     portraitBuffer: options.portraitBuffer,
     store: options.store,
     now: options.now,
-  });
+  }));
   return attachAuditId(publicResult, auditId);
 }
 

@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { loadGalleryConfig } from "./galleryConfig";
 
@@ -37,6 +37,12 @@ export type PoemStore = {
   getObject(key: string): Promise<Buffer | null>;
   putObject(key: string, body: Buffer, options?: PutObjectOptions): Promise<void>;
   listObjects(prefix: string, options?: ListObjectsOptions): Promise<ListObjectsResult>;
+  /**
+   * 删除单个对象。目前唯一的调用方是「发布新版本后清理旧版本资源」
+   * （见 src/dlc/publishUpload.ts 的 pruneStaleRevisions）——版本段换了之后，
+   * 旧版本的 key 再也不会被读到，留着只会白占存储。
+   */
+  deleteObject(key: string): Promise<void>;
 };
 
 /** 供内存 store / 测试复用的分组逻辑：给一批 key 加 delimiter 切出一级前缀。 */
@@ -73,6 +79,22 @@ function isNoSuchKey(error: unknown): boolean {
   return record.status === 404 || record.code === "NoSuchKey" || record.name === "NoSuchKeyError";
 }
 
+/** 删对象后一路清掉空目录，别让本地 store 攒出一片空文件夹（到 LOCAL_ROOT 为止）。 */
+function pruneEmptyDirs(dir: string, stopAt: string): void {
+  let current = dir;
+  while (current.startsWith(stopAt) && current !== stopAt) {
+    try {
+      if (readdirSync(current).length > 0) {
+        return;
+      }
+      rmdirSync(current);
+    } catch {
+      return;
+    }
+    current = path.dirname(current);
+  }
+}
+
 class LocalPoemStore implements PoemStore {
   private filePath(key: string) {
     return path.join(LOCAL_ROOT, key);
@@ -90,6 +112,12 @@ class LocalPoemStore implements PoemStore {
     const filePath = this.filePath(key);
     mkdirSync(path.dirname(filePath), { recursive: true });
     writeFileSync(filePath, body);
+  }
+
+  async deleteObject(key: string): Promise<void> {
+    const filePath = this.filePath(key);
+    rmSync(filePath, { force: true });
+    pruneEmptyDirs(path.dirname(filePath), LOCAL_ROOT);
   }
 
   async readJson<T>(key: string): Promise<T | null> {
@@ -159,6 +187,7 @@ type OssClient = {
     data: Buffer | string,
     options?: { mime?: string; headers?: Record<string, string> },
   ) => Promise<unknown>;
+  delete: (key: string) => Promise<unknown>;
   list: (query: {
     prefix?: string;
     delimiter?: string;
@@ -212,6 +241,10 @@ class OssPoemStore implements PoemStore {
       mime: "application/json; charset=utf-8",
       cacheControl: "no-cache",
     });
+  }
+
+  async deleteObject(key: string): Promise<void> {
+    await this.client.delete(key);
   }
 
   async listObjects(prefix: string, options?: ListObjectsOptions): Promise<ListObjectsResult> {

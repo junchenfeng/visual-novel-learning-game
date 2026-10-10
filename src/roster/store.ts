@@ -1,3 +1,4 @@
+import { withIngestLock } from "../ingest/state";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { STATIC_OSS_PREFIX } from "../assets/cdn";
@@ -55,7 +56,6 @@ export async function loadRoster(store: PoemStore = getPoemStore()): Promise<Ros
     return existing;
   }
   const seeded = cloneRoster(SEED_ROSTER);
-  await store.writeJson(rosterKey(), seeded);
   return seeded;
 }
 
@@ -68,6 +68,10 @@ export async function upsertWork(
   workTitle: string,
   store: PoemStore = getPoemStore(),
 ): Promise<RosterPoet | { issues: string[] }> {
+  return withIngestLock("roster", () => upsertWorkUnlocked(poetId, workTitle, store));
+}
+
+async function upsertWorkUnlocked(poetId: string, workTitle: string, store: PoemStore): Promise<RosterPoet | { issues: string[] }> {
   const title = workTitle.trim();
   if (!title) {
     return { issues: ["篇目标题不能为空"] };
@@ -119,6 +123,7 @@ export async function upsertPoet(options: {
     writeFileSync(path.join(localDir, `${poetId}.webp`), portrait.webp);
   }
 
+  return withIngestLock("roster", async () => {
   const roster = await loadRoster(store);
   const existing = roster.find((item) => item.poetId === poetId);
   const next: RosterPoet = existing
@@ -129,4 +134,5 @@ export async function upsertPoet(options: {
     : [...roster, next];
   await saveRoster(saved, store);
   return { poet: next };
+  });
 }

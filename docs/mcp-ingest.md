@@ -79,18 +79,24 @@
 
 给已有诗人加篇目。`ingest_dlc` 审核通过时也会自动加。
 
+### `get_ingest_job`
+
+参数：本人 `userId` 和 `jobId`。只返回该学员自己的任务。`queued/running` 时按 `pollAfterMs` 等待；`completed` 后读取 `result.verdict/issues/playUrl`；`failed` 后先对账再重试。结果保留 7 天，过期或无权限都返回 not_found。HTTP 等价接口为 `GET /api/ingest?userId=...&jobId=...`，查询成功是 200，与审核 verdict 无关。
+
 ### `ingest_dlc`
 
 参数：`userId`、`poetId`、`workTitle`，以及 `zipBase64`（远程）或 `zipPath`（本机）。zip ≤ 30MB。
 
-返回：
+生产 PM2 配置启用异步：提交只入持久化队列，返回 `{jobId, status, pollAfterMs}`（HTTP 202），使用 get_ingest_job 查询最终结果。队列满返回 queue_full（HTTP 429）。没有 jobId 的直接拒绝不会入队。未开启 `INGEST_ASYNC_ENABLED=1` 的本机 stdio / 旧部署保留同步兼容。
+
+最终结果（异步模式在 `result` 中，同步模式直接返回）：
 
 ```json
 {
   "verdict": "accept | skip | reject",
   "reason": "版本 1.2.0 与内容指纹均未变化：线上保持原样，未重新审核",
   "playUrl": "https://poem.aibeaver.cn/play/...",
-  "auditId": "hh_11016863_20260911T102648123Z",
+  "auditId": "hh_11016863_20260911T102648Z",
   "issues": [
     {
       "severity": "blocking",
@@ -106,7 +112,7 @@
 
 `source: machine` 来自编译器 / 图检查 / 名册；`source: spec` 来自 Codex 对照 `docs/dlc-spec.md`。改 spec 文档后，下一单审核自动用新规则。
 
-**`verdict` 三态与 HTTP 码**：`accept`（本轮上架）与 `skip` 都是 **200**；只有 `reject` 是 **400**（400 的语义是「按 issues 改 YAML 再来」）。
+**同步兼容模式的 `verdict` 三态与 HTTP 码**：`accept`（本轮上架）与 `skip` 都是 **200**；只有 `reject` 是 **400**（400 的语义是「按 issues 改 YAML 再来」）。
 
 `skip` = 与线上那份**「版本 + 内容指纹」都相同**，服务端什么都没做（不跑 Codex、不写 OSS、不动上传索引），线上保持原样并带上 `reason`。判据是 `manifest.version` 与包内容指纹（解压后**原始**目录的 sha256 —— 不能对 zip 字节算，重打包会变；也不能对编译产物算，发布侧会先 png→webp）同时相等。**老上传索引条目没有指纹字段，一律照常重新审核**，发布后自动补上指纹。
 
@@ -122,10 +128,10 @@
 
 ## 留存（audit）
 
-每一次工具调用（含认证失败）按 `userId_timestamp` 写到 OSS，目录：
+同步工具调用及 worker 完成的审核（含认证失败）按 `userId_timestamp` 写到 OSS，目录：
 
 ```
-poem-rpg/ingest-audit/hh_11016863_20260911T102648123Z/
+poem-rpg/ingest-audit/hh_11016863_20260911T102648Z/
   query.json         # 工具名、规范化学员、参数（不含 zip/头像 base64，只记体积和 sha256）
   response.json      # 返回给调用方的 verdict / issues / playUrl
   transcript.json    # 若跑了 Codex：prompt、last-message、review.json、stdout
@@ -134,9 +140,7 @@ poem-rpg/ingest-audit/hh_11016863_20260911T102648123Z/
   record.json        # 以上汇总
 ```
 
-认证失败时目录前缀是 `invalid_<原始userId>_<timestamp>`。一轮 MCP 工具调用对应一份 audit：原始 query 和这次审核对话挂在同一个文件夹。
-
-时间戳**精确到毫秒**（`...T102648123Z`）：秒级精度下，同一学员在同一秒内连续两次调用（提交完立刻查 `list_my_dlc` 很常见）会写进同一个目录，后写的 `record.json` 覆盖前一次的 verdict/issues，只留下 `pack.zip`、`transcript.json`，事故取证时最关键的结论就丢了（2026-10-10 e2e 首跑实测 4 单被覆盖）。
+认证失败时目录前缀是 `invalid_<原始userId>_<timestamp>`。worker 的审计目录在时间戳后附加唯一 jobId，并在 record.json 留存 jobId，避免同一学员同秒完成多单互相覆盖。异步受理先写 SQLite 持久化任务记录，worker 执行时写上述 OSS 审计；状态轮询只读任务记录，不反复写 OSS。原始 query 和这次审核对话挂在同一个文件夹。
 
 ## HTTP 上传 zip
 
@@ -207,3 +211,10 @@ pnpm ingest:ops verify-slots [userId...]        # 只读核对预览台状态 + 
 pnpm ingest:ops rereview-failed --dry-run       # 列出「最近一次失败是引擎事故」、可重跑的单子
 pnpm ingest:ops rereview-failed                 # 按 audit 里留存的原 zip 重跑（用学员自己的 userId）
 ```
+
+## Agent 与运行指标
+
+仍使用隔离 Codex + 可修改的 TASK/SPEC，并保留 shell 工具。规则、机器问题、资源清单与 YAML 一次内联到提示，减少逐个 cat 的模型往返；超过 256 KiB 的 YAML 明确列入 deferredYamlPaths，由 agent 按需读取，绝不静默截断。机器 blocking 先返回修正意见，不再消耗一轮 agent。
+
+worker 输出 JSON `ingest_stage` / `ingest_job_finished`，以 jobId 关联；最终任务包含 timings：queueMs、workspaceMs、machineMs、agentMs、rosterMs、publishMs、imagesMs、uploadAssetsMs、previewMs、auditMs、processingMs、totalMs。缺失阶段表示没执行；嵌套阶段不可直接相加。
+agentFirstEventMs 是 Codex 首个事件（可能只是 thread.started），不是模型首 token；agentFirstMessageMs 是首条 agent_message。agentCommandCount / agentCommandsMs 记录已完成 shell 次数及观察到的执行时间，usage 仅在 CLI 输出时记录。提前取得 review.json 后结束 agent，usage 可能缺失。

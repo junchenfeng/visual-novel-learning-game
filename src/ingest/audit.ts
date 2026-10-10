@@ -1,3 +1,4 @@
+import { ingestJobId } from "./timing";
 import { createHash } from "node:crypto";
 import { getPoemStore, type PoemStore } from "../server/poemStore";
 import type { IngestUser } from "./userId";
@@ -6,6 +7,7 @@ const OSS_PREFIX = "poem-rpg";
 
 export type IngestAuditRecord = {
   auditId: string;
+  jobId?: string;
   timestamp: string;
   tool: string;
   user: {
@@ -62,10 +64,13 @@ export async function writeIngestAudit(options: {
   const store = options.store ?? getPoemStore();
   const timestamp = (options.now ?? new Date()).toISOString();
   const canonical = options.user?.canonical ?? `invalid_${sanitizeKey(options.rawUserId) || "unknown"}`;
-  const auditId = `${canonical}_${compactAuditTimestamp(timestamp)}`;
-  const prefix = ingestAuditPrefix(canonical, timestamp);
+  const jobId = ingestJobId();
+  const suffix = jobId ? `_${jobId}` : "";
+  const auditId = `${canonical}_${compactAuditTimestamp(timestamp)}${suffix}`;
+  const prefix = `${ingestAuditPrefix(canonical, timestamp)}${suffix}`;
   const record: IngestAuditRecord = {
     auditId,
+    jobId,
     timestamp,
     tool: options.tool,
     user: {

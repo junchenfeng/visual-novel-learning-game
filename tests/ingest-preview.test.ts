@@ -19,6 +19,9 @@ function memoryStore(): PoemStore & { files: Map<string, Buffer> } {
     async putObject(key, body) {
       files.set(key, body);
     },
+    async deleteObject(key) {
+      files.delete(key);
+    },
     async readJson(key) {
       const body = files.get(key);
       if (!body) {
@@ -115,6 +118,7 @@ describe("ingest preview board", () => {
     const store: PoemStore = {
       getObject: inner.getObject.bind(inner),
       putObject: inner.putObject.bind(inner),
+      deleteObject: inner.deleteObject.bind(inner),
       readJson: inner.readJson.bind(inner),
       listObjects: inner.listObjects.bind(inner),
       async writeJson(key, value) {

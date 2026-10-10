@@ -1,7 +1,7 @@
+import { submitIngestDlc, getIngestJob } from "./ingestJobs";
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/server";
 import {
-  ingestDlcTool,
   jsonText,
   listRosterTool,
   upsertPoetTool,
@@ -63,7 +63,7 @@ export function registerIngestTools(server: McpServer): void {
     {
       title: "审核并上架 DLC",
       description:
-        "提交本人 userId（hh学号 / hh_学号）、诗人、篇目和 zip。按 dlc-spec 机器校验 + Codex 审核。全部通过才入库上架；否则只返回修改意见。",
+        "提交本人 userId（hh学号 / hh_学号）、诗人、篇目和 zip。按 dlc-spec 机器校验 + Codex 审核。异步模式返回 jobId 和 queued/running；每隔 pollAfterMs 调用 get_ingest_job，completed 后查看 result.verdict。仅 accept/skip 表示已上架，queued 不表示通过。",
       inputSchema: z.object({
         userId: userIdField,
         poetId: z.string(),
@@ -72,8 +72,14 @@ export function registerIngestTools(server: McpServer): void {
         zipPath: z.string().optional().describe("本机 zip 路径，仅 stdio"),
       }),
     },
-    async (input) => jsonText(await ingestDlcTool(input)),
+    async (input) => jsonText(await submitIngestDlc(input)),
   );
+
+  server.registerTool("get_ingest_job", {
+    title: "查询 DLC 审核进度",
+    description: "用提交返回的 jobId 查询本人任务。queued/running 时按 pollAfterMs 等待；completed 后读 result 的 verdict/issues/playUrl；failed 时先对账再重试。",
+    inputSchema: z.object({ userId: userIdField, jobId: z.string() }),
+  }, async (input) => jsonText(getIngestJob(input)));
 
   const targetDirField = z
     .string()

@@ -32,6 +32,9 @@ function memoryStore(): MemoryStore {
     async putObject(key, body) {
       files.set(key, body);
     },
+    async deleteObject(key) {
+      files.delete(key);
+    },
     async readJson(key) {
       const body = files.get(key);
       return body ? JSON.parse(body.toString("utf8")) : null;

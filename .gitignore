@@ -70,6 +70,9 @@ next-env.d.ts
 # CodeBuddy local plans
 /.codebuddy/plans/
 
+# Durable local ingest queue (never commit learner packages)
+/.cache/
+
 # codex CLI 会在 CODEX_HOME 里写运行期状态（sqlite / 日志 / skills / installation_id）：
 # 只保留两份配置，其余一律不入库
 /codex-home/*

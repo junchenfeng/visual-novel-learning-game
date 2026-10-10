@@ -101,7 +101,9 @@ CDN_BASE_URL=https://cdn.aibeaver.cn
 POEM_ADMIN_PASSWORD=（只写在服务器上，不要进 git）
 ```
 
-`AI_API_KEY` 可省略：生产会从 `config.json` 的 `llm` 里取 DeepSeek 密钥。若要覆盖，再写 `AI_API_KEY` / `AI_BASE_URL` / `AI_MODEL`。
+`AI_API_KEY` 可省略：生产会从 `config.json` 的 `llm` 里取密钥与 `baseUrl` / `model`（现为腾讯云 TokenHub，见下）。若要覆盖，再写 `AI_API_KEY` / `AI_BASE_URL` / `AI_MODEL`——注意**不要**手写 `AI_BASE_URL=https://api.deepseek.com`（那条直连口径已下线）。
+
+⚠️ `AI_PROVIDER` 的合法值只有 `mock` / `openai` / `compatible` / `deepseek`（`deepseek` 在这里的含义是「OpenAI 兼容的 live provider」，实际端点仍取自 `config.json`）；写成 `tokenhub` 会认不出来、静默掉回 Coze。**审核引擎（`scripts/codex-exec.sh`）不读这些变量**，它只认 `TOKENHUB_API_KEY` 或 `config.json` 的 tokenhub `api-key`，两者是独立的配置面。
 
 静态图会在 `deploy:build` 里转成 webp 并同步到 OSS，页面走 `CDN_BASE_URL`。管理台上传 DLC 用 `POEM_ADMIN_PASSWORD`；首页用户名填 `nova-admin` 进入上传台。
 
@@ -223,6 +225,12 @@ pnpm poem-dlc-review-e2e-test          # 5 个用例；失败时打印证据与�
 
 静态资源前缀：`poem-rpg/static/`（CDN `https://cdn.aibeaver.cn/poem-rpg/static/...`）。学生上传的 DLC 索引在 `poem-rpg/uploads/`。诗人名册在 `poem-rpg/roster.json`（首次从仓库 seed）。仓库课包 `hailao-shuidiao`（海狸老师）不进线上目录。
 
+学生上传包的资源按**内容版本段**落盘：`poem-rpg/static/dlc/<dlcId>/r-<包内容指纹前 8 位>/assets/...`，站点路径与之一一对应（`/dlc/<dlcId>/r-xxxxxxxx/assets/...`）。加这一层是因为资源响应头是 `Cache-Control: immutable`，而 CDN 与浏览器按**完整 URL** 缓存一年：同名文件覆盖后旧副本不会失效，学员会看到「传了新版本但图没变」。版本段取内容指纹而不是 `manifest.version`——「改了内容忘升版本」正是这个坑最常见的触发方式。内容一变 URL 就变，缓存自然失效；旧版本目录由下一次发布顺手清掉（保留一小时，避免打断正在进行的对局，见 `src/dlc/publishUpload.ts` 的 `pruneStaleRevisions`），清理需要 `PoemStore.deleteObject`。
+
+拼资源 URL 的代码一律从 `publicBasePath` 出发（`src/dlc/loadCompiled.ts` 的 `rewriteMusicAssets` 曾经自己拼 `/dlc/<dlcId>`，加版本段后会稳定 404）。
+
+仓库自带课包不在这条链上：它们由 `sync:cdn` 传到老路径（`poem-rpg/static/dlc/<dlcId>/...`，同样 `immutable`），改图要同时刷 CDN 缓存，否则边缘最多 30 天不回源。
+
 对方 agent 先读公开说明，再连 MCP：
 
 - 操作说明（用户只给 userId + DLC 目录，zip 由 agent 打）：https://poem.aibeaver.cn/mcp-how-to
@@ -233,3 +241,22 @@ pnpm poem-dlc-review-e2e-test          # 5 个用例；失败时打印证据与�
 - 服务端细节见 [mcp-ingest.md](mcp-ingest.md)、[mcp-usage.md](mcp-usage.md)
 
 ECS 上 `codex` 需要在 `poem-rpg` 进程 PATH 里可执行（与 grading-agent 同一份 CLI）。
+
+
+## DLC 异步审核 worker
+
+需要 Node >=22.13（使用内置 node:sqlite；已在 Node 24 验证）。执行 `pnpm typecheck`、`pnpm test --runInBand`、`pnpm build` 后，使用仓库 `ecosystem.config.cjs` 启动 / 更新 Web 和 `poem-ingest-worker` 两个进程。**必须同时部署 worker 和更新后的 MCP/HTTP 使用说明**。
+
+```bash
+pm2 startOrReload ecosystem.config.cjs --update-env
+pm2 save
+```
+
+- PM2 为 Web 设置 `INGEST_ASYNC_ENABLED=1`；未设置保留同步兼容。异步提交 HTTP 202，最终结果走状态查询，不能把 202 当作上架成功。
+- **审核引擎的模型密钥**：worker 机器上必须能取到腾讯云 TokenHub 的 key——`TOKENHUB_API_KEY` 环境变量，或同机 `/root/ai-gallery/config.json` 的 `llm[].api-key`（`scripts/codex-exec.sh` 会兜底读取）。**取不到 key 时 codex exec 立刻退出，每一单都会记成 blocking「审核引擎不可用」→ 预览台显示「审核失败」**（2026-10-09 ai-gallery 切 TokenHub 后 poem 侧仍读 `name=deepseek` 条目，就是这样全线失败的）。另外聊天里的报错只说明密钥缺失，排查时先看 `logs/ingest-worker-err.log` 与 OSS `poem-rpg/ingest-audit/<id>/record.json` 的 `transcript.error`。
+- Web / worker 的 `INGEST_DATA_DIR` 必须指向同一个本机持久目录，默认 `<repo>/.cache/ingest`；滚动发布、清理目录和备份时保留该目录。SQLite WAL 存任务及待处理 ZIP，完成后清除 ZIP，结果保留 7 天。不是多机共享队列，不放 NFS。
+- 单 worker 进程持有进程锁，内部默认并发 2，可设 `INGEST_WORKER_CONCURRENCY=1..8`。同一学员同一诗人篇目顺序处理；不同作品可并行审核。默认最多 100 个在途任务、512 MiB 压缩包总量，满则 429；这不是 QPS 10 的容量承诺。
+- 发布、预览和名册更新使用同一 SQLite 中的跨进程互斥锁；所有写入进程必须同机并共用 INGEST_DATA_DIR。旧版服务或外部脚本不遵守锁时仍不安全。
+- 正常 SIGTERM 停止领取并等待现有任务结束，PM2 留 360 秒。崩溃重启保留 queued；遗留 running 标记 failed，不自动重放可能已经发布的操作。客户端先查已上架内容再重提。
+- 部署回退到同步前，先停止新受理、排空队列；不要删除队列文件，也不要同时保留旧版写入进程。
+- 查看 `logs/ingest-worker-out.log` 的 `ingest_stage` / `ingest_job_finished`。先验证受理→排队→审核→发布→查询全链路，再以 1/3/5/10 QPS 分级测试，观察完成吞吐、队列长度、超时率及资源。
