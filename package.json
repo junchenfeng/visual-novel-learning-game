@@ -20,7 +20,9 @@
     "coze:sync": "node scripts/coze-sync.mjs",
     "coze:sync:write": "node scripts/coze-sync.mjs --write",
     "coze:check": "node scripts/coze-sync.mjs --check",
-    "coze:verify": "node scripts/coze-sync.mjs --verify"
+    "coze:verify": "node scripts/coze-sync.mjs --verify",
+    "poem-dlc-review-e2e-test": "tsx scripts/poem-dlc-review-e2e-test.ts",
+    "ingest:ops": "tsx scripts/ingest-ops.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0",

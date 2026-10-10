@@ -198,11 +198,20 @@ ssh aliyun-ecs 'cd /root/visual-novel-learning-game && nohup bash -c "git pull o
 ssh aliyun-ecs 'tail -20 /tmp/poem-deploy.log'
 ```
 
-发布后三条都要过，缺一条就不算换版：
+发布后四条都要过，缺一条就不算换版：
 
 1. `pm2 list` 里 `poem-rpg` 为 `online`，且 `↺` 计数比发布前 +1。
 2. **用本次改动的文案 grep 公网页面**，例如改 `docs/patch-2.md` 后：`curl -s https://poem.aibeaver.cn/patch-2 | grep -c '<新写的句子>'` ≥ 1。只看 HTTP 200 不算数 —— 200 只说明进程活着。
 3. `ssh aliyun-ecs 'cd /root/visual-novel-learning-game && tail -20 logs/err.log'` 无新报错。
+4. **跑发布验证集**（本机执行，走线上 MCP 全链路）：
+
+```bash
+pnpm poem-dlc-review-e2e-test          # 5 个用例；失败时打印证据与排查提示
+```
+
+它把 5 份已上架学员包以 e2e 学员身份重提交，强制跑完整 Codex 审核，断言 `verdict=accept` 且 issues 里没有 `rule=审核引擎`。
+**这条是唯一能抓住「审核引擎不可用 / agent 超时 → 全部审核失败」的检查**（2026-10-09 事故：ai-gallery 切 TokenHub 后 poem 侧仍读 `name=deepseek` 条目，每一单都被拒；单测全绿也发现不了）。
+前提是服务端代码里有 e2e 学员（`src/ingest/l2Students.ts` 末尾的 `hh_0000000`…`hh_0000004`）——没有就先发布再跑。
 
 改 `.env.production` 或 `config.json` 的 OSS/LLM 后也要 `pm2 restart poem-rpg`。
 

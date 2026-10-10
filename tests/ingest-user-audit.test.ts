@@ -56,7 +56,8 @@ describe("L2 ingest user id", () => {
   it("has unique hardcoded student ids", () => {
     const ids = L2_ENROLLED_STUDENTS.map((item) => item.studentId);
     expect(new Set(ids).size).toBe(ids.length);
-    expect(ids).toHaveLength(66);
+    // 66 名 L2 在读学员 + 5 个 e2e 发布验证集专用身份（见 l2Students.ts 末尾与 scripts/e2e-fixtures.ts）
+    expect(ids).toHaveLength(71);
   });
 });
 

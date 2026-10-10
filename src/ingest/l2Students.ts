@@ -5,6 +5,12 @@ export type L2EnrolledStudent = {
   classId: string;
 };
 
+/** e2e 验证集身份的昵称/班级（`scripts/e2e-fixtures.ts` 与测试共用，避免写死两处）。 */
+export const E2E_INGEST_STUDENT = { nickname: "e2e验证", classId: "l2-e2e" } as const;
+
+/** 真学员名单之后追加的 e2e 身份学号（顺序与 `scripts/e2e-fixtures.ts` 的用例一一对应）。 */
+export const E2E_STUDENT_IDS = ["0000000", "0000001", "0000002", "0000003", "0000004"] as const;
+
 export const L2_ENROLLED_STUDENTS: L2EnrolledStudent[] = [
   { studentId: "11016863", nickname: "李晓满", classId: "l2-fjc-byy-sat-aft" },
   { studentId: "11019876", nickname: "佳逸", classId: "l2-fjc-byy-sat-aft" },
@@ -72,6 +78,18 @@ export const L2_ENROLLED_STUDENTS: L2EnrolledStudent[] = [
   { studentId: "5963637", nickname: "凯凯", classId: "l2-ck-lxh-sat-eve" },
   { studentId: "892220", nickname: "八宝儿", classId: "l2-ck-lxh-sat-eve" },
   { studentId: "9699876", nickname: "Matthies", classId: "l2-ck-lxh-sat-eve" },
+
+  // ── e2e 发布验证集专用身份（不是真学员，勿删）────────────────────────────────
+  // 供 `pnpm poem-dlc-review-e2e-test` 使用：把已上架学员包以 e2e 身份重提交，
+  // 走完整 MCP 链路（鉴权 → 机器校验 → Codex 审核 → 发布）以验证线上审核引擎。
+  // 一个用例一个 id：用例发布到 `<shortId>-<e2eUserId>`，而多份学员包 short id 相同
+  // （如两份 `data-demo`），共用一个 id 会挤在同一个上传槽上互相覆盖。
+  // 这些 id 会出现在管理台/预览台的提交记录里（昵称「e2e验证」），属预期。
+  { studentId: "0000000", nickname: E2E_INGEST_STUDENT.nickname, classId: E2E_INGEST_STUDENT.classId },
+  { studentId: "0000001", nickname: E2E_INGEST_STUDENT.nickname, classId: E2E_INGEST_STUDENT.classId },
+  { studentId: "0000002", nickname: E2E_INGEST_STUDENT.nickname, classId: E2E_INGEST_STUDENT.classId },
+  { studentId: "0000003", nickname: E2E_INGEST_STUDENT.nickname, classId: E2E_INGEST_STUDENT.classId },
+  { studentId: "0000004", nickname: E2E_INGEST_STUDENT.nickname, classId: E2E_INGEST_STUDENT.classId },
 ];
 
 export const L2_STUDENT_BY_ID = new Map(L2_ENROLLED_STUDENTS.map((item) => [item.studentId, item]));

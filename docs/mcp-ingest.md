@@ -180,3 +180,27 @@ JSON 形式：`{ userId, poetId, poet, portraitBase64, portraitMime? }`（`portr
 审核走 `scripts/codex-exec.sh`，配置在仓库 `codex-home/`（与 `~/.codex`、ai-gallery 批改工位隔离）。模型接入与 ai-gallery 同口径走**腾讯云 TokenHub**：密钥取 `TOKENHUB_API_KEY`，否则读 ai-gallery `config.json` 的 `llm` 里 `name=tokenhub`（或任意一条带 `api-key`）的条目。模型：`deepseek-v4.1-flash`（catalog 见 `codex-home/model-catalog.tokenhub.json`）。
 
 Codex 挂掉时，机器意见照样返回，并多一条 blocking「审核引擎不可用」，**不会静默放行**。
+
+## 发布验证集（e2e）
+
+发布后**必须**跑一遍（本机执行，走线上 MCP 全链路）：
+
+```bash
+pnpm poem-dlc-review-e2e-test              # 5 个用例：望岳 / 赋得古原草送别 / 池上 / 水调歌头×2
+pnpm poem-dlc-review-e2e-test --dry-run    # 只校验 fixture 与 MCP 握手（不发包）
+pnpm poem-dlc-review-e2e-test --case 望岳 --json
+```
+
+- 素材是 5 份**已上架学员包**，钉死在 OSS `poem-rpg/ingest-audit/<canonical>_<ts>/pack.zip`（学员包不进 git）；每条都取「该 slot 被 accept 的那次提交」，`assertFixtureRecord` 会校验。
+- 提交身份是 e2e 专用学员 `hh_0000000`…`hh_0000004`（`src/ingest/l2Students.ts` 末尾，昵称「e2e验证」，一个用例一个身份以避开同 short id 的槽位冲突）。用例发布到独立 dlcId（`<shortId>-hh_000000X`），**不碰学生线上包**；这些提交会以「e2e验证」出现在管理台/预览台，属预期。
+- 每轮把包内 `manifest.version` 改写成 `<原值>+e2e.<时间戳>`：版本与内容指纹都变了，`shouldSkipReview` 不会命中，**Codex 一定跑**（否则第二次起会被 skip 短路，等于没验）。
+- 判定口径：`verdict=accept`、issues 里**没有 `rule=审核引擎`**、单例耗时 < 300s（Nginx `proxy_read_timeout 330s` 是天花板）、dlcId 与 `list_my_dlc` 对账一致。命中「审核引擎」＝引擎故障（凭据 / 超时），**不是学员 YAML 问题**，按上面的 Codex 段落排查。
+- **不进日常 `pnpm test`**（jest 只扫 `tests/`）；只在发布验证与故障排查时手动跑。
+
+排查与善后（同样本机执行）：
+
+```bash
+pnpm ingest:ops verify-slots [userId...]        # 只读核对预览台状态 + 最近一次提交的 issues / transcript.error
+pnpm ingest:ops rereview-failed --dry-run       # 列出「最近一次失败是引擎事故」、可重跑的单子
+pnpm ingest:ops rereview-failed                 # 按 audit 里留存的原 zip 重跑（用学员自己的 userId）
+```
