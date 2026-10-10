@@ -233,10 +233,13 @@ async function main(): Promise<void> {
     outcome.verdict = String(result?.verdict ?? "");
     outcome.dlcId = result?.pack?.dlcId;
 
-    if (evaluated.ok && result) {
+    if (evaluated.ok && result && !evaluated.contentReject) {
       outcome.phase = "verify";
       const verifyProblems = await verifyPublished(client, testCase, expectedDlcId, result, outcome.notes);
       outcome.problems.push(...verifyProblems);
+    } else if (evaluated.contentReject) {
+      outcome.phase = "verify";
+      outcome.notes.push("内容结论浮动（reject）：跳过 list_my_dlc 对账与试玩探活");
     }
 
     outcome.ok = outcome.problems.length === 0;

@@ -56,6 +56,11 @@ export type Outcome = {
   ok: boolean;
   problems: string[];
   notes: string[];
+  /**
+   * 本次是「内容结论浮动」被降级为通过（reject 且非引擎故障）。
+   * 这种情况下响应里没有 `pack.dlcId`（没发布），调用方要跳过 dlcId 对账与试玩探活。
+   */
+  contentReject?: boolean;
 };
 
 export function engineIssues(result: IngestResultLike | null | undefined): IngestIssue[] {
@@ -85,6 +90,7 @@ export function evaluateIngestOutcome(input: OutcomeInput): Outcome {
   const problems: string[] = [];
   const notes: string[] = [];
   const result = input.result ?? null;
+  let contentReject = false;
 
   if (!result) {
     return { ok: false, problems: ["没有拿到审核结果（响应为空或超时被中断）"], notes };
@@ -101,6 +107,7 @@ export function evaluateIngestOutcome(input: OutcomeInput): Outcome {
     }
   } else if (verdict === "reject") {
     if (input.allowContentReject && engineIssues(result).length === 0) {
+      contentReject = true;
       notes.push(`verdict=reject（内容结论浮动，非引擎故障，按通过计）：${issueSummaries(result.issues)}`);
     } else {
       problems.push(`verdict=reject：${issueSummaries(result.issues) || "无 issues 文本"}`);
@@ -123,12 +130,15 @@ export function evaluateIngestOutcome(input: OutcomeInput): Outcome {
   }
 
   const dlcId = String(result.pack?.dlcId ?? "").trim();
-  if (input.expectedDlcId) {
+  if (input.expectedDlcId && !contentReject) {
     if (!dlcId) {
       problems.push(`响应里没有 pack.dlcId（期望 ${input.expectedDlcId}）`);
     } else if (dlcId !== input.expectedDlcId) {
       problems.push(`dlcId 不符：得到 ${dlcId}，期望 ${input.expectedDlcId}`);
     }
+  } else if (input.expectedDlcId && contentReject) {
+    // reject 不会发布，所以这里不该要求 pack.dlcId（旧口径会把 either 用例一律判失败）
+    notes.push(`内容结论浮动未发布 ⇒ 跳过 ${input.expectedDlcId} 的 dlcId 对账与试玩探活`);
   }
   if (dlcId) {
     notes.push(`dlcId=${dlcId}${result.pack?.version ? ` v${result.pack.version}` : ""}`);
@@ -137,5 +147,5 @@ export function evaluateIngestOutcome(input: OutcomeInput): Outcome {
     notes.push(`playUrl=${result.playUrl}`);
   }
 
-  return { ok: problems.length === 0, problems, notes };
+  return { ok: problems.length === 0, problems, notes, contentReject };
 }

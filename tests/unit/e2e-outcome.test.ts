@@ -69,6 +69,18 @@ describe("审核结果判定", () => {
     expect(lenient.ok).toBe(true);
     expect(lenient.notes.join()).toContain("内容结论浮动");
 
+    // reject 不会发布 ⇒ 即便给了 expectedDlcId，也不该因「没有 pack.dlcId」判失败（否则 either 用例必挂）
+    const lenientWithExpected = evaluateIngestOutcome({
+      result: contentReject,
+      elapsedMs: 90_000,
+      maxElapsedMs: 300_000,
+      expectedDlcId: "baijuyi-chishang-hh_0000002",
+      allowContentReject: true,
+    });
+    expect(lenientWithExpected.ok).toBe(true);
+    expect(lenientWithExpected.contentReject).toBe(true);
+    expect(lenientWithExpected.notes.join()).toContain("跳过");
+
     // 引擎故障永远是硬失败，即便 allowContentReject
     const brokenEngine = evaluateIngestOutcome({
       result: { verdict: "reject", issues: [{ severity: "blocking", rule: ENGINE_RULE, message: "审核引擎不可用" }] },
